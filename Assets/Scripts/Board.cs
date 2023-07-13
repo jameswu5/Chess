@@ -8,6 +8,8 @@ public class Board : MonoBehaviour
     public const int BoardHeight = 8;
     public const int NumOfSquares = 64;
 
+    public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
     public Square squarePrefab;
     public Piece piecePrefab;
     public Transform camera;
@@ -18,9 +20,7 @@ public class Board : MonoBehaviour
     {
         GenerateBoard();
         MoveCamera();
-
-        boardState[0] = CreatePiece(14, 0);
-        boardState[4] = CreatePiece(4, 4);
+        GenerateBoardStateFromFEN();
     }
 
     void GenerateBoard() {
@@ -39,12 +39,50 @@ public class Board : MonoBehaviour
         camera.transform.position = new Vector3((float) BoardWidth / 2 - 0.5f, (float) BoardHeight / 2 - 0.5f, -10);
     }
 
+    void GenerateBoardStateFromFEN(string FENPosition = startFENPosition) {
+
+        boardState = new Piece[NumOfSquares];
+
+        Dictionary<char, int> pieceTypes = new Dictionary<char, int>() {
+            {'K', Piece.King},
+            {'Q', Piece.Queen},
+            {'B', Piece.Bishop},
+            {'N', Piece.Knight},
+            {'R', Piece.Rook},
+            {'P', Piece.Pawn},
+        };
+
+        int rank = 7;
+        int file = 0;
+
+        string[] sections = FENPosition.Split(' ');
+        
+        // We will only deal with the first section for now.
+        string boardInformation = sections[0];
+        foreach (char c in boardInformation) {
+            if (c == '/') {
+                rank--;
+                file = 0;
+            } else if (c >= '0' && c <= '8') {
+                file += c - '0';
+            } else {
+                int pieceColour = char.IsUpper(c) ? Piece.White : Piece.Black;
+                int pieceType = pieceTypes[char.ToUpper(c)];
+
+                int location = rank * BoardHeight + file;
+                
+                CreatePiece(pieceColour + pieceType, location);
+
+                file++;
+            }
+        }
+    }
+
     Piece CreatePiece(int pieceID, int location) {
         int rank = location / BoardHeight;
         int file = location % BoardHeight;
-        Piece spawnPiece = Instantiate(piecePrefab, new Vector3(rank, file, -1), Quaternion.identity);
+        Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, -1), Quaternion.identity);
         spawnPiece.Initialise(pieceID, location);
-
         return spawnPiece;
     }
 }
