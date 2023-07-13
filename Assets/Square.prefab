@@ -97,6 +97,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffc7377179ec74836a60639f903d7a9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightColor: {r: 1, g: 0.9253145, b: 0.7311321, a: 1}
-  darkColor: {r: 0.735849, g: 0.6015973, b: 0.25338197, a: 1}
+  lightColor: {r: 0.827451, g: 0.87058824, b: 0.8980392, a: 1}
+  darkColor: {r: 0.49803922, g: 0.627451, b: 0.7058824, a: 1}
   renderer: {fileID: 6803287801271144179}
