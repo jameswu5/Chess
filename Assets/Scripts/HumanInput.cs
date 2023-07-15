@@ -6,13 +6,13 @@ using UnityEngine.EventSystems;
 public class HumanInput : MonoBehaviour
 {
 
-    public Camera camera;
+    public new Camera camera;
     public GameObject boardObject;
     public Board board;
 
     public enum InputState
     {
-        Idle, Selected, Dragging
+        Idle, Selecting, Dragging
     }
 
     public InputState currentState = InputState.Idle;
@@ -44,17 +44,11 @@ public class HumanInput : MonoBehaviour
             case InputState.Dragging:
                 HandleInputDragging(mousePosition);
                 break;
-            case InputState.Selected:
-                HandleInputSelected();
+            case InputState.Selecting:
+                HandleInputSelecting(mousePosition);
                 break;
             default:
                 break;
-        }
-
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            CancelAction();
         }
     }
 
@@ -79,9 +73,20 @@ public class HumanInput : MonoBehaviour
         }
     }
 
-    public void HandleInputSelected()
+    public void HandleInputSelecting(Vector2 mousePosition)
     {
+        if (Input.GetMouseButtonDown(0))
+        {
+            int newIndex = GetIndexFromMousePosition(mousePosition);
 
+            if (newIndex != pieceIndex && newIndex != -1)
+            {
+                board.PlacePiece(pieceIndex, newIndex);
+            }
+
+            currentState = InputState.Idle;
+            Debug.Log("Set to Idle");
+        }
     }
 
     public void HandleInputDragging(Vector2 mousePosition)
@@ -92,30 +97,32 @@ public class HumanInput : MonoBehaviour
         {
             int newIndex = GetIndexFromMousePosition(mousePosition);
 
-            if (newIndex != -1)
+            if (newIndex == pieceIndex)
             {
-                board.PlacePiece(pieceIndex, newIndex);
+                currentState = InputState.Selecting;
+                board.boardState[pieceIndex].SnapToSquare(pieceIndex);
+
+                Debug.Log("Set to Selecting");
             }
             else
             {
-                // move back to original place
-                Debug.Log("Tried to place out of bounds");
-
-                board.boardState[pieceIndex].SnapToSquare(pieceIndex);
-
-                // board.PlacePiece(pieceIndex, pieceIndex);
+                if (newIndex != -1)
+                {
+                    board.PlacePiece(pieceIndex, newIndex);
+                    currentState = InputState.Idle;
+                }
+                else
+                {
+                    // move back to original place
+                    Debug.Log("Tried to place out of bounds");
+                    board.ResetPiecePosition(pieceIndex);
+                }
+                currentState = InputState.Idle;
+                Debug.Log("Set to Idle");
             }
-
-            currentState = InputState.Idle;
-            Debug.Log("Set to Idle");
         }
-
     }
 
-    public void CancelAction()
-    {
-
-    }
 
     public int GetIndexFromMousePosition(Vector2 mousePosition)
     {

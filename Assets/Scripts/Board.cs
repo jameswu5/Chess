@@ -104,6 +104,11 @@ public class Board : MonoBehaviour
         boardState[index].Drag(mousePos);
     }
 
+    public void ResetPiecePosition(int index)
+    {
+        boardState[index].SnapToSquare(index);
+    }
+
     public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
     {
         Piece selectedPiece = boardState[index];
