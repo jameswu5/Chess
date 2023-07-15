@@ -5,6 +5,9 @@ using UnityEngine;
 public class Square : MonoBehaviour
 {
     public Color lightColor, darkColor, highlightColor;
+
+    public GameObject hoverHighlight;
+
     public new SpriteRenderer renderer;
 
     private bool isLightSquare;
@@ -37,10 +40,13 @@ public class Square : MonoBehaviour
         SetColor(highlightColor);
     }
 
-
     public void SetColor(Color color) {
         renderer.color = color;
     }
 
-    
+    public void SetHoverHighlight(bool boolean)
+    {
+        hoverHighlight.SetActive(boolean);
+    }
+
 }

@@ -39,7 +39,7 @@ public class Board : MonoBehaviour
     }
 
 
-    void GenerateBoard() {
+    private void GenerateBoard() {
         for (int x = 0; x < BoardWidth; x++) {
             for (int y = 0; y < BoardHeight; y++) {
                 Square spawnedSquare = Instantiate(squarePrefab, new Vector3(x, y, 0), Quaternion.identity);
@@ -51,17 +51,16 @@ public class Board : MonoBehaviour
 
                 bool isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
 
-
                 spawnedSquare.Initialise(squareIndex, squareName, isOffset);
             }
         }
     }
 
-    void MoveCamera() {
+    private void MoveCamera() {
         camera.transform.position = new Vector3((float) BoardWidth / 2 - 0.5f, (float) BoardHeight / 2 - 0.5f, -10);
     }
 
-    void GenerateBoardStateFromFEN(string FENPosition = startFENPosition) {
+    private void GenerateBoardStateFromFEN(string FENPosition = startFENPosition) {
 
         boardState = new Piece[NumOfSquares];
 
@@ -146,10 +145,6 @@ public class Board : MonoBehaviour
         Debug.Log("Destroyed piece");
     }
 
-
-
-
-
     public void HighlightSquare(int index)
     {
         squares[index].Highlight();
@@ -160,4 +155,21 @@ public class Board : MonoBehaviour
         squares[index].InitialiseColor();
     }
 
+    public void HighlightHover(int index)
+    {
+        // We unhighlight every single square because we don't know which square it was on before.
+        // Still technically O(1) but I'm not a fan.
+
+        for (int i = 0; i < NumOfSquares; i++)
+        {
+            UnHighlightHover(i);
+        }
+
+        squares[index].SetHoverHighlight(true);
+    }
+
+    public void UnHighlightHover(int index)
+    {
+        squares[index].SetHoverHighlight(false);
+    }
 }

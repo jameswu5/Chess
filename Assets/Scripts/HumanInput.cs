@@ -37,7 +37,6 @@ public class HumanInput : MonoBehaviour
     {
         Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
 
-
         switch (currentState) {
             case InputState.Idle:
                 HandleInputIdle(mousePosition);
@@ -98,16 +97,19 @@ public class HumanInput : MonoBehaviour
     public void HandleInputDragging(Vector2 mousePosition)
     {
         board.DragPiece(pieceIndex, mousePosition, dragOffset);
+        int newIndex = GetIndexFromMousePosition(mousePosition);
+
+        board.HighlightHover(newIndex);
 
         if (Input.GetMouseButtonUp(0))
         {
-            int newIndex = GetIndexFromMousePosition(mousePosition);
 
             if (newIndex == pieceIndex)
             {
                 currentState = InputState.Selecting;
                 board.boardState[pieceIndex].SnapToSquare(pieceIndex);
 
+                board.UnHighlightHover(pieceIndex);
                 Debug.Log("Set to Selecting");
             }
             else
@@ -115,6 +117,9 @@ public class HumanInput : MonoBehaviour
                 if (newIndex != -1)
                 {
                     board.PlacePiece(pieceIndex, newIndex);
+
+                    board.UnHighlightHover(newIndex);
+
                     currentState = InputState.Idle;
                 }
                 else
