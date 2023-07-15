@@ -42,4 +42,9 @@ public class Piece : MonoBehaviour
         transform.position = new Vector3(x, y, -1);
     }
 
+    public void DestroyPiece()
+    {
+        Destroy(gameObject);
+    }
+
 }

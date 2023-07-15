@@ -125,7 +125,7 @@ public class Board : MonoBehaviour
     public void DestroyPiece(int index)
     {
         Piece selectedPiece = boardState[index];
-        Destroy(selectedPiece); // this doesn't destroy the piece yet
+        selectedPiece.DestroyPiece();
         Debug.Log("Destroyed piece");
     }
 }
