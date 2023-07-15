@@ -99,9 +99,9 @@ public class Board : MonoBehaviour
         return spawnPiece;
     }
 
-    public void DragPiece(int index, Vector2 mousePos)
+    public void DragPiece(int index, Vector2 mousePos, float dragOffset)
     {
-        boardState[index].Drag(mousePos);
+        boardState[index].Drag(mousePos, dragOffset);
     }
 
     public void ResetPiecePosition(int index)

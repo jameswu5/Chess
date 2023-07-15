@@ -15,9 +15,10 @@ public class HumanInput : MonoBehaviour
         Idle, Selecting, Dragging
     }
 
-    public InputState currentState = InputState.Idle;
+    private InputState currentState = InputState.Idle;
+    private int pieceIndex = -1;
 
-    private int pieceIndex = -1; // selected index
+    public float dragOffset = -0.3f;
 
 
     void Start()
@@ -91,7 +92,7 @@ public class HumanInput : MonoBehaviour
 
     public void HandleInputDragging(Vector2 mousePosition)
     {
-        board.DragPiece(pieceIndex, mousePosition);
+        board.DragPiece(pieceIndex, mousePosition, dragOffset);
 
         if (Input.GetMouseButtonUp(0))
         {
