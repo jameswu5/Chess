@@ -10,11 +10,23 @@ public class Board : MonoBehaviour
 
     public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+    public const string testFENPosition = "8/8/8/4k3/8/8/8/8";
+
     public Square squarePrefab;
     public Piece piecePrefab;
-    public Transform camera;
+    public Camera camera;
 
     public Piece[] boardState = new Piece[NumOfSquares];
+
+
+    public enum InputState
+    {
+        None, Selected, Dragging
+    }
+
+    public InputState currentState = InputState.None;
+
+
 
     void Start()
     {
@@ -22,6 +34,7 @@ public class Board : MonoBehaviour
         MoveCamera();
         GenerateBoardStateFromFEN();
     }
+
 
     void GenerateBoard() {
         for (int x = 0; x < BoardWidth; x++) {
@@ -68,21 +81,51 @@ public class Board : MonoBehaviour
             } else {
                 int pieceColour = char.IsUpper(c) ? Piece.White : Piece.Black;
                 int pieceType = pieceTypes[char.ToUpper(c)];
+                int index = rank * BoardHeight + file;
 
-                int location = rank * BoardHeight + file;
-                
-                CreatePiece(pieceColour + pieceType, location);
+                Piece newPiece = CreatePiece(pieceColour + pieceType, index);
+                boardState[index] = newPiece;
 
                 file++;
             }
         }
     }
 
-    Piece CreatePiece(int pieceID, int location) {
-        int rank = location / BoardHeight;
-        int file = location % BoardHeight;
+    Piece CreatePiece(int pieceID, int index) {
+        int rank = index / BoardHeight;
+        int file = index % BoardHeight;
         Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, -1), Quaternion.identity);
-        spawnPiece.Initialise(pieceID, location);
+        spawnPiece.Initialise(pieceID, index);
         return spawnPiece;
+    }
+
+    public void DragPiece(int index, Vector2 mousePos)
+    {
+        boardState[index].Drag(mousePos);
+    }
+
+    public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
+    {
+        Piece selectedPiece = boardState[index];
+
+
+        boardState[index] = null;
+        
+        if (boardState[newIndex] != null)
+        {
+            DestroyPiece(newIndex);
+        }
+
+        boardState[newIndex] = selectedPiece;
+        selectedPiece.index = newIndex;
+        selectedPiece.SnapToSquare(newIndex);
+
+    }
+
+    public void DestroyPiece(int index)
+    {
+        Piece selectedPiece = boardState[index];
+        Destroy(selectedPiece); // this doesn't destroy the piece yet
+        Debug.Log("Destroyed piece");
     }
 }

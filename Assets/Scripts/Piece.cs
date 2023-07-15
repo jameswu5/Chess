@@ -16,17 +16,30 @@ public class Piece : MonoBehaviour
     public const int Black = 8;
 
     public int pieceID;
-    public int location;
+    public int index;
     public Sprite[] pieceSprites;
     public SpriteRenderer spriteRenderer;
 
-    public void Initialise(int pieceIDParam, int locationParam) {
+    public void Initialise(int pieceIDParam, int indexParam) {
         pieceID = pieceIDParam;
-        location = locationParam;
+        index = indexParam;
         SetSprite();
     }
 
     public void SetSprite() {
         spriteRenderer.sprite = pieceSprites[pieceID];
     }
+
+    public void Drag(Vector2 mousePosition)
+    {
+        transform.position = new Vector3(mousePosition.x, mousePosition.y, transform.position.z);
+
+    }
+
+    public void SnapToSquare(int newIndex) {
+        int x = newIndex % 8;
+        int y = newIndex / 8;
+        transform.position = new Vector3(x, y, -1);
+    }
+
 }
