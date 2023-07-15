@@ -14,7 +14,9 @@ public class Board : MonoBehaviour
 
     public Square squarePrefab;
     public Piece piecePrefab;
-    public Camera camera;
+    public new Camera camera;
+    public AudioSource captureSound;
+    public AudioSource moveSound;
 
     public Piece[] boardState = new Piece[NumOfSquares];
 
@@ -112,13 +114,16 @@ public class Board : MonoBehaviour
     public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
     {
         Piece selectedPiece = boardState[index];
-
-
         boardState[index] = null;
         
         if (boardState[newIndex] != null)
         {
             DestroyPiece(newIndex);
+            captureSound.Play();
+        }
+        else
+        {
+            moveSound.Play();
         }
 
         boardState[newIndex] = selectedPiece;

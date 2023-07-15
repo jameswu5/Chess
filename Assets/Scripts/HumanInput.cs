@@ -133,7 +133,7 @@ public class HumanInput : MonoBehaviour
         }
         else
         {
-            return -1; // clicked somewhere not in the board
+            return -1; // clicked somewhere not on the board
         }
     }
 }
