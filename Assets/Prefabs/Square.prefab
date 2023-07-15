@@ -99,4 +99,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lightColor: {r: 0.827451, g: 0.87058824, b: 0.8980392, a: 1}
   darkColor: {r: 0.49803922, g: 0.627451, b: 0.7058824, a: 1}
+  highlightColor: {r: 0.6117647, g: 0.85882354, b: 0.91764706, a: 1}
   renderer: {fileID: 6803287801271144179}

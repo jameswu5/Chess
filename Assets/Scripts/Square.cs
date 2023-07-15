@@ -4,13 +4,42 @@ using UnityEngine;
 
 public class Square : MonoBehaviour
 {
-    public Color lightColor, darkColor;
-    public SpriteRenderer renderer;
-    // Start is called before the first frame update
-    
+    public Color lightColor, darkColor, highlightColor;
+    public new SpriteRenderer renderer;
 
-    public void SetColor(bool isOffset) {
-        renderer.color = isOffset ? lightColor : darkColor;
+    private bool isLightSquare;
+    private int squareIndex;
+
+
+    public void Initialise(int index, string squareName, bool isOffset)
+    {
+        squareIndex = index;
+        name = squareName;
+        isLightSquare = isOffset;
+        InitialiseColor();
+
+    }
+
+    public void InitialiseColor()
+    {
+        if (isLightSquare == true)
+        {
+            SetColor(lightColor);
+        }
+        else
+        {
+            SetColor(darkColor);
+        }
+    }
+
+    public void Highlight()
+    {
+        SetColor(highlightColor);
+    }
+
+
+    public void SetColor(Color color) {
+        renderer.color = color;
     }
 
     

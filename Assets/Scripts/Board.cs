@@ -19,6 +19,7 @@ public class Board : MonoBehaviour
     public AudioSource moveSound;
 
     public Piece[] boardState = new Piece[NumOfSquares];
+    public Square[] squares = new Square[NumOfSquares];
 
 
     public enum InputState
@@ -32,8 +33,8 @@ public class Board : MonoBehaviour
 
     void Start()
     {
-        GenerateBoard();
         MoveCamera();
+        GenerateBoard();
         GenerateBoardStateFromFEN();
     }
 
@@ -42,10 +43,16 @@ public class Board : MonoBehaviour
         for (int x = 0; x < BoardWidth; x++) {
             for (int y = 0; y < BoardHeight; y++) {
                 Square spawnedSquare = Instantiate(squarePrefab, new Vector3(x, y, 0), Quaternion.identity);
-                spawnedSquare.name = $"{(char)(x + 97)}{y+1}";
+
+                string squareName = $"{(char)(x + 97)}{y + 1}";
+                int squareIndex = y * BoardHeight + x;
+
+                squares[squareIndex] = spawnedSquare;
 
                 bool isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
-                spawnedSquare.SetColor(isOffset);
+
+
+                spawnedSquare.Initialise(squareIndex, squareName, isOffset);
             }
         }
     }
@@ -138,4 +145,19 @@ public class Board : MonoBehaviour
         selectedPiece.DestroyPiece();
         Debug.Log("Destroyed piece");
     }
+
+
+
+
+
+    public void HighlightSquare(int index)
+    {
+        squares[index].Highlight();
+    }
+
+    public void ResetSquareColour(int index)
+    {
+        squares[index].InitialiseColor();
+    }
+
 }

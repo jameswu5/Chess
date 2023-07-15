@@ -67,6 +67,8 @@ public class HumanInput : MonoBehaviour
                     pieceIndex = index;
                     currentState = InputState.Dragging;
 
+                    board.HighlightSquare(pieceIndex);
+
                     Debug.Log("Set to Dragging");
                 }
             }
@@ -86,6 +88,9 @@ public class HumanInput : MonoBehaviour
             }
 
             currentState = InputState.Idle;
+            board.ResetSquareColour(pieceIndex);
+
+
             Debug.Log("Set to Idle");
         }
     }
@@ -119,6 +124,8 @@ public class HumanInput : MonoBehaviour
                     board.ResetPiecePosition(pieceIndex);
                 }
                 currentState = InputState.Idle;
+                board.ResetSquareColour(pieceIndex);
+
                 Debug.Log("Set to Idle");
             }
         }
