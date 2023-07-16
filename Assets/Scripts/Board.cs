@@ -9,8 +9,7 @@ public class Board : MonoBehaviour
     public const int NumOfSquares = 64;
 
     public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-    public const string testFENPosition = "8/8/8/4k3/8/8/8/8";
+    public const string testFENPosition = "8/6b1/8/4Q3/8/7r/8/8";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -21,21 +20,19 @@ public class Board : MonoBehaviour
     public Piece[] boardState = new Piece[NumOfSquares];
     public Square[] squares = new Square[NumOfSquares];
 
+    public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
 
     public enum InputState
     {
         None, Selected, Dragging
     }
-
     public InputState currentState = InputState.None;
-
-
 
     void Start()
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(testFENPosition);
     }
 
 
@@ -177,7 +174,6 @@ public class Board : MonoBehaviour
     {
         foreach (int index in indices)
         {
-            Debug.Log($"{index} is now an option.");
             squares[index].SetOptionHighlight(true);
         }
     }
@@ -188,7 +184,6 @@ public class Board : MonoBehaviour
         HighlightOptions(indices);
     }
 
-
     public void UnHighlightOptionsAllSquares()
     {
         foreach (Square square in squares)
@@ -198,4 +193,97 @@ public class Board : MonoBehaviour
     }
 
 
+    //////////////////
+    // Moving rules //
+    //////////////////
+
+    public HashSet<int> GetLegalMoves(int index)
+    {
+        Piece currentPiece = boardState[index];
+        HashSet<int> legalMoves = new();
+
+        switch (currentPiece.pieceID % 8)
+        {
+            case Piece.King:
+                break;
+
+            case Piece.Queen:
+                legalMoves = SlideMoves(index, Directions);
+                break;
+
+            case Piece.Bishop:
+                legalMoves = SlideMoves(index, Directions[4..]);
+                break;
+
+            case Piece.Knight:
+                break;
+
+            case Piece.Rook:
+                legalMoves = SlideMoves(index, Directions[0..4]);
+                break;
+
+            case Piece.Pawn:
+                break;
+
+            default:
+                Debug.Log($"Piece at square index {index} cannot be found!");
+                break;
+        }
+
+        return legalMoves;
+    }
+
+    public HashSet<int> SlideMoves(int index, IEnumerable<int> offsets)
+    {
+        HashSet<int> legalMoves = new();
+
+        foreach (int offset in offsets)
+        {
+            int currentSquareIndex = index;
+            while (!CheckIfAtEdge(currentSquareIndex, offset))
+            {
+                currentSquareIndex += offset;
+                if (currentSquareIndex >= 0 && currentSquareIndex < NumOfSquares)
+                {
+                    if (boardState[currentSquareIndex] == null)
+                    {
+                        legalMoves.Add(currentSquareIndex);
+                    }
+                    else
+                    {
+                        if (boardState[currentSquareIndex].IsWhite() != boardState[index].IsWhite()) // different colour so can capture
+                        {
+                            legalMoves.Add(currentSquareIndex);
+                        }
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        return legalMoves;
+    }
+
+
+    public bool CheckIfAtEdge(int index, int offset)
+    {
+        if (offset == -7 || offset == -8 || offset == -9)
+        {
+            if (index < 8) return true;
+        }
+        if (offset == -9 || offset == -1 || offset == 7)
+        {
+            if (index % 8 == 0) return true;
+        }
+        if (offset == 7 || offset == 8 || offset == 9)
+        {
+            if (index >= 56) return true;
+        }
+        if (offset == -7 || offset == 1 || offset == 9)
+        {
+            if (index % 8 == 7) return true;
+        }
+        return false;
+    }
 }

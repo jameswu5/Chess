@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
-    public const int None = 0;
     public const int King = 1;
     public const int Queen = 2;
     public const int Bishop = 3;
@@ -47,4 +46,24 @@ public class Piece : MonoBehaviour
         Destroy(gameObject);
     }
 
+
+    public bool IsWhite()
+    {
+        return pieceID < 8;
+    }
+
+    public bool CanSlide()
+    {
+        return (pieceID % 8) == Bishop || (pieceID % 8) == Rook || (pieceID % 8) == Queen;
+    }
+
+    public bool CanSlideDiagonally()
+    {
+        return (pieceID % 8) == Bishop || (pieceID % 8) == Queen;
+    }
+
+    public bool CanSlideOrthogonally()
+    {
+        return (pieceID % 8) == Rook || (pieceID % 8) == Queen;
+    }
 }

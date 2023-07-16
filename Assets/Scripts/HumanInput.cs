@@ -68,6 +68,11 @@ public class HumanInput : MonoBehaviour
 
                     board.HighlightSquare(pieceIndex);
 
+
+                    HashSet<int> legalMoves = board.GetLegalMoves(pieceIndex);
+
+                    board.HighlightOptions(legalMoves);
+
                     Debug.Log("Set to Dragging");
                 }
             }
@@ -89,6 +94,7 @@ public class HumanInput : MonoBehaviour
             currentState = InputState.Idle;
             board.ResetSquareColour(pieceIndex);
 
+            board.UnHighlightOptionsAllSquares();
 
             Debug.Log("Set to Idle");
         }
@@ -107,7 +113,7 @@ public class HumanInput : MonoBehaviour
         if (Input.GetMouseButtonUp(0))
         {
 
-            if (newIndex == pieceIndex)
+            if (newIndex == pieceIndex) // Trying to place at the same square
             {
                 currentState = InputState.Selecting;
                 board.boardState[pieceIndex].SnapToSquare(pieceIndex);
@@ -117,22 +123,24 @@ public class HumanInput : MonoBehaviour
             }
             else
             {
-                if (newIndex != -1)
+                if (newIndex != -1) // Trying to place at another square
                 {
                     board.PlacePiece(pieceIndex, newIndex);
 
                     board.UnHighlightHover(newIndex);
 
-                    currentState = InputState.Idle;
                 }
-                else
+                else // Trying to place out of bounds
                 {
                     // move back to original place
                     Debug.Log("Tried to place out of bounds");
                     board.ResetPiecePosition(pieceIndex);
                 }
+
                 currentState = InputState.Idle;
                 board.ResetSquareColour(pieceIndex);
+
+                board.UnHighlightOptionsAllSquares();
 
                 Debug.Log("Set to Idle");
             }
