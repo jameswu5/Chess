@@ -22,6 +22,13 @@ public class Board : MonoBehaviour
 
     public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
 
+    public enum Turn
+    {
+        White, Black
+    }
+
+    public Turn turn = Turn.White;
+
     public enum InputState
     {
         None, Selected, Dragging
@@ -118,7 +125,7 @@ public class Board : MonoBehaviour
     {
         if (CheckIfMoveIsLegal(index, newIndex))
         {
-            PlacePiece(index, newIndex);
+            MakeMove(index, newIndex);
         }
         else
         {
@@ -130,7 +137,6 @@ public class Board : MonoBehaviour
     {
         return GetLegalMoves(index).Contains(newIndex);
     }
-
 
     public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
     {
@@ -307,7 +313,6 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-
     public HashSet<int> KnightMoves(int index)
     {
         int[] offsets = { -15, -6, 10, 17, 15, 6, -10, -17 };
@@ -382,7 +387,6 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-
     public bool CheckIfAtEdge(int index, int offset)
     {
         if (offset == -7 || offset == -8 || offset == -9)
@@ -403,7 +407,6 @@ public class Board : MonoBehaviour
         }
         return false;
     }
-
 
     public bool CheckIfAtEdgeForKnight(int index, int offset)
     {
@@ -442,5 +445,23 @@ public class Board : MonoBehaviour
         }
 
         return false;
+    }
+
+
+
+    public void MakeMove(int index, int newIndex) // all checks assumed to be complete and this move is allowed
+    {
+        PlacePiece(index, newIndex);
+        ChangeTurn();
+    }
+
+    public bool CheckIfPieceIsTurnColour(int index)
+    {
+        return (boardState[index].IsWhite() && turn == Turn.White) || (!boardState[index].IsWhite() && turn == Turn.Black);
+    }
+
+    public void ChangeTurn()
+    {
+        turn = turn == Turn.White ? Turn.Black : Turn.White;
     }
 }

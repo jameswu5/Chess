@@ -61,7 +61,7 @@ public class HumanInput : MonoBehaviour
 
             if (index != -1)
             {
-                if (board.boardState[index] != null)
+                if (board.boardState[index] != null && board.CheckIfPieceIsTurnColour(index))
                 {
                     pieceIndex = index;
                     currentState = InputState.Dragging;
