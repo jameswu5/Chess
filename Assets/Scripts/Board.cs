@@ -9,7 +9,7 @@ public class Board : MonoBehaviour
     public const int NumOfSquares = 64;
 
     public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    public const string testFENPosition = "8/6b1/8/4Q3/8/7r/8/8";
+    public const string testFENPosition = "8/8/8/8/2n5/8/8/8";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -32,7 +32,7 @@ public class Board : MonoBehaviour
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN(testFENPosition);
+        GenerateBoardStateFromFEN();
     }
 
 
@@ -205,6 +205,7 @@ public class Board : MonoBehaviour
         switch (currentPiece.pieceID % 8)
         {
             case Piece.King:
+                legalMoves = KingMoves(index);
                 break;
 
             case Piece.Queen:
@@ -216,6 +217,7 @@ public class Board : MonoBehaviour
                 break;
 
             case Piece.Knight:
+                legalMoves = KnightMoves(index);
                 break;
 
             case Piece.Rook:
@@ -223,6 +225,7 @@ public class Board : MonoBehaviour
                 break;
 
             case Piece.Pawn:
+                legalMoves = PawnMoves(index);
                 break;
 
             default:
@@ -265,6 +268,101 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
+    public HashSet<int> KingMoves(int index)
+    {
+        HashSet<int> legalMoves = new();
+        foreach (int offset in Directions)
+        {
+            if (!CheckIfAtEdge(index, offset))
+            {
+                int newIndex = index + offset;
+                if (newIndex >= 0 && newIndex < NumOfSquares)
+                {
+                    if (boardState[newIndex] == null || boardState[newIndex].IsWhite() != boardState[index].IsWhite())
+                    {
+                        legalMoves.Add(newIndex);
+                    }
+                }
+            }
+        }
+        return legalMoves;
+    }
+
+
+    public HashSet<int> KnightMoves(int index)
+    {
+        int[] offsets = { -15, -6, 10, 17, 15, 6, -10, -17 };
+        HashSet<int> legalMoves = new();
+        foreach (int offset in offsets)
+        {
+            if (!CheckIfAtEdgeForKnight(index, offset))
+            {
+                int newIndex = index + offset;
+                if (newIndex >= 0 && newIndex < NumOfSquares)
+                {
+                    if (boardState[newIndex] == null || boardState[newIndex].IsWhite() != boardState[index].IsWhite())
+                    {
+                        legalMoves.Add(newIndex);
+                    }
+                }
+            }
+        }
+        return legalMoves;
+    }
+
+    public HashSet<int> PawnMoves(int index)
+    {
+        HashSet<int> legalMoves = new();
+        Piece curPiece = boardState[index];
+
+        int[] offsets;
+        int newIndex;
+
+        if (curPiece.IsWhite())
+        {
+            offsets = new int[] { 8, 7, 9 };
+        }
+        else
+        {
+            offsets = new int[] { -8, -7, -9 };
+        }
+
+        // move forward one square
+        newIndex = index + offsets[0];
+        if (newIndex >= 0 && newIndex < NumOfSquares && boardState[newIndex] == null)
+        {
+            legalMoves.Add(newIndex);
+
+            // Still in original rank
+            if ((curPiece.IsWhite() && curPiece.GetRank() == 2) || (!curPiece.IsWhite() && curPiece.GetRank() == 7))
+            {
+                // moveforward two squares
+                newIndex += offsets[0];
+                if (boardState[newIndex] == null)
+                {
+                    legalMoves.Add(newIndex);
+                }
+            }
+        }
+
+        // captures
+        for (int i = 1; i < offsets.Length; i++)
+        {
+            int offset = offsets[i];
+            if (!CheckIfAtEdge(index, offset))
+            {
+                newIndex = index + offset;
+                if (boardState[newIndex] != null && boardState[newIndex].IsWhite() != curPiece.IsWhite())
+                {
+                    legalMoves.Add(newIndex);
+                }
+            }
+        }
+
+
+        return legalMoves;
+    }
+
 
     public bool CheckIfAtEdge(int index, int offset)
     {
@@ -284,6 +382,46 @@ public class Board : MonoBehaviour
         {
             if (index % 8 == 7) return true;
         }
+        return false;
+    }
+
+
+    public bool CheckIfAtEdgeForKnight(int index, int offset)
+    {
+
+        if (offset == -17 || offset == -15)
+        {
+            if (index < 16) return true;
+        }
+        if (offset == -6 || offset == 10)
+        {
+            if (index % 8 == 6 || index % 8 == 7) return true;
+        }
+        if (offset == 15 || offset == 17)
+        {
+            if (index >= 48) return true;
+        }
+        if (offset == -10 || offset == 6)
+        {
+            if (index % 8 == 0 || index % 8 == 1) return true;
+        }
+        if (offset == -10 || offset == -6)
+        {
+            if (index < 8) return true;
+        }
+        if (offset == -15 || offset == 17)
+        {
+            if (index % 8 == 7) return true;
+        }
+        if (offset == 6 || offset == 10)
+        {
+            if (index >= 56) return true;
+        }
+        if (offset == -17 || offset == 15)
+        {
+            if (index % 8 == 0) return true;
+        }
+
         return false;
     }
 }

@@ -19,6 +19,7 @@ public class Piece : MonoBehaviour
     public Sprite[] pieceSprites;
     public SpriteRenderer spriteRenderer;
 
+
     public void Initialise(int pieceIDParam, int indexParam) {
         pieceID = pieceIDParam;
         index = indexParam;
@@ -65,5 +66,11 @@ public class Piece : MonoBehaviour
     public bool CanSlideOrthogonally()
     {
         return (pieceID % 8) == Rook || (pieceID % 8) == Queen;
+    }
+
+
+    public int GetRank()
+    {
+        return (index / 8) + 1;
     }
 }
