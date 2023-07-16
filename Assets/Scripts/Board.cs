@@ -172,4 +172,30 @@ public class Board : MonoBehaviour
     {
         squares[index].SetHoverHighlight(false);
     }
+
+    public void HighlightOptions(IEnumerable<int> indices)
+    {
+        foreach (int index in indices)
+        {
+            Debug.Log($"{index} is now an option.");
+            squares[index].SetOptionHighlight(true);
+        }
+    }
+
+    public void TestHighlightOptions()
+    {
+        int[] indices = new int[] { 2, 6, 10, 14, 16 };
+        HighlightOptions(indices);
+    }
+
+
+    public void UnHighlightOptionsAllSquares()
+    {
+        foreach (Square square in squares)
+        {
+            square.SetOptionHighlight(false);
+        }
+    }
+
+
 }

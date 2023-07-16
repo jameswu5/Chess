@@ -7,6 +7,7 @@ public class Square : MonoBehaviour
     public Color lightColor, darkColor, highlightColor;
 
     public GameObject hoverHighlight;
+    public GameObject optionHighlight;
 
     public new SpriteRenderer renderer;
 
@@ -49,4 +50,8 @@ public class Square : MonoBehaviour
         hoverHighlight.SetActive(boolean);
     }
 
+    public void SetOptionHighlight(bool boolean)
+    {
+        optionHighlight.SetActive(boolean);
+    }
 }
