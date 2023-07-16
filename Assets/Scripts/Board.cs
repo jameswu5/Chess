@@ -35,6 +35,8 @@ public class Board : MonoBehaviour
     }
     public InputState currentState = InputState.None;
 
+    public List<Move> gameMoves = new();
+
     void Start()
     {
         MoveCamera();
@@ -125,7 +127,11 @@ public class Board : MonoBehaviour
     {
         if (CheckIfMoveIsLegal(index, newIndex))
         {
-            MakeMove(index, newIndex);
+
+            bool isCapture = (boardState[newIndex] != null);
+            Move move = new Move(index, newIndex, boardState[index].pieceID, isCapture);
+
+            MakeMove(move);
         }
         else
         {
@@ -449,9 +455,13 @@ public class Board : MonoBehaviour
 
 
 
-    public void MakeMove(int index, int newIndex) // all checks assumed to be complete and this move is allowed
+    public void MakeMove(Move move) // all checks assumed to be complete and this move is allowed
     {
-        PlacePiece(index, newIndex);
+        PlacePiece(move.startIndex, move.endIndex);
+        gameMoves.Add(move);
+
+        Debug.Log(move.GetMoveAsString());
+
         ChangeTurn();
     }
 

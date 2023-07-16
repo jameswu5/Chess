@@ -73,7 +73,7 @@ public class HumanInput : MonoBehaviour
 
                     board.HighlightOptions(legalMoves);
 
-                    Debug.Log("Set to Dragging");
+                    // Debug.Log("Set to Dragging");
                 }
             }
 
@@ -96,7 +96,7 @@ public class HumanInput : MonoBehaviour
 
             board.UnHighlightOptionsAllSquares();
 
-            Debug.Log("Set to Idle");
+            // Debug.Log("Set to Idle");
         }
     }
 
@@ -119,7 +119,7 @@ public class HumanInput : MonoBehaviour
                 board.boardState[pieceIndex].SnapToSquare(pieceIndex);
 
                 board.UnHighlightHover(pieceIndex);
-                Debug.Log("Set to Selecting");
+                // Debug.Log("Set to Selecting");
             }
             else
             {
@@ -142,7 +142,7 @@ public class HumanInput : MonoBehaviour
 
                 board.UnHighlightOptionsAllSquares();
 
-                Debug.Log("Set to Idle");
+                // Debug.Log("Set to Idle");
             }
         }
     }
