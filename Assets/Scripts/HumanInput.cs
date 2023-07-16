@@ -99,7 +99,10 @@ public class HumanInput : MonoBehaviour
         board.DragPiece(pieceIndex, mousePosition, dragOffset);
         int newIndex = GetIndexFromMousePosition(mousePosition);
 
-        board.HighlightHover(newIndex);
+        if (newIndex != -1)
+        {
+            board.HighlightHover(newIndex);
+        }
 
         if (Input.GetMouseButtonUp(0))
         {
