@@ -114,6 +114,24 @@ public class Board : MonoBehaviour
         boardState[index].SnapToSquare(index);
     }
 
+    public void TryToPlacePiece(int index, int newIndex) // tries to place a piece in a new square
+    {
+        if (CheckIfMoveIsLegal(index, newIndex))
+        {
+            PlacePiece(index, newIndex);
+        }
+        else
+        {
+            ResetPiecePosition(index);
+        }
+    }
+
+    public bool CheckIfMoveIsLegal(int index, int newIndex)
+    {
+        return GetLegalMoves(index).Contains(newIndex);
+    }
+
+
     public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
     {
         Piece selectedPiece = boardState[index];
@@ -285,6 +303,7 @@ public class Board : MonoBehaviour
                 }
             }
         }
+
         return legalMoves;
     }
 

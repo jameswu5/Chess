@@ -88,7 +88,7 @@ public class HumanInput : MonoBehaviour
 
             if (newIndex != pieceIndex && newIndex != -1)
             {
-                board.PlacePiece(pieceIndex, newIndex);
+                board.TryToPlacePiece(pieceIndex, newIndex);
             }
 
             currentState = InputState.Idle;
@@ -125,7 +125,7 @@ public class HumanInput : MonoBehaviour
             {
                 if (newIndex != -1) // Trying to place at another square
                 {
-                    board.PlacePiece(pieceIndex, newIndex);
+                    board.TryToPlacePiece(pieceIndex, newIndex);
 
                     board.UnHighlightHover(newIndex);
 
