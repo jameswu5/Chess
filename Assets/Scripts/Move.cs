@@ -42,6 +42,10 @@ public struct Move
                 moveString += "R";
                 break;
             case Piece.Pawn:
+                if (isCaptureMove == true)
+                {
+                    moveString += GetFileName(startIndex);
+                }
                 break;
             default:
                 break;
@@ -57,9 +61,14 @@ public struct Move
     public string ConvertIndexToSquareName(int index)
     {
         int rank = (index / 8) + 1;
+        return GetFileName(index) + rank.ToString();
+    }
+
+    public string GetFileName(int index)
+    {
         int file = (index % 8) + 1;
         string[] letters = { "#", "a", "b", "c", "d", "e", "f", "g", "h" };
-        return letters[file] + rank.ToString();
+        return letters[file];
     }
 
 }
