@@ -118,16 +118,16 @@ public class Board : MonoBehaviour
         foreach (char c in sections[2]) {
             switch (c) {
                 case 'K':
-                    castlingRights[0] = true;
+                    ChangeCastlingRight(true, true, true);
                     break;
                 case 'Q':
-                    castlingRights[1] = true;
+                    ChangeCastlingRight(true, false, true);
                     break;
                 case 'k':
-                    castlingRights[2] = true;
+                    ChangeCastlingRight(false, true, true);
                     break;
                 case 'q':
-                    castlingRights[3] = true;
+                    ChangeCastlingRight(false, false, true);
                     break;
                 default:
                     break;
@@ -160,13 +160,12 @@ public class Board : MonoBehaviour
 
     public void TryToPlacePiece(int index, int newIndex) // tries to place a piece in a new square
     {
-        if (CheckIfMoveIsLegal(index, newIndex))
+
+        Move? move = TryToGetMove(index, newIndex);
+
+        if (move != null)
         {
-
-            bool isCapture = boardState[newIndex] != null;
-            Move move = new Move(Move.Standard, index, newIndex, boardState[index].pieceID, isCapture);
-
-            MakeMove(move);
+            MakeMove((Move)move);
         }
         else
         {
@@ -174,16 +173,16 @@ public class Board : MonoBehaviour
         }
     }
 
-    public bool CheckIfMoveIsLegal(int index, int newIndex)
+    public Move? TryToGetMove(int index, int newIndex)
     {
         foreach (Move move in GetLegalMoves(index))
         {
             if (move.endIndex == newIndex)
             {
-                return true;
+                return move;
             }
         }
-        return false;
+        return null;
     }
 
     public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
@@ -355,6 +354,35 @@ public class Board : MonoBehaviour
                     }
                 }
             }
+
+            // Castling
+
+            if (boardState[index].IsWhite() && index == 4) // king is in original position
+            {
+                if (castlingRights[0] == true && boardState[7].pieceID == Piece.White + Piece.Rook)
+                {
+                    // can castle kingside
+                    legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, false));
+                }
+                if (castlingRights[1] == true && boardState[0].pieceID == Piece.White + Piece.Rook)
+                {
+                    // can castle queenside
+                    legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, false));
+
+                }
+            }
+            else if (!boardState[index].IsWhite() && index == 60)
+            {
+                if (castlingRights[2] == true && boardState[63].pieceID == Piece.Black + Piece.Rook)
+                {
+                    legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, false));
+
+                }
+                if (castlingRights[3] == true && boardState[56].pieceID == Piece.Black + Piece.Rook)
+                {
+                    legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, false));
+                }
+            }
         }
 
         return legalMoves;
@@ -503,11 +531,76 @@ public class Board : MonoBehaviour
     {
         if (move.moveType == Move.Standard || move.moveType == Move.PawnTwoSquares)
         {
+
+            // if piece is a king, then disable both castling rights
+            if (GetPieceTypeAtIndex(move.startIndex) == Piece.King)
+            {
+                if (CheckPieceIsWhite(move.startIndex))
+                {
+                    ChangeCastlingRight(true, true, false); // isWhite, isKingside, value
+                    ChangeCastlingRight(true, false, false);
+                }
+                else
+                {
+                    ChangeCastlingRight(false, true, false);
+                    ChangeCastlingRight(false, false, false);
+                }
+            }
+
+            // if piece is rook and in original position, disable castling right
+            if (move.startIndex == 0 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && CheckPieceIsWhite(move.startIndex))
+            {
+                ChangeCastlingRight(true, false, false);
+            }
+            if (move.startIndex == 7 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && CheckPieceIsWhite(move.startIndex))
+            {
+                ChangeCastlingRight(true, true, false);
+            }
+            if (move.startIndex == 56 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && !CheckPieceIsWhite(move.startIndex))
+            {
+                ChangeCastlingRight(false, false, false);
+            }
+            if (move.startIndex == 63 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && !CheckPieceIsWhite(move.startIndex))
+            {
+                ChangeCastlingRight(false, true, false);
+            }
+
+
+
             PlacePiece(move.startIndex, move.endIndex);
-            gameMoves.Add(move);
+        }
+        if (move.moveType == Move.Castling)
+        {
+            bool isWhite = CheckPieceIsWhite(move.startIndex);
+
+            // move the king
+            PlacePiece(move.startIndex, move.endIndex);
+
+            // move the rook
+            if (move.endIndex > move.startIndex) // kingside
+            {
+                PlacePiece(move.startIndex + 3, move.startIndex + 1);
+            }
+            else // queenside
+            {
+                PlacePiece(move.startIndex - 4, move.startIndex - 1);
+            }
+
+            // Disable castling rights
+            if (isWhite)
+            {
+                ChangeCastlingRight(true, true, false);
+                ChangeCastlingRight(true, false, false);
+            }
+            else
+            {
+                ChangeCastlingRight(false, true, false);
+                ChangeCastlingRight(false, false, false);
+            }
         }
 
 
+        gameMoves.Add(move);
         Debug.Log(move.GetMoveAsString());
         ChangeTurn();
     }
@@ -521,4 +614,49 @@ public class Board : MonoBehaviour
     {
         turn = turn == Turn.White ? Turn.Black : Turn.White;
     }
+
+
+    public void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
+    {
+        if (isWhite)
+        {
+            if (isKingside)
+            {
+                castlingRights[0] = value;
+                Debug.Log($"White kingside castling set to {value}");
+            }
+            else
+            {
+                castlingRights[1] = value;
+                Debug.Log($"White queenside castling set to {value}");
+
+            }
+        }
+        else
+        {
+            if (isKingside)
+            {
+                castlingRights[2] = value;
+                Debug.Log($"Black kingside castling set to {value}");
+
+            }
+            else
+            {
+                castlingRights[3] = value;
+                Debug.Log($"Black queenside castling set to {value}");
+
+            }
+        }
+    }
+
+    public int GetPieceTypeAtIndex(int index)
+    {
+        return boardState[index].pieceID % 8;
+    }
+
+    public bool CheckPieceIsWhite(int index)
+    {
+        return boardState[index].IsWhite();
+    }
+
 }

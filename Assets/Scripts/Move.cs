@@ -30,36 +30,51 @@ public struct Move
     {
         string moveString = "";
 
-        switch (pieceID % 8)
+        if (moveType == Standard || moveType == PawnTwoSquares)
         {
-            case Piece.King:
-                moveString += "K";
-                break;
-            case Piece.Queen:
-                moveString += "Q";
-                break;
-            case Piece.Bishop:
-                moveString += "B";
-                break;
-            case Piece.Knight:
-                moveString += "N";
-                break;
-            case Piece.Rook:
-                moveString += "R";
-                break;
-            case Piece.Pawn:
-                if (isCaptureMove == true)
-                {
-                    moveString += GetFileName(startIndex);
-                }
-                break;
-            default:
-                break;
+            switch (pieceID % 8)
+            {
+                case Piece.King:
+                    moveString += "K";
+                    break;
+                case Piece.Queen:
+                    moveString += "Q";
+                    break;
+                case Piece.Bishop:
+                    moveString += "B";
+                    break;
+                case Piece.Knight:
+                    moveString += "N";
+                    break;
+                case Piece.Rook:
+                    moveString += "R";
+                    break;
+                case Piece.Pawn:
+                    if (isCaptureMove == true)
+                    {
+                        moveString += GetFileName(startIndex);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (isCaptureMove) { moveString += "x"; }
+
+            moveString += ConvertIndexToSquareName(endIndex);
+        }
+        else if (moveType == Castling)
+        {
+            if (GetFileName(endIndex) == "g") // Kingside
+            {
+                moveString = "O-O";
+            }
+            else // Queenside
+            {
+                moveString = "O-O-O";
+            }
         }
 
-        if (isCaptureMove) { moveString += "x"; }
-
-        moveString += ConvertIndexToSquareName(endIndex);
 
         return moveString;
     }
