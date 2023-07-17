@@ -193,11 +193,6 @@ public class Board : MonoBehaviour
         if (boardState[newIndex] != null)
         {
             DestroyPiece(newIndex);
-            captureSound.Play();
-        }
-        else
-        {
-            moveSound.Play();
         }
 
         boardState[newIndex] = selectedPiece;
@@ -460,7 +455,30 @@ public class Board : MonoBehaviour
                 {
                     legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, true));
                 }
+
+                // en passant
+
+                if (gameMoves.Count > 0)
+                {
+                    Move previousMove = gameMoves[gameMoves.Count - 1];
+
+                    if (previousMove.moveType == Move.PawnTwoSquares)
+                    {
+                        if (curPiece.IsWhite() && previousMove.endIndex == newIndex - 8)
+                        {
+                            legalMoves.Add(new Move(Move.EnPassant, index, newIndex, Piece.Pawn, true));
+                        }
+                        else if (!curPiece.IsWhite() && previousMove.endIndex == newIndex + 8)
+                        {
+                            legalMoves.Add(new Move(Move.EnPassant, index, newIndex, Piece.Pawn, true));
+                        }
+                    }
+                }
+
+
             }
+
+
         }
 
 
@@ -529,6 +547,8 @@ public class Board : MonoBehaviour
 
     public void MakeMove(Move move) // all checks assumed to be complete and this move is allowed
     {
+        bool isWhite = CheckPieceIsWhite(move.startIndex);
+
         if (move.moveType == Move.Standard || move.moveType == Move.PawnTwoSquares)
         {
 
@@ -565,14 +585,11 @@ public class Board : MonoBehaviour
                 ChangeCastlingRight(false, true, false);
             }
 
-
-
             PlacePiece(move.startIndex, move.endIndex);
         }
+
         if (move.moveType == Move.Castling)
         {
-            bool isWhite = CheckPieceIsWhite(move.startIndex);
-
             // move the king
             PlacePiece(move.startIndex, move.endIndex);
 
@@ -599,6 +616,24 @@ public class Board : MonoBehaviour
             }
         }
 
+        if (move.moveType == Move.EnPassant)
+        {
+            // move the pawn
+            PlacePiece(move.startIndex, move.endIndex);
+
+            // destroy the piece next to it
+            if (isWhite)
+            {
+                DestroyPiece(move.endIndex - 8);
+            }
+            else
+            {
+                DestroyPiece(move.endIndex + 8);
+            }
+
+        }
+
+        PlayMoveSound(move.isCaptureMove);
 
         gameMoves.Add(move);
         Debug.Log(move.GetMoveAsString());
@@ -615,7 +650,6 @@ public class Board : MonoBehaviour
         turn = turn == Turn.White ? Turn.Black : Turn.White;
     }
 
-
     public void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
     {
         if (isWhite)
@@ -623,12 +657,12 @@ public class Board : MonoBehaviour
             if (isKingside)
             {
                 castlingRights[0] = value;
-                Debug.Log($"White kingside castling set to {value}");
+                // Debug.Log($"White kingside castling set to {value}");
             }
             else
             {
                 castlingRights[1] = value;
-                Debug.Log($"White queenside castling set to {value}");
+                // Debug.Log($"White queenside castling set to {value}");
 
             }
         }
@@ -637,13 +671,13 @@ public class Board : MonoBehaviour
             if (isKingside)
             {
                 castlingRights[2] = value;
-                Debug.Log($"Black kingside castling set to {value}");
+                // Debug.Log($"Black kingside castling set to {value}");
 
             }
             else
             {
                 castlingRights[3] = value;
-                Debug.Log($"Black queenside castling set to {value}");
+                // Debug.Log($"Black queenside castling set to {value}");
 
             }
         }
@@ -659,4 +693,16 @@ public class Board : MonoBehaviour
         return boardState[index].IsWhite();
     }
 
+
+    public void PlayMoveSound(bool isCapture)
+    {
+        if (isCapture)
+        {
+            captureSound.Play();
+        }
+        else
+        {
+            moveSound.Play();
+        }
+    }
 }

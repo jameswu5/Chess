@@ -15,6 +15,7 @@ public struct Move
     public const int Standard = 1;
     public const int PawnTwoSquares = 2;
     public const int Castling = 3;
+    public const int EnPassant = 4;
 
 
     public Move(int flag, int index, int newIndex, int pieceNumber, bool isCapture)
@@ -30,7 +31,7 @@ public struct Move
     {
         string moveString = "";
 
-        if (moveType == Standard || moveType == PawnTwoSquares)
+        if (moveType == Standard || moveType == PawnTwoSquares || moveType == EnPassant)
         {
             switch (pieceID % 8)
             {
