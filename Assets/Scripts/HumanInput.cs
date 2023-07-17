@@ -69,7 +69,7 @@ public class HumanInput : MonoBehaviour
                     board.HighlightSquare(pieceIndex);
 
 
-                    HashSet<int> legalMoves = board.GetLegalMoves(pieceIndex);
+                    HashSet<Move> legalMoves = board.GetLegalMoves(pieceIndex);
 
                     board.HighlightOptions(legalMoves);
 

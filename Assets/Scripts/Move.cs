@@ -5,15 +5,21 @@ using System.Collections.Generic;
 
 public struct Move
 {
+    public int moveType;
     public int startIndex;
     public int endIndex;
     public int pieceID;
     public bool isCaptureMove;
 
 
+    public const int Standard = 1;
+    public const int PawnTwoSquares = 2;
+    public const int Castling = 3;
 
-    public Move(int index, int newIndex, int pieceNumber, bool isCapture)
+
+    public Move(int flag, int index, int newIndex, int pieceNumber, bool isCapture)
     {
+        moveType = flag;
         startIndex = index;
         endIndex = newIndex;
         pieceID = pieceNumber;
