@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-
+using UnityEngine;
 
 
 public struct Move
@@ -16,6 +16,11 @@ public struct Move
     public const int PawnTwoSquares = 2;
     public const int Castling = 3;
     public const int EnPassant = 4;
+
+    public const int PromoteToQueen = 5;
+    public const int PromoteToRook = 6;
+    public const int PromoteToBishop = 7;
+    public const int PromoteToKnight = 8;
 
 
     public Move(int flag, int index, int newIndex, int pieceNumber, bool isCapture)
@@ -74,6 +79,34 @@ public struct Move
             {
                 moveString = "O-O-O";
             }
+        }
+        else if (moveType == PromoteToQueen || moveType == PromoteToRook || moveType == PromoteToBishop || moveType == PromoteToKnight)
+        {
+            if (isCaptureMove == true)
+            {
+                moveString += GetFileName(startIndex);
+                moveString += "x";
+            }
+            moveString += ConvertIndexToSquareName(endIndex);
+
+            switch (moveType) {
+                case PromoteToQueen:
+                    moveString += "Q";
+                    break;
+                case PromoteToRook:
+                    moveString += "R";
+                    break;
+                case PromoteToBishop:
+                    moveString += "B";
+                    break;
+                case PromoteToKnight:
+                    moveString += "N";
+                    break;
+                default:
+                    Debug.Log("Cannot find promotion piece");
+                    break;
+            }
+
         }
 
 

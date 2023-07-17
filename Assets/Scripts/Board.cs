@@ -42,13 +42,11 @@ public class Board : MonoBehaviour
     public List<Move> gameMoves = new();
 
 
-
-
     void Start()
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN(testEnPassantFEN);
+        GenerateBoardStateFromFEN();
     }
 
 
@@ -104,8 +102,7 @@ public class Board : MonoBehaviour
                 int pieceType = pieceTypes[char.ToUpper(c)];
                 int index = rank * BoardHeight + file;
 
-                Piece newPiece = CreatePiece(pieceColour + pieceType, index);
-                boardState[index] = newPiece;
+                CreatePiece(pieceColour + pieceType, index);
 
                 file++;
             }
@@ -165,6 +162,8 @@ public class Board : MonoBehaviour
         int file = index % BoardHeight;
         Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, -1), Quaternion.identity);
         spawnPiece.Initialise(pieceID, index);
+        boardState[index] = spawnPiece;
+
         return spawnPiece;
     }
 
@@ -450,7 +449,24 @@ public class Board : MonoBehaviour
         newIndex = index + offsets[0];
         if (newIndex >= 0 && newIndex < NumOfSquares && boardState[newIndex] == null)
         {
-            legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, false));
+
+            // check if newIndex is in the final rank for promotion
+            // no need to check for colour because final rank uniquely determines colour
+
+            if (GetRank(newIndex) == 1 || GetRank(newIndex) == 8)
+            {
+                legalMoves.Add(new Move(Move.PromoteToQueen, index, newIndex, Piece.Pawn, false));
+                legalMoves.Add(new Move(Move.PromoteToRook, index, newIndex, Piece.Pawn, false));
+                legalMoves.Add(new Move(Move.PromoteToBishop, index, newIndex, Piece.Pawn, false));
+                legalMoves.Add(new Move(Move.PromoteToKnight, index, newIndex, Piece.Pawn, false));
+                Debug.Log("Pawn promotion without capture");
+
+
+            }
+            else
+            {
+                legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, false));
+            }
 
             // Still in original rank
             if ((curPiece.IsWhite() && curPiece.GetRank() == 2) || (!curPiece.IsWhite() && curPiece.GetRank() == 7))
@@ -473,7 +489,20 @@ public class Board : MonoBehaviour
                 newIndex = index + offset;
                 if (boardState[newIndex] != null && boardState[newIndex].IsWhite() != curPiece.IsWhite())
                 {
-                    legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, true));
+
+                    // Check for promotion
+                    if (GetRank(newIndex) == 1 || GetRank(newIndex) == 8)
+                    {
+                        legalMoves.Add(new Move(Move.PromoteToQueen, index, newIndex, Piece.Pawn, true));
+                        legalMoves.Add(new Move(Move.PromoteToRook, index, newIndex, Piece.Pawn, true));
+                        legalMoves.Add(new Move(Move.PromoteToBishop, index, newIndex, Piece.Pawn, true));
+                        legalMoves.Add(new Move(Move.PromoteToKnight, index, newIndex, Piece.Pawn, true));
+                        Debug.Log("Pawn promotion with capture");
+                    }
+                    else
+                    {
+                        legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, true));
+                    }
                 }
 
                 // en passant
@@ -650,8 +679,37 @@ public class Board : MonoBehaviour
             {
                 DestroyPiece(move.endIndex + 8);
             }
-
         }
+
+
+        // for now it autopromotes to queen.
+        if (move.moveType == Move.PromoteToQueen || move.moveType == Move.PromoteToRook || move.moveType == Move.PromoteToBishop || move.moveType == Move.PromoteToKnight)
+        {
+            PlacePiece(move.startIndex, move.endIndex);
+            DestroyPiece(move.endIndex);
+
+            int colourOfPiece = GetRank(move.endIndex) == 8 ? Piece.White : Piece.Black;
+
+            switch (move.moveType)
+            {
+                case Move.PromoteToQueen:
+                    CreatePiece(colourOfPiece + Piece.Queen, move.endIndex);
+                    break;
+                case Move.PromoteToRook:
+                    CreatePiece(colourOfPiece + Piece.Rook, move.endIndex);
+                    break;
+                case Move.PromoteToBishop:
+                    CreatePiece(colourOfPiece + Piece.Bishop, move.endIndex);
+                    break;
+                case Move.PromoteToKnight:
+                    CreatePiece(colourOfPiece + Piece.Knight, move.endIndex);
+                    break;
+                default:
+                    Debug.Log("A problem has occurred with promoting, cannot find promotion piece.");
+                    break;
+            }
+        }
+
 
         PlayMoveSound(move.isCaptureMove);
 
@@ -744,8 +802,13 @@ public class Board : MonoBehaviour
             }
         }
 
-        Debug.Log($"{name} is index {index}");
         return index;
 
+    }
+
+
+    public int GetRank(int index)
+    {
+        return (index / 8) + 1;
     }
 }
