@@ -10,6 +10,7 @@ public class Board : MonoBehaviour
 
     public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     public const string testFENPosition = "8/8/8/8/2n5/8/8/8 w - - 0 1";
+    public const string testEnPassantFEN = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -47,7 +48,7 @@ public class Board : MonoBehaviour
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(testEnPassantFEN);
     }
 
 
@@ -134,7 +135,26 @@ public class Board : MonoBehaviour
             }
         }
 
-        // en passant targets is sections[3], not implemented yet
+        // en passant targets
+
+        if (sections[3] != "-")
+        {
+            int targetSquareIndex = GetIndexFromSquareName(sections[3]);
+
+            Move move;
+
+            if (sections[3][1] == '6')
+            {
+                move = new Move(Move.PawnTwoSquares, targetSquareIndex + 8, targetSquareIndex - 8, Piece.Pawn, false);
+            }
+            else
+            {
+                move = new Move(Move.PawnTwoSquares, targetSquareIndex - 8, targetSquareIndex + 8, Piece.Pawn, false);
+
+            }
+
+            gameMoves.Add(move);
+        }
 
         // halfmove clock is sections[4], not implemented yet
 
@@ -704,5 +724,28 @@ public class Board : MonoBehaviour
         {
             moveSound.Play();
         }
+    }
+
+
+    public int GetIndexFromSquareName(string name)
+    {
+
+        int index = 0;
+
+        foreach (char c in name)
+        {
+            if ("abcdefgh".Contains(c))
+            {
+                index += c - 'a';
+            }
+            else
+            {
+                index += (c - '1') * 8;
+            }
+        }
+
+        Debug.Log($"{name} is index {index}");
+        return index;
+
     }
 }
