@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,16 +31,16 @@ public class Board : MonoBehaviour
 
     public Turn turn;
 
-    public enum InputState
-    {
-        None, Selected, Dragging
-    }
-    public InputState currentState = InputState.None;
-
-
     public bool[] castlingRights = { false, false, false, false }; // W kingside, W queenside, B kingside, B queenside
 
     public List<Move> gameMoves = new();
+
+
+    // Promotion UI
+    public GameObject boardCover;
+    public int inPromotionScreen = -1; // -1 means not in promotion, any index means the position the pawn promoting is in
+    public Piece[] promotionPieces = new Piece[4];
+    public Square[] promotionSquares = new Square[4];
 
 
     void Start()
@@ -49,21 +50,11 @@ public class Board : MonoBehaviour
         GenerateBoardStateFromFEN();
     }
 
-
     private void GenerateBoard() {
-        for (int x = 0; x < BoardWidth; x++) {
-            for (int y = 0; y < BoardHeight; y++) {
-                Square spawnedSquare = Instantiate(squarePrefab, new Vector3(x, y, 0), Quaternion.identity);
-
-                string squareName = $"{(char)(x + 97)}{y + 1}";
-                int squareIndex = y * BoardHeight + x;
-
-                squares[squareIndex] = spawnedSquare;
-
-                bool isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
-
-                spawnedSquare.Initialise(squareIndex, squareName, isOffset);
-            }
+        for (int i = 0; i < 64; i++)
+        {
+            Square newSquare = CreateSquare(i);
+            squares[i] = newSquare;
         }
     }
 
@@ -102,7 +93,9 @@ public class Board : MonoBehaviour
                 int pieceType = pieceTypes[char.ToUpper(c)];
                 int index = rank * BoardHeight + file;
 
-                CreatePiece(pieceColour + pieceType, index);
+                Piece newPiece = CreatePiece(pieceColour + pieceType, index);
+                boardState[index] = newPiece;
+
 
                 file++;
             }
@@ -157,12 +150,24 @@ public class Board : MonoBehaviour
 
     }
 
-    Piece CreatePiece(int pieceID, int index) {
+    Square CreateSquare(int index, float elevation = 0)
+    {
+        int x = index % 8;
+        int y = index / 8;
+
+        Square spawnSquare = Instantiate(squarePrefab, new Vector3(x, y, elevation), Quaternion.identity);
+        string squareName = $"{(char)(x + 97)}{y + 1}";
+        bool isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
+        spawnSquare.Initialise(index, squareName, isOffset);
+
+        return spawnSquare;
+    }
+
+    Piece CreatePiece(int pieceID, int index, float elevation = -1f) { // elevation is just for layering
         int rank = index / BoardHeight;
         int file = index % BoardHeight;
-        Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, -1), Quaternion.identity);
+        Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, elevation), Quaternion.identity);
         spawnPiece.Initialise(pieceID, index);
-        boardState[index] = spawnPiece;
 
         return spawnPiece;
     }
@@ -177,14 +182,20 @@ public class Board : MonoBehaviour
         boardState[index].SnapToSquare(index);
     }
 
-    public void TryToPlacePiece(int index, int newIndex) // tries to place a piece in a new square
+    public void TryToPlacePiece(int index, int newIndex, int promotionType = -1) // tries to place a piece in a new square
     {
+        // promotionType = -1 if the move isn't a promotion, otherwise it is Piece.[promotionPiece]
 
-        Move? move = TryToGetMove(index, newIndex);
+        Move? tryMove = TryToGetMove(index, newIndex, promotionType);
 
-        if (move != null)
+        if (tryMove != null)
         {
-            MakeMove((Move)move);
+            Move move = (Move)tryMove;
+            MakeMove(move);
+            if (move.moveType == Move.PromoteToQueen || move.moveType == Move.PromoteToRook || move.moveType == Move.PromoteToBishop || move.moveType == Move.PromoteToKnight)
+            {
+                DisablePromotionScreen();
+            }
         }
         else
         {
@@ -192,15 +203,39 @@ public class Board : MonoBehaviour
         }
     }
 
-    public Move? TryToGetMove(int index, int newIndex)
+    public Move? TryToGetMove(int index, int newIndex, int promotionType)
     {
         foreach (Move move in GetLegalMoves(index))
         {
             if (move.endIndex == newIndex)
             {
-                return move;
+                switch (promotionType)
+                {
+                    case -1:
+                        return move;
+                    case Piece.Queen:
+                        if (move.moveType == Move.PromoteToQueen)
+                            return move;
+                        break;
+                    case Piece.Rook:
+                        if (move.moveType == Move.PromoteToRook)
+                            return move;
+                        break;
+                    case Piece.Bishop:
+                        if (move.moveType == Move.PromoteToBishop)
+                            return move;
+                        break;
+                    case Piece.Knight:
+                        if (move.moveType == Move.PromoteToKnight)
+                            return move;
+                        break;
+                    default:
+                        Debug.Log($"Cannot find move with promotionType {promotionType}");
+                        break;
+                }
             }
         }
+
         return null;
     }
 
@@ -224,7 +259,6 @@ public class Board : MonoBehaviour
     {
         Piece selectedPiece = boardState[index];
         selectedPiece.DestroyPiece();
-        Debug.Log("Destroyed piece");
     }
 
     public void HighlightSquare(int index)
@@ -459,9 +493,6 @@ public class Board : MonoBehaviour
                 legalMoves.Add(new Move(Move.PromoteToRook, index, newIndex, Piece.Pawn, false));
                 legalMoves.Add(new Move(Move.PromoteToBishop, index, newIndex, Piece.Pawn, false));
                 legalMoves.Add(new Move(Move.PromoteToKnight, index, newIndex, Piece.Pawn, false));
-                Debug.Log("Pawn promotion without capture");
-
-
             }
             else
             {
@@ -497,7 +528,6 @@ public class Board : MonoBehaviour
                         legalMoves.Add(new Move(Move.PromoteToRook, index, newIndex, Piece.Pawn, true));
                         legalMoves.Add(new Move(Move.PromoteToBishop, index, newIndex, Piece.Pawn, true));
                         legalMoves.Add(new Move(Move.PromoteToKnight, index, newIndex, Piece.Pawn, true));
-                        Debug.Log("Pawn promotion with capture");
                     }
                     else
                     {
@@ -523,11 +553,7 @@ public class Board : MonoBehaviour
                         }
                     }
                 }
-
-
             }
-
-
         }
 
 
@@ -681,8 +707,6 @@ public class Board : MonoBehaviour
             }
         }
 
-
-        // for now it autopromotes to queen.
         if (move.moveType == Move.PromoteToQueen || move.moveType == Move.PromoteToRook || move.moveType == Move.PromoteToBishop || move.moveType == Move.PromoteToKnight)
         {
             PlacePiece(move.startIndex, move.endIndex);
@@ -693,16 +717,20 @@ public class Board : MonoBehaviour
             switch (move.moveType)
             {
                 case Move.PromoteToQueen:
-                    CreatePiece(colourOfPiece + Piece.Queen, move.endIndex);
+                    Piece queen = CreatePiece(colourOfPiece + Piece.Queen, move.endIndex);
+                    boardState[move.endIndex] = queen;
                     break;
                 case Move.PromoteToRook:
-                    CreatePiece(colourOfPiece + Piece.Rook, move.endIndex);
+                    Piece rook = CreatePiece(colourOfPiece + Piece.Rook, move.endIndex);
+                    boardState[move.endIndex] = rook;
                     break;
                 case Move.PromoteToBishop:
-                    CreatePiece(colourOfPiece + Piece.Bishop, move.endIndex);
+                    Piece bishop = CreatePiece(colourOfPiece + Piece.Bishop, move.endIndex);
+                    boardState[move.endIndex] = bishop;
                     break;
                 case Move.PromoteToKnight:
-                    CreatePiece(colourOfPiece + Piece.Knight, move.endIndex);
+                    Piece knight = CreatePiece(colourOfPiece + Piece.Knight, move.endIndex);
+                    boardState[move.endIndex] = knight;
                     break;
                 default:
                     Debug.Log("A problem has occurred with promoting, cannot find promotion piece.");
@@ -771,7 +799,6 @@ public class Board : MonoBehaviour
         return boardState[index].IsWhite();
     }
 
-
     public void PlayMoveSound(bool isCapture)
     {
         if (isCapture)
@@ -783,7 +810,6 @@ public class Board : MonoBehaviour
             moveSound.Play();
         }
     }
-
 
     public int GetIndexFromSquareName(string name)
     {
@@ -806,9 +832,84 @@ public class Board : MonoBehaviour
 
     }
 
-
     public int GetRank(int index)
     {
         return (index / 8) + 1;
+    }
+
+    public void SetBoardCover(bool value)
+    {
+        boardCover.SetActive(value);
+    }
+
+    public void EnablePromotionScreen(int index)
+    {
+        // make the board darker
+        SetBoardCover(true);
+
+        int colourMultiplier = GetRank(index) == 1 ? 1 : -1;
+        int pieceColour = GetRank(index) == 1 ? Piece.Black : Piece.White;
+
+        // create the pieces
+
+        Piece queen = CreatePiece(Piece.Queen + pieceColour, index, -1.7f);
+        Piece rook = CreatePiece(Piece.Rook + pieceColour, index + 8 * colourMultiplier, -1.7f);
+        Piece bishop = CreatePiece(Piece.Bishop + pieceColour, index + 16 * colourMultiplier, -1.7f);
+        Piece knight = CreatePiece(Piece.Knight + pieceColour, index + 24 * colourMultiplier, -1.7f);
+
+        promotionPieces[0] = queen;
+        promotionPieces[1] = rook;
+        promotionPieces[2] = bishop;
+        promotionPieces[3] = knight;
+
+        // create the squares
+
+        for (int i = 0; i < 4; i++)
+        {
+            promotionSquares[i] = CreateSquare(index + 8 * i * colourMultiplier, -1.6f);
+        }
+
+        inPromotionScreen = index;
+
+    }
+
+    public void DisablePromotionScreen()
+    {
+        // revert the board colour
+        SetBoardCover(false);
+
+        // remove the squares and pieces icons
+
+        foreach (Piece piece in promotionPieces)
+        {
+            piece.DestroyPiece();
+        }
+        foreach (Square square in promotionSquares)
+        {
+            square.DestroySquare();
+        }
+
+        Array.Clear(promotionPieces, 0, promotionPieces.Length);
+        Array.Clear(promotionSquares, 0, promotionSquares.Length);
+
+        inPromotionScreen = -1;
+    }
+
+    public bool CheckNeedForPromotion(int index, int newIndex)
+    {
+        return (GetRank(newIndex) == 1 || GetRank(newIndex) == 8) && GetPieceTypeAtIndex(index) == Piece.Pawn;
+    }
+
+    public bool CheckPieceCanMoveThere(int index, int newIndex)
+    {
+        HashSet<Move> moves = GetLegalMoves(index);
+        foreach (Move move in moves)
+        {
+            if (move.endIndex == newIndex)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -54,4 +54,9 @@ public class Square : MonoBehaviour
     {
         optionHighlight.SetActive(boolean);
     }
+
+    public void DestroySquare()
+    {
+        Destroy(gameObject);
+    }
 }

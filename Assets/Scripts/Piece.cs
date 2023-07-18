@@ -53,21 +53,6 @@ public class Piece : MonoBehaviour
         return pieceID < 8;
     }
 
-    public bool CanSlide()
-    {
-        return (pieceID % 8) == Bishop || (pieceID % 8) == Rook || (pieceID % 8) == Queen;
-    }
-
-    public bool CanSlideDiagonally()
-    {
-        return (pieceID % 8) == Bishop || (pieceID % 8) == Queen;
-    }
-
-    public bool CanSlideOrthogonally()
-    {
-        return (pieceID % 8) == Rook || (pieceID % 8) == Queen;
-    }
-
 
     public int GetRank()
     {
