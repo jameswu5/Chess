@@ -20,9 +20,9 @@ public class Piece : MonoBehaviour
     public SpriteRenderer spriteRenderer;
 
 
-    public void Initialise(int pieceIDParam, int indexParam) {
-        pieceID = pieceIDParam;
-        index = indexParam;
+    public void Initialise(int pieceID, int index) {
+        this.pieceID = pieceID;
+        this.index = index;
         SetSprite();
     }
 

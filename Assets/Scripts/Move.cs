@@ -8,7 +8,7 @@ public struct Move
     public int moveType;
     public int startIndex;
     public int endIndex;
-    public int pieceID;
+    public int pieceType;
     public bool isCaptureMove;
 
 
@@ -23,13 +23,13 @@ public struct Move
     public const int PromoteToKnight = 8;
 
 
-    public Move(int flag, int index, int newIndex, int pieceNumber, bool isCapture)
+    public Move(int moveType, int startIndex, int endIndex, int pieceType, bool isCaptureMove)
     {
-        moveType = flag;
-        startIndex = index;
-        endIndex = newIndex;
-        pieceID = pieceNumber;
-        isCaptureMove = isCapture;
+        this.moveType = moveType;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
+        this.pieceType = pieceType;
+        this.isCaptureMove = isCaptureMove;
     }
 
     public string GetMoveAsString()
@@ -38,7 +38,7 @@ public struct Move
 
         if (moveType == Standard || moveType == PawnTwoSquares || moveType == EnPassant)
         {
-            switch (pieceID % 8)
+            switch (pieceType)
             {
                 case Piece.King:
                     moveString += "K";
@@ -62,6 +62,7 @@ public struct Move
                     }
                     break;
                 default:
+                    Debug.Log("Cannot identify piece.");
                     break;
             }
 

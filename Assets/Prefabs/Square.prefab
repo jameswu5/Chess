@@ -187,6 +187,7 @@ MonoBehaviour:
   lightColor: {r: 0.827451, g: 0.87058824, b: 0.8980392, a: 1}
   darkColor: {r: 0.49803922, g: 0.627451, b: 0.7058824, a: 1}
   highlightColor: {r: 0.6117647, g: 0.85882354, b: 0.91764706, a: 1}
+  checkColor: {r: 1, g: 0.4745098, b: 0.4745098, a: 1}
   hoverHighlight: {fileID: 3242088882489904955}
   optionHighlight: {fileID: 7857150482425632643}
   renderer: {fileID: 6803287801271144179}

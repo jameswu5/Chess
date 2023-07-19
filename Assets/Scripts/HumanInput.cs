@@ -39,7 +39,6 @@ public class HumanInput : MonoBehaviour
         }
     }
 
-
     public void HandleInput()
     {
         Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);

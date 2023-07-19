@@ -24,12 +24,7 @@ public class Board : MonoBehaviour
 
     public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
 
-    public enum Turn
-    {
-        White, Black
-    }
-
-    public Turn turn;
+    public int turn;
 
     public bool[] castlingRights = { false, false, false, false }; // W kingside, W queenside, B kingside, B queenside
 
@@ -41,6 +36,12 @@ public class Board : MonoBehaviour
     public int inPromotionScreen = -1; // -1 means not in promotion, any index means the position the pawn promoting is in
     public Piece[] promotionPieces = new Piece[4];
     public Square[] promotionSquares = new Square[4];
+
+
+    public int[] kingIndices = new int[2];
+
+
+    public bool inCheck; // index of checked piece, -1 if not in check
 
 
     void Start()
@@ -93,16 +94,22 @@ public class Board : MonoBehaviour
                 int pieceType = pieceTypes[char.ToUpper(c)];
                 int index = rank * BoardHeight + file;
 
-                Piece newPiece = CreatePiece(pieceColour + pieceType, index);
+                int pieceID = pieceColour + pieceType;
+
+                Piece newPiece = CreatePiece(pieceID, index);
                 boardState[index] = newPiece;
 
+                if (pieceType == Piece.King)
+                {
+                    UpdateKingIndex(pieceColour, index);
+                }
 
                 file++;
             }
         }
 
         // Second section determines whose turn it is to move
-        turn = sections[1] == "w" ? Turn.White : Turn.Black;
+        turn = sections[1] == "w" ? Piece.White : Piece.Black;
 
 
         // Castling Rights
@@ -303,6 +310,11 @@ public class Board : MonoBehaviour
         {
             square.SetOptionHighlight(false);
         }
+    }
+
+    public void HighlightCheck(int index)
+    {
+        squares[index].HighlightCheck();
     }
 
 
@@ -740,20 +752,35 @@ public class Board : MonoBehaviour
 
 
         PlayMoveSound(move.isCaptureMove);
-
         gameMoves.Add(move);
+
+        // Update position of the king
+        if (move.pieceType == Piece.King)
+        {
+            if (isWhite)
+            {
+                UpdateKingIndex(Piece.White, move.endIndex);
+            }
+            else
+            {
+                UpdateKingIndex(Piece.Black, move.endIndex);
+            }
+        }
+
+        
         Debug.Log(move.GetMoveAsString());
         ChangeTurn();
+        HandleCheck();
     }
 
     public bool CheckIfPieceIsTurnColour(int index)
     {
-        return (boardState[index].IsWhite() && turn == Turn.White) || (!boardState[index].IsWhite() && turn == Turn.Black);
+        return (boardState[index].IsWhite() && turn == Piece.White) || (!boardState[index].IsWhite() && turn == Piece.Black);
     }
 
     public void ChangeTurn()
     {
-        turn = turn == Turn.White ? Turn.Black : Turn.White;
+        turn = turn == Piece.White ? Piece.Black : Piece.White;
     }
 
     public void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
@@ -911,5 +938,106 @@ public class Board : MonoBehaviour
             }
         }
         return false;
+    }
+
+
+    // Checks //
+
+    public HashSet<Move> GetAllPseudoLegalMoves(int colour)
+    {
+        HashSet<Move> pseudoLegalMoves = new();
+        for (int i = 0; i < 64; i++)
+        {
+            Piece piece = boardState[i];
+            if (piece != null && (piece.IsWhite() && colour == Piece.White || !piece.IsWhite() && colour == Piece.Black))
+            {
+                HashSet<Move> moves = GetLegalMoves(i);
+                pseudoLegalMoves.UnionWith(moves);
+            }
+        }
+        return pseudoLegalMoves;
+    }
+
+    public HashSet<int> FindCoverageOfColour(int colour)
+    {
+        HashSet<Move> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
+
+        HashSet<int> coverage = new();
+        foreach (Move move in pseudoLegalMoves)
+        {
+            // maybe watch out for moves like castling
+            coverage.Add(move.endIndex);
+        }
+
+        return coverage;
+    }
+
+    public bool CheckIfPieceIsAttacked(int index)
+    {
+        HashSet<int> coverageOfOpponent = CheckPieceIsWhite(index) == true ? FindCoverageOfColour(Piece.Black) : FindCoverageOfColour(Piece.White);
+        return coverageOfOpponent.Contains(index);
+    }
+
+    public bool CheckIfInCheck(int colour)
+    {
+        if (colour == Piece.White)
+        {
+            return CheckIfPieceIsAttacked(kingIndices[0]);
+
+        }
+        else
+        {
+            return CheckIfPieceIsAttacked(kingIndices[1]);
+
+        }
+    }
+
+    public void HandleCheck()
+    {
+        inCheck = CheckIfInCheck(turn);
+        if (inCheck)
+        {
+            DisplayCheck(turn);
+        }
+
+        if (turn == Piece.White)
+        {
+            ResetSquareColour(kingIndices[1]);
+        }
+        else
+        {
+            ResetSquareColour(kingIndices[0]);
+        }
+    }
+
+
+    public void UpdateKingIndex(int colour, int newIndex)
+    {
+        if (colour == Piece.White)
+        {
+            kingIndices[0] = newIndex;
+        }
+        else
+        {
+            kingIndices[1] = newIndex;
+        }
+    }
+
+    public void DisplayCheck(int colour)
+    {
+        if (colour == Piece.White)
+        {
+            Debug.Log($"White is in check! {kingIndices[0]}");
+
+            HighlightCheck(kingIndices[0]);
+        }
+        else
+        {
+            Debug.Log($"Black is in check! {kingIndices[1]}");
+
+            HighlightCheck(kingIndices[1]);
+
+        }
+
     }
 }

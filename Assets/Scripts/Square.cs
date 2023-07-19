@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Square : MonoBehaviour
 {
-    public Color lightColor, darkColor, highlightColor;
+    public Color lightColor, darkColor, highlightColor, checkColor;
 
     public GameObject hoverHighlight;
     public GameObject optionHighlight;
@@ -15,11 +15,11 @@ public class Square : MonoBehaviour
     private int squareIndex;
 
 
-    public void Initialise(int index, string squareName, bool isOffset)
+    public void Initialise(int squareIndex, string name, bool isLightSquare)
     {
-        squareIndex = index;
-        name = squareName;
-        isLightSquare = isOffset;
+        this.squareIndex = squareIndex;
+        this.name = name;
+        this.isLightSquare = isLightSquare;
         InitialiseColor();
 
     }
@@ -41,18 +41,23 @@ public class Square : MonoBehaviour
         SetColor(highlightColor);
     }
 
+    public void HighlightCheck()
+    {
+        SetColor(checkColor);
+    }
+
     public void SetColor(Color color) {
         renderer.color = color;
     }
 
-    public void SetHoverHighlight(bool boolean)
+    public void SetHoverHighlight(bool value)
     {
-        hoverHighlight.SetActive(boolean);
+        hoverHighlight.SetActive(value);
     }
 
-    public void SetOptionHighlight(bool boolean)
+    public void SetOptionHighlight(bool value)
     {
-        optionHighlight.SetActive(boolean);
+        optionHighlight.SetActive(value);
     }
 
     public void DestroySquare()
