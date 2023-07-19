@@ -1174,6 +1174,11 @@ public class Board : MonoBehaviour
             }
         }
 
+        else
+        {
+            Debug.Log("Cannot identify the nature of the previous move.");
+        }
+
         // revert the castling rights
         for (int i = 0; i < 4; i++)
         {
@@ -1183,8 +1188,16 @@ public class Board : MonoBehaviour
             }
         }
 
+        // revert the king index
+        if (lastMove.pieceType == Piece.King)
+        {
+            int index = heroColour == Piece.White ? 0 : 1;
+            kingIndices[index] = lastMove.startIndex;
+        }
+
         // change the turn back
         ChangeTurn();
+        HandleCheck();
 
         Debug.Log("Move undone");
     }
