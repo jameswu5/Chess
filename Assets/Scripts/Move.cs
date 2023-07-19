@@ -11,7 +11,6 @@ public struct Move
     public int pieceType;
     public bool isCaptureMove;
 
-
     public const int Standard = 1;
     public const int PawnTwoSquares = 2;
     public const int Castling = 3;

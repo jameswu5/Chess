@@ -29,6 +29,12 @@ public class HumanInput : MonoBehaviour
 
     void Update()
     {
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            board.UndoMove();
+        }
+
         if (board.inPromotionScreen == -1)
         {
             HandleInput();
