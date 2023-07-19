@@ -323,7 +323,7 @@ public class Board : MonoBehaviour
     // Moving rules //
     //////////////////
 
-    public HashSet<Move> GetLegalMoves(int index) // These are actually only pseudolegal
+    public HashSet<Move> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
     {
         Piece currentPiece = boardState[index];
         HashSet<Move> legalMoves = new();
@@ -420,12 +420,14 @@ public class Board : MonoBehaviour
 
             if (boardState[index].IsWhite() && index == 4) // king is in original position
             {
-                if (castlingRights[0] == true && boardState[7].pieceID == Piece.White + Piece.Rook)
+                if (castlingRights[0] == true && boardState[7].pieceID == Piece.White + Piece.Rook
+                    && boardState[5] == null && boardState[6] == null)
                 {
                     // can castle kingside
                     legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, false));
                 }
-                if (castlingRights[1] == true && boardState[0].pieceID == Piece.White + Piece.Rook)
+                if (castlingRights[1] == true && boardState[0].pieceID == Piece.White + Piece.Rook
+                    && boardState[1] == null && boardState[2] == null && boardState[3] == null)
                 {
                     // can castle queenside
                     legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, false));
@@ -434,12 +436,14 @@ public class Board : MonoBehaviour
             }
             else if (!boardState[index].IsWhite() && index == 60)
             {
-                if (castlingRights[2] == true && boardState[63].pieceID == Piece.Black + Piece.Rook)
+                if (castlingRights[2] == true && boardState[63].pieceID == Piece.Black + Piece.Rook
+                    && boardState[61] == null && boardState[62] == null)
                 {
                     legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, false));
 
                 }
-                if (castlingRights[3] == true && boardState[56].pieceID == Piece.Black + Piece.Rook)
+                if (castlingRights[3] == true && boardState[56].pieceID == Piece.Black + Piece.Rook
+                    && boardState[57] == null && boardState[58] == null && boardState[59] == null)
                 {
                     legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, false));
                 }
@@ -633,7 +637,7 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public void MakeMove(Move move) // all checks assumed to be complete and this move is allowed
+    public void MakeMove(Move move, bool makeSound = true) // all checks assumed to be complete and this move is allowed
     {
         bool isWhite = CheckPieceIsWhite(move.startIndex);
         int capturedPieceType = GetPieceTypeAtIndex(move.endIndex);
@@ -771,7 +775,11 @@ public class Board : MonoBehaviour
             }
         }
 
-        PlayMoveSound(move.isCaptureMove);
+        if (makeSound == true)
+        {
+            PlayMoveSound(move.isCaptureMove);
+        }
+
         MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights);
         gameMoves.Add(moveInfo);
 
@@ -955,7 +963,7 @@ public class Board : MonoBehaviour
 
     public bool CheckPieceCanMoveThere(int index, int newIndex)
     {
-        HashSet<Move> moves = GetLegalMoves(index);
+        HashSet<Move> moves = GetPseudoLegalMoves(index);
         foreach (Move move in moves)
         {
             if (move.endIndex == newIndex)
@@ -977,7 +985,7 @@ public class Board : MonoBehaviour
             Piece piece = boardState[i];
             if (piece != null && (piece.IsWhite() && colour == Piece.White || !piece.IsWhite() && colour == Piece.Black))
             {
-                HashSet<Move> moves = GetLegalMoves(i);
+                HashSet<Move> moves = GetPseudoLegalMoves(i);
                 pseudoLegalMoves.UnionWith(moves);
             }
         }
@@ -1076,22 +1084,41 @@ public class Board : MonoBehaviour
 
         foreach (Move move in pseudoLegalMoves)
         {
-            MakeMove(move);
+            MakeMove(move, makeSound: false);
+            Console.WriteLine(move.GetMoveAsString());
             if (CheckIfInCheck(colour) == false)
             {
-                pseudoLegalMoves.Add(move);
+                legalMoves.Add(move);
             }
             UndoMove();
         }
-
 
         return legalMoves;
     }
 
 
-    public void UndoMove() // need to finish
+    public HashSet<Move> GetLegalMoves(int index)
     {
-        if (gameMoves.Count == 0)
+
+        HashSet<Move> allLegalMoves = boardState[index].IsWhite() ? GetAllLegalMoves(Piece.White) : GetAllLegalMoves(Piece.Black);
+        HashSet<Move> legalMoves = new();
+
+        foreach (Move move in allLegalMoves)
+        {
+
+            if (move.startIndex == index)
+            {
+                legalMoves.Add(move);
+            }
+        }
+
+        return legalMoves;
+
+    }
+
+    public void UndoMove()
+    {
+        if (gameMoves.Count == 0) // no moves to undo so exit the function
         {
             return;
         }
@@ -1201,6 +1228,4 @@ public class Board : MonoBehaviour
 
         Debug.Log("Move undone");
     }
-
-
 }
