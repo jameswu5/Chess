@@ -35,14 +35,18 @@ public class HumanInput : MonoBehaviour
             board.UndoMove();
         }
 
-        if (board.inPromotionScreen == -1)
+        if (board.gameOver == false)
         {
-            HandleInput();
+            if (board.inPromotionScreen == -1)
+            {
+                HandleInput();
+            }
+            else
+            {
+                HandlePromotionInput(board.inPromotionScreen);
+            }
         }
-        else
-        {
-            HandlePromotionInput(board.inPromotionScreen);
-        }
+
     }
 
     public void HandleInput()

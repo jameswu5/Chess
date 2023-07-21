@@ -39,12 +39,10 @@ public class Board : MonoBehaviour
     public Piece[] promotionPieces = new Piece[4];
     public Square[] promotionSquares = new Square[4];
 
-
     public int[] kingIndices = new int[2];
-
-
     public bool inCheck;
-    //public HashSet<Move> legalMoves = new();
+
+    public bool gameOver = false;
 
 
     void Start()
@@ -322,7 +320,6 @@ public class Board : MonoBehaviour
     {
         squares[index].HighlightCheck();
     }
-
 
     //////////////////
     // Moving rules //
@@ -805,9 +802,8 @@ public class Board : MonoBehaviour
         MakeMove(move);
         PlayMoveSound(move.isCaptureMove);
         Debug.Log(move.GetMoveAsString());
-        CheckForEndOfGame();
+        gameOver = CheckForEndOfGame();
     }
-
 
     public bool CheckIfPieceIsTurnColour(int index)
     {
@@ -1076,7 +1072,6 @@ public class Board : MonoBehaviour
 
     }
 
-
     // Strictly legal moves
 
     public HashSet<Move> GetAllLegalMoves(int colour)
@@ -1229,6 +1224,9 @@ public class Board : MonoBehaviour
             kingIndices[index] = lastMove.startIndex;
         }
 
+        // undo end of game (if applicable in the first place);
+        gameOver = false;
+
         // change the turn back
         ChangeTurn();
         HandleCheck();
@@ -1236,16 +1234,16 @@ public class Board : MonoBehaviour
         //Debug.Log($"Move undone: {lastMove.GetMoveAsString()}");
     }
 
-
-
-    public void CheckForEndOfGame()
+    public bool CheckForEndOfGame()
     {
         HashSet<Move> legalMoves = GetAllLegalMoves(turn);
         if (legalMoves.Count == 0)
         {
             string result = inCheck ? "Checkmate" : "Stalemate";
             Debug.Log(result);
+            return true;
         }
+        return false;
     }
 
 }
