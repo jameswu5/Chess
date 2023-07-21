@@ -13,6 +13,7 @@ public class Board : MonoBehaviour
     public const string testFENPosition = "8/8/8/8/2n5/8/8/8 w - - 0 1";
     public const string testEnPassantFEN = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
     public const string testPromotionFEN = "8/4PP2/8/3k1K2/8/8/3pp3/8 w - - 0 1";
+    public const string stalemateFEN = "8/8/8/8/8/8/q5k1/5K3 w - - 0 1";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -42,14 +43,15 @@ public class Board : MonoBehaviour
     public int[] kingIndices = new int[2];
 
 
-    public bool inCheck; // index of checked piece, -1 if not in check
+    public bool inCheck;
+    //public HashSet<Move> legalMoves = new();
 
 
     void Start()
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(stalemateFEN);
     }
 
     private void GenerateBoard() {
@@ -200,7 +202,8 @@ public class Board : MonoBehaviour
         if (tryMove != null)
         {
             Move move = (Move)tryMove;
-            MakeMove(move);
+            PlayMove(move);
+
             if (move.moveType == Move.PromoteToQueen || move.moveType == Move.PromoteToRook || move.moveType == Move.PromoteToBishop || move.moveType == Move.PromoteToKnight)
             {
                 DisablePromotionScreen();
@@ -422,13 +425,13 @@ public class Board : MonoBehaviour
 
             if (boardState[index].IsWhite() && index == 4) // king is in original position
             {
-                if (castlingRights[0] == true && boardState[7].pieceID == Piece.White + Piece.Rook
+                if (castlingRights[0] == true && boardState[7] != null && boardState[7].pieceID == Piece.White + Piece.Rook
                     && boardState[5] == null && boardState[6] == null)
                 {
                     // can castle kingside
                     legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, false));
                 }
-                if (castlingRights[1] == true && boardState[0].pieceID == Piece.White + Piece.Rook
+                if (castlingRights[1] == true && boardState[0] != null && boardState[0].pieceID == Piece.White + Piece.Rook
                     && boardState[1] == null && boardState[2] == null && boardState[3] == null)
                 {
                     // can castle queenside
@@ -438,13 +441,13 @@ public class Board : MonoBehaviour
             }
             else if (!boardState[index].IsWhite() && index == 60)
             {
-                if (castlingRights[2] == true && boardState[63].pieceID == Piece.Black + Piece.Rook
+                if (castlingRights[2] == true && boardState[63] != null && boardState[63].pieceID == Piece.Black + Piece.Rook
                     && boardState[61] == null && boardState[62] == null)
                 {
                     legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, false));
 
                 }
-                if (castlingRights[3] == true && boardState[56].pieceID == Piece.Black + Piece.Rook
+                if (castlingRights[3] == true && boardState[56] != null && boardState[56].pieceID == Piece.Black + Piece.Rook
                     && boardState[57] == null && boardState[58] == null && boardState[59] == null)
                 {
                     legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, false));
@@ -639,7 +642,7 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public void MakeMove(Move move, bool makeSound = true) // all checks assumed to be complete and this move is allowed
+    public void MakeMove(Move move) // all checks assumed to be complete and this move is allowed
     {
         bool isWhite = CheckPieceIsWhite(move.startIndex);
         int capturedPieceType = GetPieceTypeAtIndex(move.endIndex);
@@ -777,11 +780,6 @@ public class Board : MonoBehaviour
             }
         }
 
-        if (makeSound == true)
-        {
-            PlayMoveSound(move.isCaptureMove);
-        }
-
         MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights);
         gameMoves.Add(moveInfo);
 
@@ -798,12 +796,18 @@ public class Board : MonoBehaviour
             }
         }
 
-        
-        Debug.Log(move.GetMoveAsString());
-
         ChangeTurn();
         HandleCheck();
     }
+
+    public void PlayMove(Move move)
+    {
+        MakeMove(move);
+        PlayMoveSound(move.isCaptureMove);
+        Debug.Log(move.GetMoveAsString());
+        CheckForEndOfGame();
+    }
+
 
     public bool CheckIfPieceIsTurnColour(int index)
     {
@@ -1062,14 +1066,10 @@ public class Board : MonoBehaviour
     {
         if (colour == Piece.White)
         {
-            Debug.Log($"White is in check! {kingIndices[0]}");
-
             HighlightCheck(kingIndices[0]);
         }
         else
         {
-            Debug.Log($"Black is in check! {kingIndices[1]}");
-
             HighlightCheck(kingIndices[1]);
 
         }
@@ -1086,8 +1086,9 @@ public class Board : MonoBehaviour
 
         foreach (Move move in pseudoLegalMoves)
         {
-            MakeMove(move, makeSound: false);
-            //Debug.Log(move.GetMoveAsString());
+            // prevent castling while in check or through an attacked square
+
+            MakeMove(move);
             if (CheckIfInCheck(colour) == false)
             {
                 legalMoves.Add(move);
@@ -1232,6 +1233,19 @@ public class Board : MonoBehaviour
         ChangeTurn();
         HandleCheck();
 
-        Debug.Log($"Move undone: {lastMove.GetMoveAsString()}");
+        //Debug.Log($"Move undone: {lastMove.GetMoveAsString()}");
     }
+
+
+
+    public void CheckForEndOfGame()
+    {
+        HashSet<Move> legalMoves = GetAllLegalMoves(turn);
+        if (legalMoves.Count == 0)
+        {
+            string result = inCheck ? "Checkmate" : "Stalemate";
+            Debug.Log(result);
+        }
+    }
+
 }
