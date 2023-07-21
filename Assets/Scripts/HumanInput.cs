@@ -32,7 +32,7 @@ public class HumanInput : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            board.UndoMove();
+            board.UndoMove(); // slight bug if you've already selected a piece
         }
 
         if (board.gameOver == false)

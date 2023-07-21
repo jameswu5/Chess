@@ -49,7 +49,7 @@ public class Board : MonoBehaviour
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN(stalemateFEN);
+        GenerateBoardStateFromFEN();
     }
 
     private void GenerateBoard() {
@@ -1079,17 +1079,57 @@ public class Board : MonoBehaviour
         HashSet<Move> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
         HashSet<Move> legalMoves = new();
 
+        HashSet<Move> castlingMoves = new();
+
+        bool kingside = false;
+        bool queenside = false;
+
+        int homeRank = colour == Piece.White ? 0 : 7;
+
         foreach (Move move in pseudoLegalMoves)
         {
-            // prevent castling while in check or through an attacked square
+
+            if (move.moveType == Move.Castling) // hold the castling moves for later: an optimisation
+            {
+                if (!inCheck) // don't need to consider if in check: it's not allowed
+                {
+                    castlingMoves.Add(move);
+                }
+
+                continue;
+            }
 
             MakeMove(move);
             if (CheckIfInCheck(colour) == false)
             {
                 legalMoves.Add(move);
+                if (move.pieceType == Piece.King) // find whether king can move to the square castling would pass through
+                {
+                    if (move.endIndex == homeRank * 8 + 5)
+                    {
+                        kingside = true;
+                    }
+                    if (move.endIndex == homeRank * 8 + 3)
+                    {
+                        queenside = true;
+                    }
+                }
             }
             UndoMove();
         }
+
+        foreach (Move move in castlingMoves)
+        {
+            if (move.endIndex % 8 == 6 && kingside)
+            {
+                legalMoves.Add(move);
+            }
+            if (move.endIndex % 8 == 2 && queenside)
+            {
+                legalMoves.Add(move);
+            }
+        }
+
 
         return legalMoves;
 
