@@ -12,6 +12,7 @@ public class Board : MonoBehaviour
     public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     public const string testFENPosition = "8/8/8/8/2n5/8/8/8 w - - 0 1";
     public const string testEnPassantFEN = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+    public const string testPromotionFEN = "8/4PP2/8/3k1K2/8/8/3pp3/8 w - - 0 1";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -267,6 +268,7 @@ public class Board : MonoBehaviour
     {
         Piece selectedPiece = boardState[index];
         selectedPiece.DestroyPiece();
+        boardState[index] = null;
     }
 
     public void HighlightSquare(int index)
@@ -798,6 +800,7 @@ public class Board : MonoBehaviour
 
         
         Debug.Log(move.GetMoveAsString());
+
         ChangeTurn();
         HandleCheck();
     }
@@ -974,7 +977,6 @@ public class Board : MonoBehaviour
         return false;
     }
 
-
     // Checks //
 
     public HashSet<Move> GetAllPseudoLegalMoves(int colour)
@@ -1085,7 +1087,7 @@ public class Board : MonoBehaviour
         foreach (Move move in pseudoLegalMoves)
         {
             MakeMove(move, makeSound: false);
-            Console.WriteLine(move.GetMoveAsString());
+            //Debug.Log(move.GetMoveAsString());
             if (CheckIfInCheck(colour) == false)
             {
                 legalMoves.Add(move);
@@ -1094,8 +1096,9 @@ public class Board : MonoBehaviour
         }
 
         return legalMoves;
-    }
 
+        // return pseudoLegalMoves;
+    }
 
     public HashSet<Move> GetLegalMoves(int index)
     {
@@ -1193,11 +1196,14 @@ public class Board : MonoBehaviour
             Piece originalPiece = CreatePiece(Piece.Pawn + heroColour, lastMove.startIndex);
             boardState[lastMove.startIndex] = originalPiece;
 
+
             // replace captured piece if necessary
             if (lastMoveInfo.capturedPiece != -1)
             {
                 Piece capturedPiece = CreatePiece(lastMoveInfo.capturedPiece + opponentColour, lastMove.endIndex);
                 boardState[lastMove.endIndex] = capturedPiece;
+
+                Debug.Log($"replaced captured piece is { capturedPiece.pieceID } at index {lastMove.endIndex}");
             }
         }
 
@@ -1226,6 +1232,6 @@ public class Board : MonoBehaviour
         ChangeTurn();
         HandleCheck();
 
-        Debug.Log("Move undone");
+        Debug.Log($"Move undone: {lastMove.GetMoveAsString()}");
     }
 }
