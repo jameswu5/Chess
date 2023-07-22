@@ -14,6 +14,10 @@ public class Board : MonoBehaviour
     public const string testEnPassantFEN = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
     public const string testPromotionFEN = "8/4PP2/8/3k1K2/8/8/3pp3/8 w - - 0 1";
     public const string stalemateFEN = "8/8/8/8/8/8/q5k1/5K3 w - - 0 1";
+    public const string moveGenerationTestFEN = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+    public const string moveGenerationTestFEN2 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 1 8";
+    public const string moveGenerationTestFEN3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 1 1";
+
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -49,7 +53,7 @@ public class Board : MonoBehaviour
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(moveGenerationTestFEN2);
     }
 
     private void GenerateBoard() {
@@ -653,42 +657,44 @@ public class Board : MonoBehaviour
             {
                 if (CheckPieceIsWhite(move.startIndex))
                 {
+                    disabledCastlingRights[0] = castlingRights[0];
+                    disabledCastlingRights[1] = castlingRights[1];
+
                     ChangeCastlingRight(true, true, false); // isWhite, isKingside, value
                     ChangeCastlingRight(true, false, false);
 
-                    disabledCastlingRights[0] = true;
-                    disabledCastlingRights[1] = true;
                 }
                 else
                 {
+                    disabledCastlingRights[2] = castlingRights[2];
+                    disabledCastlingRights[3] = castlingRights[3];
+
                     ChangeCastlingRight(false, true, false);
                     ChangeCastlingRight(false, false, false);
 
-                    disabledCastlingRights[2] = true;
-                    disabledCastlingRights[3] = true;
                 }
             }
 
             // if piece is rook and in original position, disable castling right
             if (move.startIndex == 0 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && CheckPieceIsWhite(move.startIndex))
             {
+                disabledCastlingRights[1] = castlingRights[1];
                 ChangeCastlingRight(true, false, false);
-                disabledCastlingRights[1] = true;
             }
             if (move.startIndex == 7 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && CheckPieceIsWhite(move.startIndex))
             {
+                disabledCastlingRights[0] = castlingRights[0];
                 ChangeCastlingRight(true, true, false);
-                disabledCastlingRights[0] = true;
             }
             if (move.startIndex == 56 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && !CheckPieceIsWhite(move.startIndex))
             {
+                disabledCastlingRights[3] = castlingRights[3];
                 ChangeCastlingRight(false, false, false);
-                disabledCastlingRights[3] = true;
             }
             if (move.startIndex == 63 && GetPieceTypeAtIndex(move.startIndex) == Piece.Rook && !CheckPieceIsWhite(move.startIndex))
             {
+                disabledCastlingRights[2] = castlingRights[2];
                 ChangeCastlingRight(false, true, false);
-                disabledCastlingRights[2] = true;
             }
 
             PlacePiece(move.startIndex, move.endIndex);
@@ -712,19 +718,20 @@ public class Board : MonoBehaviour
             // Disable castling rights
             if (isWhite)
             {
+                disabledCastlingRights[0] = castlingRights[0];
+                disabledCastlingRights[1] = castlingRights[1];
+
                 ChangeCastlingRight(true, true, false);
                 ChangeCastlingRight(true, false, false);
-
-                disabledCastlingRights[0] = true;
-                disabledCastlingRights[1] = true;
             }
             else
             {
+                disabledCastlingRights[2] = castlingRights[2];
+                disabledCastlingRights[3] = castlingRights[3];
+
                 ChangeCastlingRight(false, true, false);
                 ChangeCastlingRight(false, false, false);
 
-                disabledCastlingRights[2] = true;
-                disabledCastlingRights[3] = true;
             }
         }
 
@@ -1089,6 +1096,8 @@ public class Board : MonoBehaviour
         foreach (Move move in pseudoLegalMoves)
         {
 
+            // doesn't prevent castling into check!
+
             if (move.moveType == Move.Castling) // hold the castling moves for later: an optimisation
             {
                 if (!inCheck) // don't need to consider if in check: it's not allowed
@@ -1122,11 +1131,21 @@ public class Board : MonoBehaviour
         {
             if (move.endIndex % 8 == 6 && kingside)
             {
-                legalMoves.Add(move);
+                MakeMove(move);
+                if (CheckIfInCheck(colour) == false) {
+                    legalMoves.Add(move);
+                }
+                UndoMove();
+
             }
             if (move.endIndex % 8 == 2 && queenside)
             {
-                legalMoves.Add(move);
+                MakeMove(move);
+                if (CheckIfInCheck(colour) == false)
+                {
+                    legalMoves.Add(move);
+                }
+                UndoMove();
             }
         }
 
@@ -1239,7 +1258,7 @@ public class Board : MonoBehaviour
                 Piece capturedPiece = CreatePiece(lastMoveInfo.capturedPiece + opponentColour, lastMove.endIndex);
                 boardState[lastMove.endIndex] = capturedPiece;
 
-                Debug.Log($"replaced captured piece is { capturedPiece.pieceID } at index {lastMove.endIndex}");
+                //Debug.Log($"replaced captured piece is { capturedPiece.pieceID } at index {lastMove.endIndex}");
             }
         }
 
@@ -1248,7 +1267,7 @@ public class Board : MonoBehaviour
             Debug.Log("Cannot identify the nature of the previous move.");
         }
 
-        // revert the castling rights
+        //revert the castling rights
         for (int i = 0; i < 4; i++)
         {
             if (lastMoveInfo.disabledCastlingRights[i] == true)
@@ -1286,4 +1305,27 @@ public class Board : MonoBehaviour
         return false;
     }
 
+
+    // Testing and searching
+
+    public int MoveGenerationTest(int depth)
+    {
+        if (depth == 0)
+        {
+            return 1;
+        }
+
+        HashSet<Move> legalMoves = GetAllLegalMoves(turn);
+        int numOfPositions = 0;
+
+        foreach (Move move in legalMoves)
+        {
+            MakeMove(move);
+            numOfPositions += MoveGenerationTest(depth - 1);
+            UndoMove();
+        }
+
+        return numOfPositions;
+
+    }
 }
