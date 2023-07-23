@@ -20,6 +20,7 @@ public class Board : MonoBehaviour
     public const string moveGenerationTestFEN2 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 1 8";
     public const string moveGenerationTestFEN3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 1 1";
     public const string fiftyMoveRuleFEN = "8/8/r2k5/8/8/4K3/8/8 w - - 86 64";
+    public const string insufficientMaterialFEN = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -753,7 +754,7 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public void MakeMove(Move move) // all checks assumed to be complete and this move is allowed
+    public void MakeMove(Move move)
     {
         bool isWhite = CheckPieceIsWhite(move.startIndex);
         int capturedPieceType = GetPieceTypeAtIndex(move.endIndex);
@@ -907,6 +908,7 @@ public class Board : MonoBehaviour
             }
         }
 
+        int previousFiftyMoveCounter = fiftyMoveCounter;
 
         // Update fifty move counter
         if (move.isCaptureMove || move.pieceType == Piece.Pawn)
@@ -930,7 +932,7 @@ public class Board : MonoBehaviour
             boardStrings.Add(boardString, 1);
         }
 
-        MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights, fiftyMoveCounter, boardString);
+        MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights, previousFiftyMoveCounter, boardString);
         gameMoves.Add(moveInfo);
 
         ChangeTurn();
@@ -1401,7 +1403,7 @@ public class Board : MonoBehaviour
             Debug.Log("Cannot identify the nature of the previous move.");
         }
 
-        //revert the castling rights
+        // revert the castling rights
         for (int i = 0; i < 4; i++)
         {
             if (lastMoveInfo.disabledCastlingRights[i] == true)
@@ -1466,9 +1468,37 @@ public class Board : MonoBehaviour
             return true;
         }
 
+        if (CheckForInsufficientMaterial())
+        {
+            Debug.Log("Draw by insufficient material");
+            return true;
+        }
+
+
         return false;
     }
 
+    public bool CheckForInsufficientMaterial()
+    {
+        int numOfPieces = 0;
+        for (int i = 0; i < 64; i++)
+        {
+            if (boardState[i] != null)
+            {
+                numOfPieces++;
+                int pieceType = GetPieceTypeAtIndex(i);
+                if (numOfPieces > 3)
+                {
+                    return false;
+                }
+                else if (pieceType == Piece.Pawn || pieceType == Piece.Rook || pieceType == Piece.Queen)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     // Testing and searching
 
