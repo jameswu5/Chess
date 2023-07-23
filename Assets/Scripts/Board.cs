@@ -17,7 +17,7 @@ public class Board : MonoBehaviour
     public const string moveGenerationTestFEN = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
     public const string moveGenerationTestFEN2 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 1 8";
     public const string moveGenerationTestFEN3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 1 1";
-    public const string fiftyMoveRuleFEN = "8/8/r2k5/8/8/4K3/8/8 w - - 86 1";
+    public const string fiftyMoveRuleFEN = "8/8/r2k5/8/8/4K3/8/8 w - - 86 64";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -48,6 +48,7 @@ public class Board : MonoBehaviour
 
 
     public int fiftyMoveCounter = 0;
+    public int moveNumber;
 
     public bool gameOver = false;
 
@@ -56,7 +57,7 @@ public class Board : MonoBehaviour
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN(fiftyMoveRuleFEN);
+        GenerateBoardStateFromFEN();
     }
 
     private void GenerateBoard() {
@@ -164,6 +165,9 @@ public class Board : MonoBehaviour
 
         // halfmove clock
         fiftyMoveCounter = Convert.ToInt16(sections[4]);
+
+        // fullmove clock
+        moveNumber = Convert.ToInt16(sections[5]) - 1;
 
     }
 
@@ -653,8 +657,6 @@ public class Board : MonoBehaviour
         int capturedPieceType = GetPieceTypeAtIndex(move.endIndex);
         bool[] disabledCastlingRights = new bool[4];
 
-        int previousFiftyMoveCounter = fiftyMoveCounter;
-
         if (move.moveType == Move.Standard || move.moveType == Move.PawnTwoSquares)
         {
 
@@ -814,6 +816,12 @@ public class Board : MonoBehaviour
         }
         fiftyMoveCounter++;
 
+        // Update move number
+        if (turn == Piece.White)
+        {
+            moveNumber++;
+        }
+
         ChangeTurn();
         HandleCheck();
     }
@@ -822,7 +830,7 @@ public class Board : MonoBehaviour
     {
         MakeMove(move);
         PlayMoveSound(move.isCaptureMove);
-        Debug.Log(move.GetMoveAsString());
+        Debug.Log($"{moveNumber}: {move.GetMoveAsString()}");
         gameOver = CheckForEndOfGame();
     }
 
@@ -1302,6 +1310,13 @@ public class Board : MonoBehaviour
 
         // revert the fifty move counter
         fiftyMoveCounter = lastMoveInfo.previousFiftyMoveCounter;
+
+        // change the move number if undoing a move made by black
+        if (turn == Piece.Black)
+        {
+            moveNumber--;
+        }
+
 
         // change the turn back
         ChangeTurn();
