@@ -17,7 +17,7 @@ public class Board : MonoBehaviour
     public const string moveGenerationTestFEN = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
     public const string moveGenerationTestFEN2 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 1 8";
     public const string moveGenerationTestFEN3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 1 1";
-
+    public const string fiftyMoveRuleFEN = "8/8/r2k5/8/8/4K3/8/8 w - - 86 1";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -46,6 +46,9 @@ public class Board : MonoBehaviour
     public int[] kingIndices = new int[2];
     public bool inCheck;
 
+
+    public int fiftyMoveCounter = 0;
+
     public bool gameOver = false;
 
 
@@ -53,7 +56,7 @@ public class Board : MonoBehaviour
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN(moveGenerationTestFEN2);
+        GenerateBoardStateFromFEN(fiftyMoveRuleFEN);
     }
 
     private void GenerateBoard() {
@@ -155,11 +158,12 @@ public class Board : MonoBehaviour
 
             }
 
-            MoveInfo moveInfo = new MoveInfo(move, Piece.Pawn, new bool[4]);
+            MoveInfo moveInfo = new MoveInfo(move, Piece.Pawn, new bool[4], 0); // fifty move counter may not be 0, but there's no way of knowing as move before is a pawn move
             gameMoves.Add(moveInfo);
         }
 
-        // halfmove clock is sections[4], not implemented yet
+        // halfmove clock
+        fiftyMoveCounter = Convert.ToInt16(sections[4]);
 
     }
 
@@ -649,6 +653,8 @@ public class Board : MonoBehaviour
         int capturedPieceType = GetPieceTypeAtIndex(move.endIndex);
         bool[] disabledCastlingRights = new bool[4];
 
+        int previousFiftyMoveCounter = fiftyMoveCounter;
+
         if (move.moveType == Move.Standard || move.moveType == Move.PawnTwoSquares)
         {
 
@@ -784,7 +790,7 @@ public class Board : MonoBehaviour
             }
         }
 
-        MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights);
+        MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights, fiftyMoveCounter);
         gameMoves.Add(moveInfo);
 
         // Update position of the king
@@ -799,6 +805,14 @@ public class Board : MonoBehaviour
                 UpdateKingIndex(Piece.Black, move.endIndex);
             }
         }
+
+
+        // Update fifty move counter
+        if (move.isCaptureMove || move.pieceType == Piece.Pawn)
+        {
+            fiftyMoveCounter = 0;
+        }
+        fiftyMoveCounter++;
 
         ChangeTurn();
         HandleCheck();
@@ -1286,6 +1300,9 @@ public class Board : MonoBehaviour
         // undo end of game (if applicable in the first place);
         gameOver = false;
 
+        // revert the fifty move counter
+        fiftyMoveCounter = lastMoveInfo.previousFiftyMoveCounter;
+
         // change the turn back
         ChangeTurn();
         HandleCheck();
@@ -1302,6 +1319,13 @@ public class Board : MonoBehaviour
             Debug.Log(result);
             return true;
         }
+
+        if (fiftyMoveCounter >= 100)
+        {
+            Debug.Log("Draw by 50 move rule");
+            return true;
+        }
+
         return false;
     }
 

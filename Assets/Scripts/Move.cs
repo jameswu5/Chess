@@ -15,7 +15,6 @@ public struct Move
     public const int PawnTwoSquares = 2;
     public const int Castling = 3;
     public const int EnPassant = 4;
-
     public const int PromoteToQueen = 5;
     public const int PromoteToRook = 6;
     public const int PromoteToBishop = 7;
