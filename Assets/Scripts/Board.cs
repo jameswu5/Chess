@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Text;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -46,9 +48,10 @@ public class Board : MonoBehaviour
     public int[] kingIndices = new int[2];
     public bool inCheck;
 
-
     public int fiftyMoveCounter = 0;
     public int moveNumber;
+
+    Dictionary<string, int> boardStrings = new();
 
     public bool gameOver = false;
 
@@ -89,8 +92,8 @@ public class Board : MonoBehaviour
         int file = 0;
 
         string[] sections = FENPosition.Split(' ');
-        
-        // We will only deal with the first section for now.
+
+        // first section is the board state
         string boardInformation = sections[0];
         foreach (char c in boardInformation) {
             if (c == '/') {
@@ -169,6 +172,105 @@ public class Board : MonoBehaviour
         // fullmove clock
         moveNumber = Convert.ToInt16(sections[5]) - 1;
 
+    }
+
+    private string GetFENStringFromGameState()
+    {
+        StringBuilder sb = new();
+
+        // board state
+        for (int r = 7; r > -1; r--)
+        {
+            int emptyCounter = 0;
+            for (int c = 0; c < 8; c++)
+            {
+                int index = r * 8 + c;
+                if (boardState[index] == null)
+                {
+                    emptyCounter++;
+                }
+                else
+                {
+                    if (emptyCounter > 0)
+                    {
+                        sb.Append(emptyCounter);
+                    }
+                    sb.Append(boardState[index].GetCharacterFromPieceType());
+                    emptyCounter = 0;
+                }
+            }
+
+            if (emptyCounter > 0)
+            {
+                sb.Append(emptyCounter);
+            }
+            sb.Append('/');
+        }
+
+        sb.Remove(sb.Length - 1, 1);
+
+        sb.Append(' ');
+
+        // turn
+        string turnString = turn == Piece.White ? "w" : "b";
+        sb.Append(turnString);
+
+        sb.Append(' ');
+
+        // castling rights
+        StringBuilder castlingStringBuilder = new();
+        if (castlingRights[0])
+        {
+            castlingStringBuilder.Append("K");
+        }
+        if (castlingRights[1])
+        {
+            castlingStringBuilder.Append("Q");
+        }
+        if (castlingRights[2])
+        {
+            castlingStringBuilder.Append("k");
+        }
+        if (castlingRights[3])
+        {
+            castlingStringBuilder.Append("q");
+        }
+
+        string castlingString = castlingStringBuilder.ToString();
+        castlingString = castlingString.Length == 0 ? "-" : castlingString;
+        sb.Append(castlingString);
+
+        sb.Append(' ');
+
+        // en passant targets
+        string enPassantTargetString = "-";
+        if (gameMoves.Count > 0)
+        {
+            Move lastMove = gameMoves[gameMoves.Count - 1].move;
+            if (lastMove.moveType == Move.PawnTwoSquares)
+            {
+                int offset = GetRank(lastMove.startIndex) == 2 ? 8 : -8;
+                enPassantTargetString = Move.ConvertIndexToSquareName(lastMove.startIndex + offset);
+            }
+        }
+        sb.Append(enPassantTargetString);
+        sb.Append(' ');
+
+        // halfmove clock
+        sb.Append(fiftyMoveCounter);
+        sb.Append(' ');
+
+        // fullmove clock
+        sb.Append(moveNumber);
+
+        return sb.ToString();
+    }
+
+    private string GetFENStringFromBoardState()
+    {
+        string FENString = GetFENStringFromGameState();
+        string[] FENStringAsArray = FENString.Split(' ');
+        return FENStringAsArray[0];
     }
 
     Square CreateSquare(int index, float elevation = 0)
@@ -792,9 +894,6 @@ public class Board : MonoBehaviour
             }
         }
 
-        MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights, fiftyMoveCounter);
-        gameMoves.Add(moveInfo);
-
         // Update position of the king
         if (move.pieceType == Piece.King)
         {
@@ -822,6 +921,18 @@ public class Board : MonoBehaviour
             moveNumber++;
         }
 
+        // Get updated game state as FEN
+        string boardString = GetFENStringFromBoardState();
+        if (boardStrings.ContainsKey(boardString)) {
+            boardStrings[boardString]++;
+        } else
+        {
+            boardStrings.Add(boardString, 1);
+        }
+
+        MoveInfo moveInfo = new MoveInfo(move, capturedPieceType, disabledCastlingRights, fiftyMoveCounter, boardString);
+        gameMoves.Add(moveInfo);
+
         ChangeTurn();
         HandleCheck();
     }
@@ -831,6 +942,7 @@ public class Board : MonoBehaviour
         MakeMove(move);
         PlayMoveSound(move.isCaptureMove);
         Debug.Log($"{moveNumber}: {move.GetMoveAsString()}");
+
         gameOver = CheckForEndOfGame();
     }
 
@@ -1317,6 +1429,13 @@ public class Board : MonoBehaviour
             moveNumber--;
         }
 
+        // remove the move from the list of seen board states
+        string boardString = lastMoveInfo.currentFEN;
+        boardStrings[boardString]--;
+        if (boardStrings[boardString] == 0)
+        {
+            boardStrings.Remove(boardString);
+        }
 
         // change the turn back
         ChangeTurn();
@@ -1338,6 +1457,12 @@ public class Board : MonoBehaviour
         if (fiftyMoveCounter >= 100)
         {
             Debug.Log("Draw by 50 move rule");
+            return true;
+        }
+
+        if (boardStrings.Values.Max() >= 3)
+        {
+            Debug.Log("Draw by threefold repetition");
             return true;
         }
 

@@ -112,13 +112,13 @@ public struct Move
         return moveString;
     }
 
-    public string ConvertIndexToSquareName(int index)
+    public static string ConvertIndexToSquareName(int index)
     {
         int rank = (index / 8) + 1;
         return GetFileName(index) + rank.ToString();
     }
 
-    public string GetFileName(int index)
+    public static string GetFileName(int index)
     {
         int file = (index % 8) + 1;
         string[] letters = { "#", "a", "b", "c", "d", "e", "f", "g", "h" };

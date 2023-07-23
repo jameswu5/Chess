@@ -58,4 +58,37 @@ public class Piece : MonoBehaviour
     {
         return (index / 8) + 1;
     }
+
+    public string GetCharacterFromPieceType()
+    {
+        switch (pieceID)
+        {
+            case White + King:
+                return "K";
+            case White + Queen:
+                return "Q";
+            case White + Bishop:
+                return "B";
+            case White + Knight:
+                return "N";
+            case White + Rook:
+                return "R";
+            case White + Pawn:
+                return "P";
+            case Black + King:
+                return "k";
+            case Black + Queen:
+                return "q";
+            case Black + Bishop:
+                return "b";
+            case Black + Knight:
+                return "n";
+            case Black + Rook:
+                return "r";
+            case Black + Pawn:
+                return "p";
+            default:
+                return "";
+        }
+    }
 }
