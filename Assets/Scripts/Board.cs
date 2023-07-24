@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Board : MonoBehaviour
 {
@@ -56,12 +57,15 @@ public class Board : MonoBehaviour
 
     public bool gameOver = false;
 
+    public Text endOfGameText;
+    public Text resultText;
+
 
     void Start()
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(insufficientMaterialFEN);
     }
 
     private void GenerateBoard() {
@@ -1439,6 +1443,10 @@ public class Board : MonoBehaviour
             boardStrings.Remove(boardString);
         }
 
+        // remove end of game text if necessary
+        endOfGameText.text = "";
+        resultText.text = "";
+
         // change the turn back
         ChangeTurn();
         HandleCheck();
@@ -1452,25 +1460,38 @@ public class Board : MonoBehaviour
         if (legalMoves.Count == 0)
         {
             string result = inCheck ? "Checkmate" : "Stalemate";
-            Debug.Log(result);
+            endOfGameText.text = result;
+
+            if (result == "Stalemate")
+            {
+                resultText.text = "1/2 – 1/2";
+            }
+            else
+            {
+                resultText.text = turn == Piece.White ? "0 – 1" : "1 – 0";
+            }
+
             return true;
         }
 
         if (fiftyMoveCounter >= 100)
         {
-            Debug.Log("Draw by 50 move rule");
+            endOfGameText.text = "50 move rule";
+            resultText.text = "1/2 – 1/2";
             return true;
         }
 
         if (boardStrings.Values.Max() >= 3)
         {
-            Debug.Log("Draw by threefold repetition");
+            endOfGameText.text = "Threefold repetition";
+            resultText.text = "1/2 – 1/2";
             return true;
         }
 
         if (CheckForInsufficientMaterial())
         {
-            Debug.Log("Draw by insufficient material");
+            endOfGameText.text = "Insufficient material";
+            resultText.text = "1/2 – 1/2";
             return true;
         }
 
