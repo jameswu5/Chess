@@ -18,7 +18,7 @@ public class HumanInput : MonoBehaviour
 
     private int pieceIndex = -1;
 
-    public float dragOffset = -0.3f;
+    public float dragOffset = -0.2f;
 
 
     void Start()
@@ -32,7 +32,8 @@ public class HumanInput : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            board.UndoMove(); // slight bug if you've already selected a piece
+            CancelMove();
+            board.UndoMove();
         }
 
         if (board.gameOver == false)
@@ -217,5 +218,28 @@ public class HumanInput : MonoBehaviour
         {
             return -1; // clicked somewhere not on the board
         }
+    }
+
+
+    public void CancelMove()
+    {
+        if (currentState != InputState.Idle)
+        {
+            Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
+
+            board.ResetPiecePosition(pieceIndex);
+            board.ResetSquareColour(pieceIndex);
+            board.UnHighlightHover(GetIndexFromMousePosition(mousePosition));
+            board.UnHighlightOptionsAllSquares();
+        }
+
+        if (board.inPromotionScreen != -1)
+        {
+            board.ResetPiecePosition(pieceIndex);
+            board.DisablePromotionScreen();
+            board.inPromotionScreen = -1;
+        }
+
+        currentState = InputState.Idle;
     }
 }

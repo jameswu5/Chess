@@ -287,7 +287,7 @@ public class Board : MonoBehaviour
         return spawnSquare;
     }
 
-    Piece CreatePiece(int pieceID, int index, float elevation = -1f) { // elevation is just for layering
+    Piece CreatePiece(int pieceID, int index, float elevation = -0.1f) { // elevation is just for layering
         int rank = index / BoardHeight;
         int file = index % BoardHeight;
         Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, elevation), Quaternion.identity);
@@ -1059,10 +1059,10 @@ public class Board : MonoBehaviour
 
         // create the pieces
 
-        Piece queen = CreatePiece(Piece.Queen + pieceColour, index, -1.7f);
-        Piece rook = CreatePiece(Piece.Rook + pieceColour, index + 8 * colourMultiplier, -1.7f);
-        Piece bishop = CreatePiece(Piece.Bishop + pieceColour, index + 16 * colourMultiplier, -1.7f);
-        Piece knight = CreatePiece(Piece.Knight + pieceColour, index + 24 * colourMultiplier, -1.7f);
+        Piece queen = CreatePiece(Piece.Queen + pieceColour, index, -0.7f);
+        Piece rook = CreatePiece(Piece.Rook + pieceColour, index + 8 * colourMultiplier, -0.7f);
+        Piece bishop = CreatePiece(Piece.Bishop + pieceColour, index + 16 * colourMultiplier, -0.7f);
+        Piece knight = CreatePiece(Piece.Knight + pieceColour, index + 24 * colourMultiplier, -0.7f);
 
         promotionPieces[0] = queen;
         promotionPieces[1] = rook;
@@ -1073,7 +1073,7 @@ public class Board : MonoBehaviour
 
         for (int i = 0; i < 4; i++)
         {
-            promotionSquares[i] = CreateSquare(index + 8 * i * colourMultiplier, -1.6f);
+            promotionSquares[i] = CreateSquare(index + 8 * i * colourMultiplier, -0.6f);
         }
 
         inPromotionScreen = index;

@@ -32,14 +32,14 @@ public class Piece : MonoBehaviour
 
     public void Drag(Vector2 mousePosition, float dragOffset)
     {
-        transform.position = new Vector3(mousePosition.x, mousePosition.y, -1 + dragOffset);
+        transform.position = new Vector3(mousePosition.x, mousePosition.y, -0.1f + dragOffset);
 
     }
 
     public void SnapToSquare(int newIndex) {
         int x = newIndex % 8;
         int y = newIndex / 8;
-        transform.position = new Vector3(x, y, -1);
+        transform.position = new Vector3(x, y, -0.1f);
     }
 
     public void DestroyPiece()
