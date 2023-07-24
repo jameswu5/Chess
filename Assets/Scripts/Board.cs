@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Board : MonoBehaviour
 {
@@ -59,13 +60,14 @@ public class Board : MonoBehaviour
 
     public Text endOfGameText;
     public Text resultText;
+    public GameObject restartButton;
 
 
     void Start()
     {
         MoveCamera();
         GenerateBoard();
-        GenerateBoardStateFromFEN(insufficientMaterialFEN);
+        GenerateBoardStateFromFEN();
     }
 
     private void GenerateBoard() {
@@ -1446,6 +1448,7 @@ public class Board : MonoBehaviour
         // remove end of game text if necessary
         endOfGameText.text = "";
         resultText.text = "";
+        restartButton.SetActive(false);
 
         // change the turn back
         ChangeTurn();
@@ -1471,6 +1474,8 @@ public class Board : MonoBehaviour
                 resultText.text = turn == Piece.White ? "0 – 1" : "1 – 0";
             }
 
+            restartButton.SetActive(true);
+
             return true;
         }
 
@@ -1478,6 +1483,9 @@ public class Board : MonoBehaviour
         {
             endOfGameText.text = "50 move rule";
             resultText.text = "1/2 – 1/2";
+
+            restartButton.SetActive(true);
+
             return true;
         }
 
@@ -1485,6 +1493,9 @@ public class Board : MonoBehaviour
         {
             endOfGameText.text = "Threefold repetition";
             resultText.text = "1/2 – 1/2";
+
+            restartButton.SetActive(true);
+
             return true;
         }
 
@@ -1492,6 +1503,9 @@ public class Board : MonoBehaviour
         {
             endOfGameText.text = "Insufficient material";
             resultText.text = "1/2 – 1/2";
+
+            restartButton.SetActive(true);
+
             return true;
         }
 
@@ -1519,6 +1533,11 @@ public class Board : MonoBehaviour
             }
         }
         return true;
+    }
+
+    public void ResetGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     // Testing and searching
