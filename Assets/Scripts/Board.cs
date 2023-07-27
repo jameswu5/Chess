@@ -9,10 +9,6 @@ using UnityEngine.SceneManagement;
 
 public class Board : MonoBehaviour
 {
-    public const int BoardWidth = 8;
-    public const int BoardHeight = 8;
-    public const int NumOfSquares = 64;
-
     public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     public const string testFENPosition = "8/8/8/8/2n5/8/8/8 w - - 0 1";
     public const string testEnPassantFEN = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
@@ -26,19 +22,13 @@ public class Board : MonoBehaviour
 
     public Square squarePrefab;
     public Piece piecePrefab;
-    public new Camera camera;
-    public AudioSource captureSound;
-    public AudioSource moveSound;
 
-    public Piece[] boardState = new Piece[NumOfSquares];
-    public Square[] squares = new Square[NumOfSquares];
+    public Piece[] boardState = new Piece[64];
+    public Square[] squares = new Square[64];
 
     public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
-
     public int turn;
-
     public bool[] castlingRights = { false, false, false, false }; // W kingside, W queenside, B kingside, B queenside
-
     public List<MoveInfo> gameMoves = new();
 
 
@@ -56,19 +46,17 @@ public class Board : MonoBehaviour
 
     Dictionary<string, int> boardStrings = new();
 
-    public bool gameOver = false;
 
-    public Text endOfGameText;
-    public Text resultText;
-    public GameObject restartButton;
+    public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
 
+    public Result gameResult;
 
-    void Start()
+    public void Initialise()
     {
-        MoveCamera();
         GenerateBoard();
         GenerateBoardStateFromFEN();
     }
+
 
     private void GenerateBoard() {
         for (int i = 0; i < 64; i++)
@@ -78,13 +66,9 @@ public class Board : MonoBehaviour
         }
     }
 
-    private void MoveCamera() {
-        camera.transform.position = new Vector3((float) BoardWidth / 2 - 0.5f, (float) BoardHeight / 2 - 0.5f, -10);
-    }
-
     private void GenerateBoardStateFromFEN(string FENPosition = startFENPosition) {
 
-        boardState = new Piece[NumOfSquares];
+        boardState = new Piece[64];
 
         Dictionary<char, int> pieceTypes = new Dictionary<char, int>() {
             {'K', Piece.King},
@@ -111,7 +95,7 @@ public class Board : MonoBehaviour
             } else {
                 int pieceColour = char.IsUpper(c) ? Piece.White : Piece.Black;
                 int pieceType = pieceTypes[char.ToUpper(c)];
-                int index = rank * BoardHeight + file;
+                int index = rank * 8 + file;
 
                 int pieceID = pieceColour + pieceType;
 
@@ -178,6 +162,10 @@ public class Board : MonoBehaviour
 
         // fullmove clock
         moveNumber = Convert.ToInt16(sections[5]) - 1;
+
+
+        gameResult = GetGameResult();
+        Game.UpdateEndOfGameScreen(gameResult, turn);
 
     }
 
@@ -294,8 +282,8 @@ public class Board : MonoBehaviour
     }
 
     Piece CreatePiece(int pieceID, int index, float elevation = -0.1f) { // elevation is just for layering
-        int rank = index / BoardHeight;
-        int file = index % BoardHeight;
+        int rank = index / 8;
+        int file = index % 8;
         Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, elevation), Quaternion.identity);
         spawnPiece.Initialise(pieceID, index);
 
@@ -408,7 +396,7 @@ public class Board : MonoBehaviour
         // We unhighlight every single square because we don't know which square it was on before.
         // Still technically O(1) but I'm not a fan.
 
-        for (int i = 0; i < NumOfSquares; i++)
+        for (int i = 0; i < 64; i++)
         {
             UnHighlightHover(i);
         }
@@ -495,7 +483,7 @@ public class Board : MonoBehaviour
             while (!CheckIfAtEdge(currentSquareIndex, offset))
             {
                 currentSquareIndex += offset;
-                if (currentSquareIndex >= 0 && currentSquareIndex < NumOfSquares)
+                if (currentSquareIndex >= 0 && currentSquareIndex < 64)
                 {
                     if (boardState[currentSquareIndex] == null)
                     {
@@ -525,7 +513,7 @@ public class Board : MonoBehaviour
             if (!CheckIfAtEdge(index, offset))
             {
                 int newIndex = index + offset;
-                if (newIndex >= 0 && newIndex < NumOfSquares)
+                if (newIndex >= 0 && newIndex < 64)
                 {
                     if (boardState[newIndex] == null)
                     {
@@ -585,7 +573,7 @@ public class Board : MonoBehaviour
             if (!CheckIfAtEdgeForKnight(index, offset))
             {
                 int newIndex = index + offset;
-                if (newIndex >= 0 && newIndex < NumOfSquares)
+                if (newIndex >= 0 && newIndex < 64)
                 {
                     if (boardState[newIndex] == null)
                     {
@@ -621,7 +609,7 @@ public class Board : MonoBehaviour
 
         // move forward one square
         newIndex = index + offsets[0];
-        if (newIndex >= 0 && newIndex < NumOfSquares && boardState[newIndex] == null)
+        if (newIndex >= 0 && newIndex < 64 && boardState[newIndex] == null)
         {
 
             // check if newIndex is in the final rank for promotion
@@ -948,10 +936,11 @@ public class Board : MonoBehaviour
     public void PlayMove(Move move)
     {
         MakeMove(move);
-        PlayMoveSound(move.isCaptureMove);
+        Game.PlayMoveSound(move.isCaptureMove);
         Debug.Log($"{moveNumber}: {move.GetMoveAsString()}");
 
-        gameOver = CheckForEndOfGame();
+        gameResult = GetGameResult();
+        Game.UpdateEndOfGameScreen(gameResult, turn);
     }
 
     public bool CheckIfPieceIsTurnColour(int index)
@@ -1010,18 +999,6 @@ public class Board : MonoBehaviour
     public bool CheckPieceIsWhite(int index)
     {
         return boardState[index].IsWhite();
-    }
-
-    public void PlayMoveSound(bool isCapture)
-    {
-        if (isCapture)
-        {
-            captureSound.Play();
-        }
-        else
-        {
-            moveSound.Play();
-        }
     }
 
     public int GetIndexFromSquareName(string name)
@@ -1426,7 +1403,7 @@ public class Board : MonoBehaviour
         }
 
         // undo end of game (if applicable in the first place);
-        gameOver = false;
+        gameResult = Result.Playing;
 
         // revert the fifty move counter
         fiftyMoveCounter = lastMoveInfo.previousFiftyMoveCounter;
@@ -1446,9 +1423,7 @@ public class Board : MonoBehaviour
         }
 
         // remove end of game text if necessary
-        endOfGameText.text = "";
-        resultText.text = "";
-        restartButton.SetActive(false);
+        Game.UpdateEndOfGameScreen(gameResult, turn);
 
         // change the turn back
         ChangeTurn();
@@ -1457,60 +1432,31 @@ public class Board : MonoBehaviour
         //Debug.Log($"Move undone: {lastMove.GetMoveAsString()}");
     }
 
-    public bool CheckForEndOfGame()
+    public Result GetGameResult()
     {
         HashSet<Move> legalMoves = GetAllLegalMoves(turn);
         if (legalMoves.Count == 0)
         {
-            string result = inCheck ? "Checkmate" : "Stalemate";
-            endOfGameText.text = result;
-
-            if (result == "Stalemate")
-            {
-                resultText.text = "1/2 – 1/2";
-            }
-            else
-            {
-                resultText.text = turn == Piece.White ? "0 – 1" : "1 – 0";
-            }
-
-            restartButton.SetActive(true);
-
-            return true;
+            return inCheck ? Result.Checkmate : Result.Stalemate;
         }
 
         if (fiftyMoveCounter >= 100)
         {
-            endOfGameText.text = "50 move rule";
-            resultText.text = "1/2 – 1/2";
-
-            restartButton.SetActive(true);
-
-            return true;
+            return Result.FiftyMove;
         }
 
-        if (boardStrings.Values.Max() >= 3)
+        if (boardStrings.Count > 0 && boardStrings.Values.Max() >= 3)
         {
-            endOfGameText.text = "Threefold repetition";
-            resultText.text = "1/2 – 1/2";
-
-            restartButton.SetActive(true);
-
-            return true;
+            return Result.Threefold;
         }
 
         if (CheckForInsufficientMaterial())
         {
-            endOfGameText.text = "Insufficient material";
-            resultText.text = "1/2 – 1/2";
-
-            restartButton.SetActive(true);
-
-            return true;
+            return Result.Insufficient;
         }
 
 
-        return false;
+        return Result.Playing;
     }
 
     public bool CheckForInsufficientMaterial()

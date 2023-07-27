@@ -1,33 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class HumanInput : MonoBehaviour
+public class Human : Player
 {
 
-    public new Camera camera;
-    public GameObject boardObject;
-    public Board board;
+    public Camera camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+    public Board board = GameObject.FindGameObjectWithTag("BoardObject").GetComponent<Board>();
 
-    public enum InputState
-    {
-        Idle, Selecting, Dragging
-    }
-    private InputState currentState = InputState.Idle;
+    public enum InputState { Idle, Selecting, Dragging }
 
+    public InputState currentState = InputState.Idle;
     private int pieceIndex = -1;
-
     public float dragOffset = -0.2f;
 
-
-    void Start()
-    {
-        boardObject = GameObject.FindGameObjectWithTag("BoardObject");
-        board = boardObject.GetComponent<Board>();
-    }
-
-    void Update()
+    public override void Update()
     {
 
         if (Input.GetMouseButtonDown(1))
@@ -36,7 +23,7 @@ public class HumanInput : MonoBehaviour
             board.UndoMove();
         }
 
-        if (board.gameOver == false)
+        if (board.gameResult == Board.Result.Playing)
         {
             if (board.inPromotionScreen == -1)
             {
@@ -220,7 +207,6 @@ public class HumanInput : MonoBehaviour
         }
     }
 
-
     public void CancelMove()
     {
         if (currentState != InputState.Idle)
@@ -242,4 +228,6 @@ public class HumanInput : MonoBehaviour
 
         currentState = InputState.Idle;
     }
+
+
 }

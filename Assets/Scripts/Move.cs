@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public struct Move
+public class Move
 {
     public int moveType;
     public int startIndex;
