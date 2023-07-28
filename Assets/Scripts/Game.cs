@@ -28,7 +28,6 @@ public class Game : MonoBehaviour
         GetSounds();
         GetTexts();
         CreateBoard();
-
         NewGame(PlayerType.Human, PlayerType.Bot);
     }
 
@@ -46,9 +45,13 @@ public class Game : MonoBehaviour
                 blackPlayer.Update();
             }
         }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            NewGame(PlayerType.Human, PlayerType.Bot); // when resetting it doesn't work for some reason
+        }
+
     }
-
-
 
     public static void PlayMoveSound(bool isCapture)
     {
@@ -87,8 +90,8 @@ public class Game : MonoBehaviour
     }
 
     public void NewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
-    {
-        // board.ResetGame();
+    {   
+        board.ResetBoard();
         whitePlayer = whitePlayerType == PlayerType.Human ? new Human() : new Bot();
         blackPlayer = blackPlayerType == PlayerType.Human ? new Human() : new Bot();
     }

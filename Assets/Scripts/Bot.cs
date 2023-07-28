@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-
 
 public class Bot : Player
 {
@@ -17,7 +15,7 @@ public class Bot : Player
     {
         HashSet<Move> legalMoves = board.GetAllLegalMoves(board.turn);
         List<Move> legalMovesList = new List<Move>(legalMoves);
-        System.Random rng = new System.Random();
+        Random rng = new Random();
         Move chosenMove = legalMovesList[rng.Next(legalMovesList.Count - 1)];
         return chosenMove;
     }
