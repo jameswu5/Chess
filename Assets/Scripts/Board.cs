@@ -29,10 +29,10 @@ public class Board : MonoBehaviour
     public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
     public int turn;
     public bool[] castlingRights; // W kingside, W queenside, B kingside, B queenside
-    public List<MoveInfo> gameMoves = new();
+    public List<MoveInfo> gameMoves;
 
     public GameObject boardCover;
-    public int inPromotionScreen = -1; // -1 means not in promotion, any index means the position the pawn promoting is in
+    public int inPromotionScreen; // -1 means not in promotion, any index means the position the pawn promoting is in
     public Piece[] promotionPieces;
     public Square[] promotionSquares;
 
@@ -42,7 +42,7 @@ public class Board : MonoBehaviour
     public int fiftyMoveCounter;
     public int moveNumber;
 
-    Dictionary<string, int> boardStrings = new();
+    Dictionary<string, int> boardStrings;
 
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
 
@@ -52,9 +52,14 @@ public class Board : MonoBehaviour
     {
         boardState = new Piece[64];
         squares = new Square[64];
+        inPromotionScreen = -1;
         promotionPieces = new Piece[4];
         promotionSquares = new Square[4];
         kingIndices = new int[2];
+        boardStrings = new Dictionary<string, int>();
+        Debug.Log($"there are {boardStrings.Count} elements in boardStrings");
+        gameMoves = new List<MoveInfo>();
+        name = "Board";
 
         GenerateBoard();
         GenerateBoardStateFromFEN();
@@ -1458,7 +1463,6 @@ public class Board : MonoBehaviour
             return Result.Insufficient;
         }
 
-
         return Result.Playing;
     }
 
@@ -1484,21 +1488,17 @@ public class Board : MonoBehaviour
         return true;
     }
 
-    public void ResetGame()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
     public void ResetBoard()
     {
         for (int i = 0; i < 64; i++)
         {
+            squares[i].DestroySquare();
             if (boardState[i] != null)
             {
                 boardState[i].DestroyPiece();
             }
         }
-        GenerateBoardStateFromFEN();
+        Initialise();
     }
 
     // Testing and searching

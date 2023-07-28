@@ -18,7 +18,6 @@ public class Game : MonoBehaviour
 
     public static Text endOfGameText;
     public static Text resultText;
-    public static Button resetButton;
 
     public enum PlayerType { Human, Bot }
 
@@ -28,7 +27,7 @@ public class Game : MonoBehaviour
         GetSounds();
         GetTexts();
         CreateBoard();
-        NewGame(PlayerType.Human, PlayerType.Bot);
+        StartNewGamePlayerVsPlayer();
     }
 
 
@@ -45,12 +44,6 @@ public class Game : MonoBehaviour
                 blackPlayer.Update();
             }
         }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            NewGame(PlayerType.Human, PlayerType.Bot); // when resetting it doesn't work for some reason
-        }
-
     }
 
     public static void PlayMoveSound(bool isCapture)
@@ -89,12 +82,29 @@ public class Game : MonoBehaviour
         board.Initialise();
     }
 
-    public void NewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
+    public void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
     {   
         board.ResetBoard();
         whitePlayer = whitePlayerType == PlayerType.Human ? new Human() : new Bot();
         blackPlayer = blackPlayerType == PlayerType.Human ? new Human() : new Bot();
     }
+
+
+    public void StartNewGamePlayerVsPlayer()
+    {
+        StartNewGame(PlayerType.Human, PlayerType.Human);
+    }
+
+    public void StartNewGamePlayerVsBot()
+    {
+        StartNewGame(PlayerType.Human, PlayerType.Bot);
+    }
+
+    public void StartNewGameBotVsBot()
+    {
+        StartNewGame(PlayerType.Bot, PlayerType.Bot);
+    }
+
 
 
     public static void UpdateEndOfGameScreen(Board.Result gameResult, int turn)
