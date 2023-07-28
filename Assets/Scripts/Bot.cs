@@ -6,12 +6,11 @@ using UnityEngine;
 
 public class Bot : Player
 {
-    public Board board = GameObject.FindGameObjectWithTag("BoardObject").GetComponent<Board>();
-
     public override void Update()
     {
         Move chosenMove = ChooseMove(board);
         board.PlayMove(chosenMove);
+        board.ResetSquareColour(chosenMove.startIndex);
     }
 
     public Move ChooseMove(Board board)
@@ -21,6 +20,5 @@ public class Bot : Player
         System.Random rng = new System.Random();
         Move chosenMove = legalMovesList[rng.Next(legalMovesList.Count - 1)];
         return chosenMove;
-    
     }
 }

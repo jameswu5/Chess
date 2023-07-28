@@ -4,19 +4,14 @@ using UnityEngine;
 
 public class Human : Player
 {
-
     public Camera camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-    public Board board = GameObject.FindGameObjectWithTag("BoardObject").GetComponent<Board>();
-
     public enum InputState { Idle, Selecting, Dragging }
-
     public InputState currentState = InputState.Idle;
     private int pieceIndex = -1;
     public float dragOffset = -0.2f;
 
     public override void Update()
     {
-
         if (Input.GetMouseButtonDown(1))
         {
             CancelMove();
@@ -73,8 +68,6 @@ public class Human : Player
 
                     HashSet<Move> legalMoves = board.GetLegalMoves(pieceIndex);
                     board.HighlightOptions(legalMoves);
-
-                    // Debug.Log("Set to Dragging");
                 }
             }
 
@@ -103,8 +96,6 @@ public class Human : Player
             currentState = InputState.Idle;
             board.ResetSquareColour(pieceIndex);
             board.UnHighlightOptionsAllSquares();
-
-            // Debug.Log("Set to Idle");
         }
     }
 
@@ -127,7 +118,6 @@ public class Human : Player
                 board.boardState[pieceIndex].SnapToSquare(pieceIndex);
 
                 board.UnHighlightHover(pieceIndex);
-                // Debug.Log("Set to Selecting");
             }
             else
             {
@@ -156,8 +146,6 @@ public class Human : Player
                 board.ResetSquareColour(pieceIndex);
 
                 board.UnHighlightOptionsAllSquares();
-
-                // Debug.Log("Set to Idle");
             }
         }
     }
