@@ -35,12 +35,17 @@ public class Game : MonoBehaviour
 
     private void Update()
     {
-        if (whitePlayer == null)
+        if (board.gameResult == Board.Result.Playing)
         {
-            Debug.Log("no white player");
+            if (board.turn == Piece.White)
+            {
+                whitePlayer.Update();
+            }
+            else
+            {
+                blackPlayer.Update();
+            }
         }
-        whitePlayer.Update();
-        blackPlayer.Update();
     }
 
 
