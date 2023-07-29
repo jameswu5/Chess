@@ -14,7 +14,7 @@ public static class Evaluator
         { Piece.King, 20000 }
     };
 
-    public static int[] PawnSquareTable = // not flipped
+    public static int[] PawnSquareTable =
     {
         0,  0,  0,  0,  0,  0,  0,  0,
         5, 10, 10,-20,-20, 10, 10,  5,
@@ -98,7 +98,6 @@ public static class Evaluator
         -50,-40,-30,-20,-20,-30,-40,-50,
     };
 
-    
     public static Dictionary<int, int[]> SquareTables = new() // we're ignoring endgames for now
     {
         { Piece.Pawn, PawnSquareTable },
@@ -135,7 +134,6 @@ public static class Evaluator
 
         return totalValue;
     }
-
 
     public static int ConvertBlackIndexToWhite(int index)
     {
