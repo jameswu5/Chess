@@ -4,8 +4,6 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 public class Board : MonoBehaviour
 {
@@ -57,14 +55,12 @@ public class Board : MonoBehaviour
         promotionSquares = new Square[4];
         kingIndices = new int[2];
         boardStrings = new Dictionary<string, int>();
-        Debug.Log($"there are {boardStrings.Count} elements in boardStrings");
         gameMoves = new List<MoveInfo>();
         name = "Board";
 
         GenerateBoard();
         GenerateBoardStateFromFEN();
     }
-
 
     private void GenerateBoard() {
         for (int i = 0; i < 64; i++)
@@ -949,11 +945,13 @@ public class Board : MonoBehaviour
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
+
+        Debug.Log(Evaluator.EvaluateBoard(this));
     }
 
-    public bool CheckIfPieceIsTurnColour(int index)
+    public bool CheckIfPieceIsColour(int index, int colour)
     {
-        return (boardState[index].IsWhite() && turn == Piece.White) || (!boardState[index].IsWhite() && turn == Piece.Black);
+        return (boardState[index].IsWhite() && colour == Piece.White) || (!boardState[index].IsWhite() && colour == Piece.Black);
     }
 
     public void ChangeTurn()
@@ -1523,4 +1521,11 @@ public class Board : MonoBehaviour
         return numOfPositions;
 
     }
+
+
+    public Piece GetPieceAtIndex(int index)
+    {
+        return boardState[index];
+    }
+
 }

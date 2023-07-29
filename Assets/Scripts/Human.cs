@@ -60,7 +60,7 @@ public class Human : Player
 
             if (index != -1)
             {
-                if (board.boardState[index] != null && board.CheckIfPieceIsTurnColour(index))
+                if (board.boardState[index] != null && board.CheckIfPieceIsColour(index, board.turn))
                 {
                     pieceIndex = index;
                     currentState = InputState.Dragging;

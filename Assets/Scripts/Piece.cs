@@ -48,6 +48,11 @@ public class Piece : MonoBehaviour
     }
 
 
+    public int GetPieceType()
+    {
+        return pieceID % 8;
+    }
+
     public bool IsWhite()
     {
         return pieceID < 8;
