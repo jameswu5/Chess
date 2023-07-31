@@ -1,17 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class Bot : Player
 {
-    public override void Update()
+    public async override Task Update()
     {
-        Move chosenMove = ChooseMove(board);
+        Move chosenMove = await ChooseMove(board);
         board.PlayMove(chosenMove);
         board.ResetSquareColour(chosenMove.startIndex);
     }
 
-    public Move ChooseMove(Board board)
+    public async Task<Move> ChooseMove(Board board)
     {
         int bestEval = -100000;
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Human : Player
@@ -10,7 +11,7 @@ public class Human : Player
     private int pieceIndex = -1;
     public float dragOffset = -0.2f;
 
-    public override void Update()
+    public async override Task Update()
     {
         if (Input.GetMouseButtonDown(1))
         {
