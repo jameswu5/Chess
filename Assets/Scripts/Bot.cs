@@ -13,7 +13,7 @@ public class Bot : Player
 
     public Move ChooseMove(Board board)
     {
-        int bestEval = Int32.MinValue;
+        int bestEval = -100000;
 
         HashSet<Move> legalMoves = board.GetAllLegalMoves(board.turn);
         List<Move> legalMovesAsList = new(legalMoves);
@@ -35,7 +35,7 @@ public class Bot : Player
     }
 
 
-    public int Search(Board board, int depth)
+    private int Search(Board board, int depth)
     {
         if (depth == 0)
         {
@@ -46,10 +46,10 @@ public class Bot : Player
 
         if (legalMoves.Count == 0)
         {
-            return board.inCheck ? Int32.MinValue : 0; // checkmate : stalemate
+            return board.inCheck ? 100000 : 0; // checkmate : stalemate
         }
 
-        int best = Int32.MinValue;
+        int best = -100000;
 
         foreach (Move move in legalMoves)
         {

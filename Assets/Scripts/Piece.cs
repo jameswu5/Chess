@@ -26,14 +26,13 @@ public class Piece : MonoBehaviour
         SetSprite();
     }
 
-    public void SetSprite() {
+    private void SetSprite() {
         spriteRenderer.sprite = pieceSprites[pieceID];
     }
-
+    
     public void Drag(Vector2 mousePosition, float dragOffset)
     {
         transform.position = new Vector3(mousePosition.x, mousePosition.y, -0.1f + dragOffset);
-
     }
 
     public void SnapToSquare(int newIndex) {

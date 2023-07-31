@@ -17,6 +17,7 @@ public class Board : MonoBehaviour
     public const string moveGenerationTestFEN3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 1 1";
     public const string fiftyMoveRuleFEN = "8/8/r2k5/8/8/4K3/8/8 w - - 86 64";
     public const string insufficientMaterialFEN = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
+    public const string checkmateFEN = "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w kq - 0 1";
 
     public Square squarePrefab;
     public Piece piecePrefab;
@@ -59,7 +60,7 @@ public class Board : MonoBehaviour
         name = "Board";
 
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(checkmateFEN);
     }
 
     private void GenerateBoard() {
@@ -272,7 +273,7 @@ public class Board : MonoBehaviour
         return FENStringAsArray[0];
     }
 
-    Square CreateSquare(int index, float elevation = 0)
+    private Square CreateSquare(int index, float elevation = 0)
     {
         int x = index % 8;
         int y = index / 8;
@@ -285,7 +286,7 @@ public class Board : MonoBehaviour
         return spawnSquare;
     }
 
-    Piece CreatePiece(int pieceID, int index, float elevation = -0.1f) { // elevation is just for layering
+    private Piece CreatePiece(int pieceID, int index, float elevation = -0.1f) { // elevation is just for layering
         int rank = index / 8;
         int file = index % 8;
         Piece spawnPiece = Instantiate(piecePrefab, new Vector3(file, rank, elevation), Quaternion.identity);
@@ -438,7 +439,7 @@ public class Board : MonoBehaviour
     // Moving rules //
     //////////////////
 
-    public HashSet<Move> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
+    private HashSet<Move> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
     {
         Piece currentPiece = boardState[index];
         HashSet<Move> legalMoves = new();
@@ -477,7 +478,7 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    public HashSet<Move> SlideMoves(int index, IEnumerable<int> offsets, int pieceNumber)
+    private HashSet<Move> SlideMoves(int index, IEnumerable<int> offsets, int pieceNumber)
     {
         HashSet<Move> legalMoves = new();
 
@@ -509,7 +510,7 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    public HashSet<Move> KingMoves(int index)
+    private HashSet<Move> KingMoves(int index)
     {
         HashSet<Move> legalMoves = new();
         foreach (int offset in Directions)
@@ -568,7 +569,7 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    public HashSet<Move> KnightMoves(int index)
+    private HashSet<Move> KnightMoves(int index)
     {
         int[] offsets = { -15, -6, 10, 17, 15, 6, -10, -17 };
         HashSet<Move> legalMoves = new();
@@ -594,7 +595,7 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    public HashSet<Move> PawnMoves(int index)
+    private HashSet<Move> PawnMoves(int index)
     {
         HashSet<Move> legalMoves = new();
         Piece curPiece = boardState[index];
@@ -692,7 +693,7 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    public bool CheckIfAtEdge(int index, int offset)
+    private bool CheckIfAtEdge(int index, int offset)
     {
         if (offset == -7 || offset == -8 || offset == -9)
         {
@@ -713,7 +714,7 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public bool CheckIfAtEdgeForKnight(int index, int offset)
+    private bool CheckIfAtEdgeForKnight(int index, int offset)
     {
 
         if (offset == -17 || offset == -15)
@@ -946,7 +947,7 @@ public class Board : MonoBehaviour
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
 
-        Debug.Log(Evaluator.EvaluateBoard(this));
+        //Debug.Log(Evaluator.EvaluateBoard(this));
     }
 
     public bool CheckIfPieceIsColour(int index, int colour)
@@ -954,12 +955,12 @@ public class Board : MonoBehaviour
         return (boardState[index].IsWhite() && colour == Piece.White) || (!boardState[index].IsWhite() && colour == Piece.Black);
     }
 
-    public void ChangeTurn()
+    private void ChangeTurn()
     {
         turn = turn == Piece.White ? Piece.Black : Piece.White;
     }
 
-    public void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
+    private void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
     {
         if (isWhite)
         {
@@ -1033,7 +1034,7 @@ public class Board : MonoBehaviour
         return (index / 8) + 1;
     }
 
-    public void SetBoardCover(bool value)
+    private void SetBoardCover(bool value)
     {
         boardCover.SetActive(value);
     }
@@ -1126,7 +1127,7 @@ public class Board : MonoBehaviour
         return pseudoLegalMoves;
     }
 
-    public HashSet<int> FindCoverageOfColour(int colour)
+    private HashSet<int> FindCoverageOfColour(int colour)
     {
         HashSet<Move> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
 
@@ -1140,13 +1141,13 @@ public class Board : MonoBehaviour
         return coverage;
     }
 
-    public bool CheckIfPieceIsAttacked(int index)
+    private bool CheckIfPieceIsAttacked(int index)
     {
         HashSet<int> coverageOfOpponent = CheckPieceIsWhite(index) == true ? FindCoverageOfColour(Piece.Black) : FindCoverageOfColour(Piece.White);
         return coverageOfOpponent.Contains(index);
     }
 
-    public bool CheckIfInCheck(int colour)
+    private bool CheckIfInCheck(int colour)
     {
         if (colour == Piece.White)
         {
@@ -1160,7 +1161,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void HandleCheck()
+    private void HandleCheck()
     {
         inCheck = CheckIfInCheck(turn);
         if (inCheck)
@@ -1178,7 +1179,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void UpdateKingIndex(int colour, int newIndex)
+    private void UpdateKingIndex(int colour, int newIndex)
     {
         if (colour == Piece.White)
         {
@@ -1190,7 +1191,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void DisplayCheck(int colour)
+    private void DisplayCheck(int colour)
     {
         if (colour == Piece.White)
         {
@@ -1464,7 +1465,7 @@ public class Board : MonoBehaviour
         return Result.Playing;
     }
 
-    public bool CheckForInsufficientMaterial()
+    private bool CheckForInsufficientMaterial()
     {
         int numOfPieces = 0;
         for (int i = 0; i < 64; i++)
@@ -1501,7 +1502,7 @@ public class Board : MonoBehaviour
 
     // Testing and searching
 
-    public int MoveGenerationTest(int depth)
+    private int MoveGenerationTest(int depth)
     {
         if (depth == 0)
         {
@@ -1519,7 +1520,6 @@ public class Board : MonoBehaviour
         }
 
         return numOfPositions;
-
     }
 
 

@@ -58,7 +58,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void MoveCamera()
+    private void MoveCamera()
     {
         camera.transform.position = new Vector3(3.5f, 3.5f, -10);
     }
@@ -82,7 +82,7 @@ public class Game : MonoBehaviour
         board.Initialise();
     }
 
-    public void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
+    private void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
     {   
         board.ResetBoard();
         whitePlayer = whitePlayerType == PlayerType.Human ? new Human() : new Bot();
