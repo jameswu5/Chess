@@ -60,7 +60,7 @@ public class Board : MonoBehaviour
         name = "Board";
 
         GenerateBoard();
-        GenerateBoardStateFromFEN(checkmateFEN);
+        GenerateBoardStateFromFEN();
     }
 
     private void GenerateBoard() {

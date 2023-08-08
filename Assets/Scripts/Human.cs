@@ -11,7 +11,7 @@ public class Human : Player
     private int pieceIndex = -1;
     public float dragOffset = -0.2f;
 
-    public async override Task Update()
+    public override void Update()
     {
         if (Input.GetMouseButtonDown(1))
         {

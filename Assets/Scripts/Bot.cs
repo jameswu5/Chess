@@ -1,18 +1,30 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 public class Bot : Player
 {
-    public async override Task Update()
+    private bool choosingMove = false;
+
+
+    public override void Update()
     {
-        Move chosenMove = await ChooseMove(board);
-        board.PlayMove(chosenMove);
-        board.ResetSquareColour(chosenMove.startIndex);
+        if (choosingMove == false)
+            StartCoroutine(PlayMove());
     }
 
-    public async Task<Move> ChooseMove(Board board)
+    public IEnumerator PlayMove()
+    {
+        choosingMove = true;
+        Move chosenMove = ChooseMove(board);
+        board.PlayMove(chosenMove);
+        board.ResetSquareColour(chosenMove.startIndex);
+        choosingMove = false;
+
+        yield return null;
+    }
+
+    public Move ChooseMove(Board board)
     {
         int bestEval = -100000;
 
@@ -47,7 +59,7 @@ public class Bot : Player
 
         if (legalMoves.Count == 0)
         {
-            return board.inCheck ? 100000 : 0; // checkmate : stalemate
+            return board.inCheck ? -100000 : 0; // checkmate : stalemate
         }
 
         int best = -100000;

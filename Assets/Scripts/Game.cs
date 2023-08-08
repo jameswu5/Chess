@@ -21,12 +21,19 @@ public class Game : MonoBehaviour
 
     public enum PlayerType { Human, Bot }
 
+    public Human human;
+    public Bot bot;
+
     private void Start()
     {
         MoveCamera();
         GetSounds();
         GetTexts();
         CreateBoard();
+
+        human = new Human();
+        bot = new Bot();
+
         StartNewGamePlayerVsPlayer();
     }
 
@@ -85,8 +92,12 @@ public class Game : MonoBehaviour
     private void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
     {   
         board.ResetBoard();
-        whitePlayer = whitePlayerType == PlayerType.Human ? new Human() : new Bot();
-        blackPlayer = blackPlayerType == PlayerType.Human ? new Human() : new Bot();
+        //whitePlayer = whitePlayerType == PlayerType.Human ? new Human() : new Bot();
+        //blackPlayer = blackPlayerType == PlayerType.Human ? new Human() : new Bot();
+
+        whitePlayer = whitePlayerType == PlayerType.Human ? human : bot;
+        blackPlayer = blackPlayerType == PlayerType.Human ? human : bot;
+
     }
 
 
