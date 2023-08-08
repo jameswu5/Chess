@@ -16,23 +16,23 @@ public class Bot : Player
     public IEnumerator PlayMove()
     {
         choosingMove = true;
-        Move chosenMove = ChooseMove(board);
+        int chosenMove = ChooseMove(board);
         board.PlayMove(chosenMove);
-        board.ResetSquareColour(chosenMove.GetStartIndex());
+        board.ResetSquareColour(Move.GetStartIndex(chosenMove));
         choosingMove = false;
 
         yield return null;
     }
 
-    public Move ChooseMove(Board board)
+    public int ChooseMove(Board board)
     {
         int bestEval = -100000;
 
-        HashSet<Move> legalMoves = board.GetAllLegalMoves(board.turn);
-        List<Move> legalMovesAsList = new(legalMoves);
-        Move chosenMove = legalMovesAsList[0];
+        HashSet<int> legalMoves = board.GetAllLegalMoves(board.turn);
+        List<int> legalMovesAsList = new(legalMoves);
+        int chosenMove = legalMovesAsList[0];
 
-        foreach (Move move in legalMoves)
+        foreach (int move in legalMoves)
         {
             board.MakeMove(move);
             int eval = Search(board, 1);
@@ -55,7 +55,7 @@ public class Bot : Player
             return Evaluator.EvaluateBoard(board);
         }
 
-        HashSet<Move> legalMoves = board.GetAllLegalMoves(board.turn);
+        HashSet<int> legalMoves = board.GetAllLegalMoves(board.turn);
 
         if (legalMoves.Count == 0)
         {
@@ -64,7 +64,7 @@ public class Bot : Player
 
         int best = -100000;
 
-        foreach (Move move in legalMoves)
+        foreach (int move in legalMoves)
         {
             int eval;
             board.MakeMove(move);

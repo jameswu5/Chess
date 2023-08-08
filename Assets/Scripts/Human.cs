@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Human : Player
 {
-    public Camera camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+    public new Camera camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
     public enum InputState { Idle, Selecting, Dragging }
     public InputState currentState = InputState.Idle;
     private int pieceIndex = -1;
@@ -68,7 +68,7 @@ public class Human : Player
 
                     board.HighlightSquare(pieceIndex);
 
-                    HashSet<Move> legalMoves = board.GetLegalMoves(pieceIndex);
+                    HashSet<int> legalMoves = board.GetLegalMoves(pieceIndex);
                     board.HighlightOptions(legalMoves);
                 }
             }

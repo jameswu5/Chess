@@ -4,19 +4,15 @@ using System.Text;
 using UnityEngine;
 
 
-public class Move
+public static class Move
 {
     /*
-    Moves are encoded as a 32-bit unsigned integer:
+    Moves are encoded as an unsigned 32-bit integer:
 
     [PrevFiftyMoveCounter] [ChangedCastlingRights] [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
     [         7          ] [          4          ] [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
 
     */
-
-    public int id = 0;
-    public string currentFEN = "";
-
 
     // This can fit in 3 bits
     public const int Standard = 0;
@@ -42,53 +38,54 @@ public class Move
     private const int MovedPieceMask = 0b111 << MovedPieceShift;
     private const int CapturedPieceMask = 0b111 << CapturedPieceShift;
     private const int CastlingRightsMask = 0b1111 << CastlingRightsShift;
-    private const int FiftyMoveCounterMask = 0b1111111 << FiftyMoveCounterShift;
+    //private const int FiftyMoveCounterMask = 0b1111111 << FiftyMoveCounterShift;
+    private const int FiftyMoveCounterMask = 0b1111111;
 
-    public Move(int moveType, int startIndex, int endIndex, int pieceType, int capturedPieceType)
+    public static int Initialise(int moveType, int startIndex, int endIndex, int pieceType, int capturedPieceType)
     {
+        int move = 0;
+        move |= endIndex << EndIndexShift;
+        move |= startIndex << StartIndexShift;
+        move |= moveType << MoveTypeShift;
+        move |= capturedPieceType << CapturedPieceShift;
+        move |= pieceType << MovedPieceShift;
 
-        id |= endIndex << EndIndexShift;
-        id |= startIndex << StartIndexShift;
-        id |= moveType << MoveTypeShift;
-        id |= capturedPieceType << CapturedPieceShift;
-        id |= pieceType << MovedPieceShift;
-        // Castling rights
-        // previous fifty move counter
+        return move;
 
     }
 
-    public int GetMoveType()
+    public static int GetMoveType(int move)
     {
-        return (id & MoveTypeMask) >> MoveTypeShift;
+        return (move & MoveTypeMask) >> MoveTypeShift;
     }
 
-    public int GetMovedPieceType()
+    public static int GetMovedPieceType(int move)
     {
-        return (id & MovedPieceMask) >> MovedPieceShift;
+        return (move & MovedPieceMask) >> MovedPieceShift;
     }
 
-    public int GetCapturedPieceType()
+    public static int GetCapturedPieceType(int move)
     {
-        return (id & CapturedPieceMask) >> CapturedPieceShift;
+        return (move & CapturedPieceMask) >> CapturedPieceShift;
     }
 
-    public bool IsCaptureMove()
+    public static bool IsCaptureMove(int move)
     {
-        return GetCapturedPieceType() != Piece.None;
+        return GetCapturedPieceType(move) != Piece.None;
     }
 
-    public int GetStartIndex()
+    public static int GetStartIndex(int move)
     {
-        return (id & StartIndexMask) >> StartIndexShift;
+        return (move & StartIndexMask) >> StartIndexShift;
     }
 
-    public int GetEndIndex()
+    public static int GetEndIndex(int move)
     {
-        return (id & EndIndexMask) >> EndIndexShift;
+        return (move & EndIndexMask) >> EndIndexShift;
     }
 
 
-    public void SetCastlingRights(bool[] change)
+    public static int SetCastlingRights(int move, bool[] change)
     {
         int cur = 0;
         for (int i = 3; i >= 0; i--)
@@ -100,13 +97,15 @@ public class Move
             cur <<= 1;
         }
         cur >>= 1;
-        id |= cur << CastlingRightsShift;
+        move |= cur << CastlingRightsShift;
+
+        return move;
     }
 
-    public bool[] GetCastlingRights() // This needs fixing
+    public static bool[] GetCastlingRights(int move)
     {
         bool[] rights = new bool[4];
-        int rightsAsInt = (id & CastlingRightsMask) >> CastlingRightsShift;
+        int rightsAsInt = (move & CastlingRightsMask) >> CastlingRightsShift;
 
         for (int i = 0; i < 4; i++)
         {
@@ -117,27 +116,28 @@ public class Move
         return rights;
     }
 
-    public void SetFiftyMoveCounter(int counter)
+    public static int SetFiftyMoveCounter(int move, int counter)
     {
-        id |= counter << FiftyMoveCounterShift;
+        move |= counter << FiftyMoveCounterShift;
+        return move;
     }
 
-    public int GetFiftyMoveCounter()
+    public static int GetFiftyMoveCounter(int move)
     {
-        return (id & FiftyMoveCounterMask) >> FiftyMoveCounterShift;
+        return move >> FiftyMoveCounterShift & FiftyMoveCounterMask;
     }
 
 
-    public string GetMoveAsString()
+    public static string GetMoveAsString(int move)
     {
 
         StringBuilder sb = new();
 
-        int startIndex = GetStartIndex();
-        int endIndex = GetEndIndex();
-        int moveType = GetMoveType();
-        int movedPiece = GetMovedPieceType();
-        int capturedPiece = GetCapturedPieceType();
+        int startIndex = GetStartIndex(move);
+        int endIndex = GetEndIndex(move);
+        int moveType = GetMoveType(move);
+        int movedPiece = GetMovedPieceType(move);
+        int capturedPiece = GetCapturedPieceType(move);
 
 
         if (moveType == Standard || moveType == PawnTwoSquares || moveType == EnPassant)

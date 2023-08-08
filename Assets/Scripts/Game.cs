@@ -12,7 +12,7 @@ public class Game : MonoBehaviour
     public Player whitePlayer;
     public Player blackPlayer;
 
-    public Camera camera;
+    public new Camera camera;
     public static AudioSource captureSound;
     public static AudioSource moveSound;
 

@@ -28,7 +28,6 @@ public class Board : MonoBehaviour
     public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
     public int turn;
     public bool[] castlingRights; // W kingside, W queenside, B kingside, B queenside
-    public List<Move> gameMoves;
 
     public GameObject boardCover;
     public int inPromotionScreen; // -1 means not in promotion, any index means the position the pawn promoting is in
@@ -41,6 +40,8 @@ public class Board : MonoBehaviour
     public int fiftyMoveCounter;
     public int moveNumber;
 
+    public List<int> gameMoves;
+    public List<string> boardPositions;
     Dictionary<string, int> boardStrings;
 
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
@@ -55,12 +56,13 @@ public class Board : MonoBehaviour
         promotionPieces = new Piece[4];
         promotionSquares = new Square[4];
         kingIndices = new int[2];
+        boardPositions = new List<string>();
         boardStrings = new Dictionary<string, int>();
-        gameMoves = new List<Move>();
+        gameMoves = new List<int>();
         name = "Board";
 
         GenerateBoard();
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(fiftyMoveRuleFEN);
     }
 
     private void GenerateBoard() {
@@ -146,20 +148,20 @@ public class Board : MonoBehaviour
         {
             int targetSquareIndex = Square.GetIndexFromSquareName(sections[3]);
 
-            Move move;
+            int move;
 
             if (sections[3][1] == '6')
             {
-                move = new Move(Move.PawnTwoSquares, targetSquareIndex + 8, targetSquareIndex - 8, Piece.Pawn, Piece.Pawn);
+                move = Move.Initialise(Move.PawnTwoSquares, targetSquareIndex + 8, targetSquareIndex - 8, Piece.Pawn, Piece.Pawn);
             }
             else
             {
-                move = new Move(Move.PawnTwoSquares, targetSquareIndex - 8, targetSquareIndex + 8, Piece.Pawn, Piece.Pawn);
+                move = Move.Initialise(Move.PawnTwoSquares, targetSquareIndex - 8, targetSquareIndex + 8, Piece.Pawn, Piece.Pawn);
 
             }
 
-            move.SetCastlingRights(new bool[4]);
-            move.SetFiftyMoveCounter(0);
+            move = Move.SetCastlingRights(move, new bool[4]);
+            move = Move.SetFiftyMoveCounter(move, 0);
 
             gameMoves.Add(move);
         }
@@ -248,11 +250,11 @@ public class Board : MonoBehaviour
         string enPassantTargetString = "-";
         if (gameMoves.Count > 0)
         {
-            Move lastMove = gameMoves[^1];
-            if (lastMove.GetMoveType() == Move.PawnTwoSquares)
+            int lastMove = gameMoves[^1];
+            if (Move.GetMoveType(lastMove) == Move.PawnTwoSquares)
             {
-                int offset = Square.GetRank(lastMove.GetStartIndex()) == 2 ? 8 : -8;
-                enPassantTargetString = Square.ConvertIndexToSquareName(lastMove.GetStartIndex() + offset);
+                int offset = Square.GetRank(Move.GetStartIndex(lastMove)) == 2 ? 8 : -8;
+                enPassantTargetString = Square.ConvertIndexToSquareName(Move.GetStartIndex(lastMove) + offset);
             }
         }
         sb.Append(enPassantTargetString);
@@ -311,14 +313,14 @@ public class Board : MonoBehaviour
     {
         // promotionType = -1 if the move isn't a promotion, otherwise it is Piece.[promotionPiece]
 
-        Move tryMove = TryToGetMove(index, newIndex, promotionType);
+        int tryMove = TryToGetMove(index, newIndex, promotionType);
 
-        if (tryMove != null)
+        if (tryMove != 0)
         {
-            Move move = (Move)tryMove;
+            int move = tryMove;
             PlayMove(move);
 
-            int moveType = move.GetMoveType();
+            int moveType = Move.GetMoveType(move);
             if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
             {
                 DisablePromotionScreen();
@@ -330,13 +332,13 @@ public class Board : MonoBehaviour
         }
     }
 
-    public Move TryToGetMove(int index, int newIndex, int promotionType)
+    public int TryToGetMove(int index, int newIndex, int promotionType)
     {
-        foreach (Move move in GetLegalMoves(index))
+        foreach (int move in GetLegalMoves(index))
         {
-            if (move.GetEndIndex() == newIndex)
+            if (Move.GetEndIndex(move) == newIndex)
             {
-                int moveType = move.GetMoveType();
+                int moveType = Move.GetMoveType(move);
                 switch (promotionType)
                 {
                     case -1:
@@ -364,7 +366,7 @@ public class Board : MonoBehaviour
             }
         }
 
-        return null;
+        return 0; // null move
     }
 
     public void PlacePiece(int index, int newIndex) // parameters assumed to be valid, out of bounds checked in humanInput
@@ -418,11 +420,11 @@ public class Board : MonoBehaviour
         squares[index].SetHoverHighlight(false);
     }
 
-    public void HighlightOptions(IEnumerable<Move> moves)
+    public void HighlightOptions(IEnumerable<int> moves)
     {
-        foreach (Move move in moves)
+        foreach (int move in moves)
         {
-            squares[move.GetEndIndex()].SetOptionHighlight(true);
+            squares[Move.GetEndIndex(move)].SetOptionHighlight(true);
         }
     }
 
@@ -443,10 +445,10 @@ public class Board : MonoBehaviour
     // Moving rules //
     //////////////////
 
-    private HashSet<Move> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
+    private HashSet<int> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
     {
         Piece currentPiece = boardState[index];
-        HashSet<Move> legalMoves = new();
+        HashSet<int> legalMoves = new();
 
         switch (currentPiece.pieceID % 8)
         {
@@ -482,9 +484,9 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    private HashSet<Move> SlideMoves(int index, IEnumerable<int> offsets, int pieceNumber)
+    private HashSet<int> SlideMoves(int index, IEnumerable<int> offsets, int pieceNumber)
     {
-        HashSet<Move> legalMoves = new();
+        HashSet<int> legalMoves = new();
 
         foreach (int offset in offsets)
         {
@@ -496,7 +498,7 @@ public class Board : MonoBehaviour
                 {
                     if (boardState[currentSquareIndex] == null)
                     {
-                        legalMoves.Add(new Move(Move.Standard, index, currentSquareIndex, pieceNumber, Piece.None));
+                        legalMoves.Add(Move.Initialise(Move.Standard, index, currentSquareIndex, pieceNumber, Piece.None));
                     }
                     else
                     {
@@ -504,7 +506,7 @@ public class Board : MonoBehaviour
                         {
                             int capturedPieceType = GetPieceTypeAtIndex(currentSquareIndex);
 
-                            legalMoves.Add(new Move(Move.Standard, index, currentSquareIndex, pieceNumber, capturedPieceType));
+                            legalMoves.Add(Move.Initialise(Move.Standard, index, currentSquareIndex, pieceNumber, capturedPieceType));
                         }
                         break;
                     }
@@ -516,9 +518,9 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    private HashSet<Move> KingMoves(int index)
+    private HashSet<int> KingMoves(int index)
     {
-        HashSet<Move> legalMoves = new();
+        HashSet<int> legalMoves = new();
         foreach (int offset in Directions)
         {
             if (!CheckIfAtEdge(index, offset))
@@ -528,12 +530,12 @@ public class Board : MonoBehaviour
                 {
                     if (boardState[newIndex] == null)
                     {
-                        legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.King, Piece.None));
+                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.King, Piece.None));
                     }
                     else if (boardState[newIndex].IsWhite() != boardState[index].IsWhite())
                     {
                         int capturedPieceType = GetPieceTypeAtIndex(newIndex);
-                        legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.King, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.King, capturedPieceType));
 
                     }
                 }
@@ -547,13 +549,13 @@ public class Board : MonoBehaviour
                     && boardState[5] == null && boardState[6] == null)
                 {
                     // can castle kingside
-                    legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, Piece.None));
+                    legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
                 }
                 if (castlingRights[1] == true && boardState[0] != null && boardState[0].pieceID == Piece.White + Piece.Rook
                     && boardState[1] == null && boardState[2] == null && boardState[3] == null)
                 {
                     // can castle queenside
-                    legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, Piece.None));
+                    legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
 
                 }
             }
@@ -562,13 +564,13 @@ public class Board : MonoBehaviour
                 if (castlingRights[2] == true && boardState[63] != null && boardState[63].pieceID == Piece.Black + Piece.Rook
                     && boardState[61] == null && boardState[62] == null)
                 {
-                    legalMoves.Add(new Move(Move.Castling, index, index + 2, Piece.King, Piece.None));
+                    legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
 
                 }
                 if (castlingRights[3] == true && boardState[56] != null && boardState[56].pieceID == Piece.Black + Piece.Rook
                     && boardState[57] == null && boardState[58] == null && boardState[59] == null)
                 {
-                    legalMoves.Add(new Move(Move.Castling, index, index - 2, Piece.King, Piece.None));
+                    legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
                 }
             }
         }
@@ -576,10 +578,10 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    private HashSet<Move> KnightMoves(int index)
+    private HashSet<int> KnightMoves(int index)
     {
         int[] offsets = { -15, -6, 10, 17, 15, 6, -10, -17 };
-        HashSet<Move> legalMoves = new();
+        HashSet<int> legalMoves = new();
         foreach (int offset in offsets)
         {
             if (!CheckIfAtEdgeForKnight(index, offset))
@@ -589,12 +591,12 @@ public class Board : MonoBehaviour
                 {
                     if (boardState[newIndex] == null)
                     {
-                        legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Knight, Piece.None));
+                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.Knight, Piece.None));
                     }
                     else if (boardState[newIndex].IsWhite() != boardState[index].IsWhite())
                     {
                         int capturedPieceType = GetPieceTypeAtIndex(newIndex);
-                        legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Knight, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.Knight, capturedPieceType));
 
                     }
                 }
@@ -603,9 +605,9 @@ public class Board : MonoBehaviour
         return legalMoves;
     }
 
-    private HashSet<Move> PawnMoves(int index)
+    private HashSet<int> PawnMoves(int index)
     {
-        HashSet<Move> legalMoves = new();
+        HashSet<int> legalMoves = new();
         Piece curPiece = boardState[index];
 
         int[] offsets;
@@ -630,14 +632,14 @@ public class Board : MonoBehaviour
 
             if (Square.GetRank(newIndex) == 1 || Square.GetRank(newIndex) == 8)
             {
-                legalMoves.Add(new Move(Move.PromoteToQueen, index, newIndex, Piece.Pawn, Piece.None));
-                legalMoves.Add(new Move(Move.PromoteToRook, index, newIndex, Piece.Pawn, Piece.None));
-                legalMoves.Add(new Move(Move.PromoteToBishop, index, newIndex, Piece.Pawn, Piece.None));
-                legalMoves.Add(new Move(Move.PromoteToKnight, index, newIndex, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, newIndex, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, newIndex, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, newIndex, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, newIndex, Piece.Pawn, Piece.None));
             }
             else
             {
-                legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.Pawn, Piece.None));
             }
 
             // Still in original rank
@@ -647,7 +649,7 @@ public class Board : MonoBehaviour
                 newIndex += offsets[0];
                 if (boardState[newIndex] == null)
                 {
-                    legalMoves.Add(new Move(Move.PawnTwoSquares, index, newIndex, Piece.Pawn, Piece.None));
+                    legalMoves.Add(Move.Initialise(Move.PawnTwoSquares, index, newIndex, Piece.Pawn, Piece.None));
                 }
             }
         }
@@ -666,14 +668,14 @@ public class Board : MonoBehaviour
                     // Check for promotion
                     if (Square.GetRank(newIndex) == 1 || Square.GetRank(newIndex) == 8)
                     {
-                        legalMoves.Add(new Move(Move.PromoteToQueen, index, newIndex, Piece.Pawn, capturedPieceType));
-                        legalMoves.Add(new Move(Move.PromoteToRook, index, newIndex, Piece.Pawn, capturedPieceType));
-                        legalMoves.Add(new Move(Move.PromoteToBishop, index, newIndex, Piece.Pawn, capturedPieceType));
-                        legalMoves.Add(new Move(Move.PromoteToKnight, index, newIndex, Piece.Pawn, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, newIndex, Piece.Pawn, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, newIndex, Piece.Pawn, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, newIndex, Piece.Pawn, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, newIndex, Piece.Pawn, capturedPieceType));
                     }
                     else
                     {
-                        legalMoves.Add(new Move(Move.Standard, index, newIndex, Piece.Pawn, capturedPieceType));
+                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.Pawn, capturedPieceType));
                     }
                 }
 
@@ -681,17 +683,17 @@ public class Board : MonoBehaviour
 
                 if (gameMoves.Count > 0)
                 {
-                    Move previousMove = gameMoves[^1];
+                    int previousMove = gameMoves[^1];
 
-                    if (previousMove.GetMoveType() == Move.PawnTwoSquares)
+                    if (Move.GetMoveType(previousMove) == Move.PawnTwoSquares)
                     {
-                        if (curPiece.IsWhite() && previousMove.GetEndIndex() == newIndex - 8)
+                        if (curPiece.IsWhite() && Move.GetEndIndex(previousMove) == newIndex - 8)
                         {
-                            legalMoves.Add(new Move(Move.EnPassant, index, newIndex, Piece.Pawn, Piece.Pawn));
+                            legalMoves.Add(Move.Initialise(Move.EnPassant, index, newIndex, Piece.Pawn, Piece.Pawn));
                         }
-                        else if (!curPiece.IsWhite() && previousMove.GetEndIndex() == newIndex + 8)
+                        else if (!curPiece.IsWhite() && Move.GetEndIndex(previousMove) == newIndex + 8)
                         {
-                            legalMoves.Add(new Move(Move.EnPassant, index, newIndex, Piece.Pawn, Piece.Pawn));
+                            legalMoves.Add(Move.Initialise(Move.EnPassant, index, newIndex, Piece.Pawn, Piece.Pawn));
                         }
                     }
                 }
@@ -762,12 +764,12 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public void MakeMove(Move move)
+    public void MakeMove(int move)
     {
-        int startIndex = move.GetStartIndex();
-        int endIndex = move.GetEndIndex();
-        int moveType = move.GetMoveType();
-        int movedPieceType = move.GetMovedPieceType();
+        int startIndex = Move.GetStartIndex(move);
+        int endIndex = Move.GetEndIndex(move);
+        int moveType = Move.GetMoveType(move);
+        int movedPieceType = Move.GetMovedPieceType(move);
 
         bool isWhite = CheckPieceIsWhite(startIndex);
         bool[] disabledCastlingRights = new bool[4];
@@ -921,7 +923,7 @@ public class Board : MonoBehaviour
         int previousFiftyMoveCounter = fiftyMoveCounter;
 
         // Update fifty move counter
-        if (move.IsCaptureMove() || movedPieceType == Piece.Pawn)
+        if (Move.IsCaptureMove(move) || movedPieceType == Piece.Pawn)
         {
             fiftyMoveCounter = 0;
         }
@@ -943,21 +945,21 @@ public class Board : MonoBehaviour
         }
 
 
-        move.SetCastlingRights(disabledCastlingRights);
-        move.SetFiftyMoveCounter(previousFiftyMoveCounter);
-        move.currentFEN = boardString;
+        move = Move.SetCastlingRights(move, disabledCastlingRights);
+        move = Move.SetFiftyMoveCounter(move, previousFiftyMoveCounter);
 
+        boardPositions.Add(boardString); // threefold?? i have no idea if it still works
         gameMoves.Add(move);
 
         ChangeTurn();
         HandleCheck();
     }
 
-    public void PlayMove(Move move)
+    public void PlayMove(int move)
     {
         MakeMove(move);
-        Game.PlayMoveSound(move.IsCaptureMove());
-        Debug.Log($"{moveNumber}: {move.GetMoveAsString()}");
+        Game.PlayMoveSound(Move.IsCaptureMove(move));
+        Debug.Log($"{moveNumber}: {Move.GetMoveAsString(move)}");
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
@@ -1083,10 +1085,10 @@ public class Board : MonoBehaviour
 
     public bool CheckPieceCanMoveThere(int index, int newIndex)
     {
-        HashSet<Move> moves = GetPseudoLegalMoves(index);
-        foreach (Move move in moves)
+        HashSet<int> moves = GetPseudoLegalMoves(index);
+        foreach (int move in moves)
         {
-            if (move.GetEndIndex() == newIndex)
+            if (Move.GetEndIndex(move) == newIndex)
             {
                 return true;
             }
@@ -1096,15 +1098,15 @@ public class Board : MonoBehaviour
 
     // Checks //
 
-    public HashSet<Move> GetAllPseudoLegalMoves(int colour)
+    public HashSet<int> GetAllPseudoLegalMoves(int colour)
     {
-        HashSet<Move> pseudoLegalMoves = new();
+        HashSet<int> pseudoLegalMoves = new();
         for (int i = 0; i < 64; i++)
         {
             Piece piece = boardState[i];
             if (piece != null && (piece.IsWhite() && colour == Piece.White || !piece.IsWhite() && colour == Piece.Black))
             {
-                HashSet<Move> moves = GetPseudoLegalMoves(i);
+                HashSet<int> moves = GetPseudoLegalMoves(i);
                 pseudoLegalMoves.UnionWith(moves);
             }
         }
@@ -1113,13 +1115,13 @@ public class Board : MonoBehaviour
 
     private HashSet<int> FindCoverageOfColour(int colour)
     {
-        HashSet<Move> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
+        HashSet<int> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
 
         HashSet<int> coverage = new();
-        foreach (Move move in pseudoLegalMoves)
+        foreach (int move in pseudoLegalMoves)
         {
             // maybe watch out for moves like castling
-            coverage.Add(move.GetEndIndex());
+            coverage.Add(Move.GetEndIndex(move));
         }
 
         return coverage;
@@ -1191,25 +1193,25 @@ public class Board : MonoBehaviour
 
     // Strictly legal moves
 
-    public HashSet<Move> GetAllLegalMoves(int colour)
+    public HashSet<int> GetAllLegalMoves(int colour)
     {
-        HashSet<Move> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
-        HashSet<Move> legalMoves = new();
+        HashSet<int> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
+        HashSet<int> legalMoves = new();
 
-        HashSet<Move> castlingMoves = new();
+        HashSet<int> castlingMoves = new();
 
         bool kingside = false;
         bool queenside = false;
 
         int homeRank = colour == Piece.White ? 0 : 7;
 
-        foreach (Move move in pseudoLegalMoves)
+        foreach (int move in pseudoLegalMoves)
         {
-            int endIndex = move.GetEndIndex();
+            int endIndex = Move.GetEndIndex(move);
 
             // doesn't prevent castling into check!
 
-            if (move.GetMoveType() == Move.Castling) // hold the castling moves for later: an optimisation
+            if (Move.GetMoveType(move) == Move.Castling) // hold the castling moves for later: an optimisation
             {
                 if (!inCheck) // don't need to consider if in check: it's not allowed
                 {
@@ -1223,7 +1225,7 @@ public class Board : MonoBehaviour
             if (CheckIfInCheck(colour) == false)
             {
                 legalMoves.Add(move);
-                if (move.GetMovedPieceType() == Piece.King) // find whether king can move to the square castling would pass through
+                if (Move.GetMovedPieceType(move) == Piece.King) // find whether king can move to the square castling would pass through
                 {
                     if (endIndex == homeRank * 8 + 5)
                     {
@@ -1238,9 +1240,9 @@ public class Board : MonoBehaviour
             UndoMove();
         }
 
-        foreach (Move move in castlingMoves)
+        foreach (int move in castlingMoves)
         {
-            int endIndex = move.GetEndIndex();
+            int endIndex = Move.GetEndIndex(move);
 
             if (endIndex % 8 == 6 && kingside)
             {
@@ -1268,16 +1270,16 @@ public class Board : MonoBehaviour
         // return pseudoLegalMoves;
     }
 
-    public HashSet<Move> GetLegalMoves(int index)
+    public HashSet<int> GetLegalMoves(int index)
     {
 
-        HashSet<Move> allLegalMoves = boardState[index].IsWhite() ? GetAllLegalMoves(Piece.White) : GetAllLegalMoves(Piece.Black);
-        HashSet<Move> legalMoves = new();
+        HashSet<int> allLegalMoves = boardState[index].IsWhite() ? GetAllLegalMoves(Piece.White) : GetAllLegalMoves(Piece.Black);
+        HashSet<int> legalMoves = new();
 
-        foreach (Move move in allLegalMoves)
+        foreach (int move in allLegalMoves)
         {
 
-            if (move.GetStartIndex() == index)
+            if (Move.GetStartIndex(move) == index)
             {
                 legalMoves.Add(move);
             }
@@ -1294,17 +1296,17 @@ public class Board : MonoBehaviour
             return;
         }
 
-        Move lastMove = gameMoves[^1];
+        int lastMove = gameMoves[^1];
         gameMoves.RemoveAt(gameMoves.Count - 1);
 
         int heroColour = turn == Piece.White ? Piece.Black : Piece.White;
         int opponentColour = turn;
 
-        int moveType = lastMove.GetMoveType();
-        int startIndex = lastMove.GetStartIndex();
-        int endIndex = lastMove.GetEndIndex();
-        int movedPieceType = lastMove.GetMovedPieceType();
-        int capturedPieceType = lastMove.GetCapturedPieceType();
+        int moveType = Move.GetMoveType(lastMove);
+        int startIndex = Move.GetStartIndex(lastMove);
+        int endIndex = Move.GetEndIndex(lastMove);
+        int movedPieceType = Move.GetMovedPieceType(lastMove);
+        int capturedPieceType = Move.GetCapturedPieceType(lastMove);
 
 
         // move the pieces
@@ -1385,7 +1387,7 @@ public class Board : MonoBehaviour
 
         // revert the castling rights
 
-        bool[] disabledCastlingRights = lastMove.GetCastlingRights();
+        bool[] disabledCastlingRights = Move.GetCastlingRights(lastMove);
 
         for (int i = 0; i < 4; i++)
         {
@@ -1406,7 +1408,7 @@ public class Board : MonoBehaviour
         gameResult = Result.Playing;
 
         // revert the fifty move counter
-        fiftyMoveCounter = lastMove.GetFiftyMoveCounter();
+        fiftyMoveCounter = Move.GetFiftyMoveCounter(lastMove);
 
         // change the move number if undoing a move made by black
         if (turn == Piece.Black)
@@ -1415,12 +1417,13 @@ public class Board : MonoBehaviour
         }
 
         // remove the move from the list of seen board states
-        string boardString = lastMove.currentFEN;
+        string boardString = boardPositions[^1];
         boardStrings[boardString]--;
         if (boardStrings[boardString] == 0)
         {
             boardStrings.Remove(boardString);
         }
+        boardPositions.RemoveAt(boardPositions.Count - 1);
 
         // remove end of game text if necessary
         Game.UpdateEndOfGameScreen(gameResult, turn);
@@ -1434,7 +1437,7 @@ public class Board : MonoBehaviour
 
     public Result GetGameResult()
     {
-        HashSet<Move> legalMoves = GetAllLegalMoves(turn);
+        HashSet<int> legalMoves = GetAllLegalMoves(turn);
         if (legalMoves.Count == 0)
         {
             return inCheck ? Result.Checkmate : Result.Stalemate;
@@ -1502,10 +1505,10 @@ public class Board : MonoBehaviour
             return 1;
         }
 
-        HashSet<Move> legalMoves = GetAllLegalMoves(turn);
+        HashSet<int> legalMoves = GetAllLegalMoves(turn);
         int numOfPositions = 0;
 
-        foreach (Move move in legalMoves)
+        foreach (int move in legalMoves)
         {
             MakeMove(move);
             numOfPositions += MoveGenerationTest(depth - 1);
