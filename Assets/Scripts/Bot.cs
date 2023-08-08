@@ -18,7 +18,7 @@ public class Bot : Player
         choosingMove = true;
         Move chosenMove = ChooseMove(board);
         board.PlayMove(chosenMove);
-        board.ResetSquareColour(chosenMove.startIndex);
+        board.ResetSquareColour(chosenMove.GetStartIndex());
         choosingMove = false;
 
         yield return null;

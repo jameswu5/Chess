@@ -1,62 +1,129 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 
 public class Move
 {
-    public int moveType;
-    public int startIndex;
-    public int endIndex;
-    public int pieceType;
-    public bool isCaptureMove;
+    /*
+    Moves are encoded as a 32-bit unsigned integer:
 
-    public const int Standard = 1;
-    public const int PawnTwoSquares = 2;
-    public const int Castling = 3;
-    public const int EnPassant = 4;
-    public const int PromoteToQueen = 5;
-    public const int PromoteToRook = 6;
-    public const int PromoteToBishop = 7;
-    public const int PromoteToKnight = 8;
+    [PrevFiftyMoveCounter] [ChangedCastlingRights] [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
+    [         7          ] [          4          ] [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
 
+    */
+
+    private int id = 0;
+
+
+    // This can fit in 3 bits
+    public const int Standard = 0;
+    public const int PawnTwoSquares = 1;
+    public const int Castling = 2;
+    public const int EnPassant = 3;
+    public const int PromoteToQueen = 4;
+    public const int PromoteToRook = 5;
+    public const int PromoteToBishop = 6;
+    public const int PromoteToKnight = 7;
+
+    private const int EndIndexShift = 0;
+    private const int StartIndexShift = 6;
+    private const int MoveTypeShift = 12;
+    private const int CapturedPieceShift = 15;
+    private const int MovedPieceShift = 18;
+    private const int CastlingRightsShift = 21;
+    private const int FiftyMoveCounterShift = 25;
+
+    private const int StartIndexMask = 0b111111 << StartIndexShift;
+    private const int EndIndexMask = 0b111111 << EndIndexShift;
+    private const int MoveTypeMask = 0b111 << MoveTypeShift;
+    private const int MovedPieceMask = 0b111 << MovedPieceShift;
+    private const int CapturedPieceMask = 0b111 << CapturedPieceShift;
 
     public Move(int moveType, int startIndex, int endIndex, int pieceType, bool isCaptureMove)
     {
-        this.moveType = moveType;
-        this.startIndex = startIndex;
-        this.endIndex = endIndex;
-        this.pieceType = pieceType;
-        this.isCaptureMove = isCaptureMove;
+
+        id |= endIndex << EndIndexShift;
+        id |= startIndex << StartIndexShift;
+        id |= moveType << MoveTypeShift;
+        // Captured piece??
+        id |= pieceType << MovedPieceShift;
+        // Castling rights
+        // previous fifty move counter
+
+        //Temporary
+        if (isCaptureMove)
+        {
+            id |= 1 << CapturedPieceShift;
+        }
+    }
+
+    public int GetMoveType()
+    {
+        return (id & MoveTypeMask) >> MoveTypeShift;
+    }
+
+    public int GetMovedPieceType()
+    {
+        return (id & MovedPieceMask) >> MovedPieceShift;
+    }
+
+    public int GetCapturedPieceType()
+    {
+        return (id & CapturedPieceMask) >> CapturedPieceShift;
+    }
+
+    public bool IsCaptureMove()
+    {
+        return GetCapturedPieceType() != Piece.None;
+    }
+
+    public int GetStartIndex()
+    {
+        return (id & StartIndexMask) >> StartIndexShift;
+    }
+
+    public int GetEndIndex()
+    {
+        return (id & EndIndexMask) >> EndIndexShift;
     }
 
     public string GetMoveAsString()
     {
-        string moveString = "";
+
+        StringBuilder sb = new();
+
+        int startIndex = GetStartIndex();
+        int endIndex = GetEndIndex();
+        int moveType = GetMoveType();
+        int movedPiece = GetMovedPieceType();
+        int capturedPiece = GetCapturedPieceType();
+
 
         if (moveType == Standard || moveType == PawnTwoSquares || moveType == EnPassant)
         {
-            switch (pieceType)
+            switch (movedPiece)
             {
                 case Piece.King:
-                    moveString += "K";
+                    sb.Append("K");
                     break;
                 case Piece.Queen:
-                    moveString += "Q";
+                    sb.Append("Q");
                     break;
                 case Piece.Bishop:
-                    moveString += "B";
+                    sb.Append("B");
                     break;
                 case Piece.Knight:
-                    moveString += "N";
+                    sb.Append("N");
                     break;
                 case Piece.Rook:
-                    moveString += "R";
+                    sb.Append("R");
                     break;
                 case Piece.Pawn:
-                    if (isCaptureMove == true)
+                    if (capturedPiece != Piece.None)
                     {
-                        moveString += GetFileName(startIndex);
+                        sb.Append(Square.GetFileName(startIndex));
                     }
                     break;
                 default:
@@ -64,42 +131,42 @@ public class Move
                     break;
             }
 
-            if (isCaptureMove) { moveString += "x"; }
+            if (capturedPiece != Piece.None) { sb.Append("x"); }
 
-            moveString += ConvertIndexToSquareName(endIndex);
+            sb.Append(Square.ConvertIndexToSquareName(endIndex));
         }
         else if (moveType == Castling)
         {
-            if (GetFileName(endIndex) == "g") // Kingside
+            if (Square.GetFileName(endIndex) == "g") // Kingside
             {
-                moveString = "O-O";
+                return "O-O";
             }
             else // Queenside
             {
-                moveString = "O-O-O";
+                return "O-O-O";
             }
         }
         else if (moveType == PromoteToQueen || moveType == PromoteToRook || moveType == PromoteToBishop || moveType == PromoteToKnight)
         {
-            if (isCaptureMove == true)
+            if (capturedPiece != 0)
             {
-                moveString += GetFileName(startIndex);
-                moveString += "x";
+                sb.Append(Square.GetFileName(startIndex));
+                sb.Append("x");
             }
-            moveString += ConvertIndexToSquareName(endIndex);
+            sb.Append(Square.ConvertIndexToSquareName(endIndex));
 
             switch (moveType) {
                 case PromoteToQueen:
-                    moveString += "Q";
+                    sb.Append("Q");
                     break;
                 case PromoteToRook:
-                    moveString += "R";
+                    sb.Append("R");
                     break;
                 case PromoteToBishop:
-                    moveString += "B";
+                    sb.Append("B");
                     break;
                 case PromoteToKnight:
-                    moveString += "N";
+                    sb.Append("N");
                     break;
                 default:
                     Debug.Log("Cannot find promotion piece");
@@ -108,21 +175,6 @@ public class Move
 
         }
 
-
-        return moveString;
+        return sb.ToString();
     }
-
-    public static string ConvertIndexToSquareName(int index)
-    {
-        int rank = (index / 8) + 1;
-        return GetFileName(index) + rank.ToString();
-    }
-
-    public static string GetFileName(int index)
-    {
-        int file = (index % 8) + 1;
-        string[] letters = { "#", "a", "b", "c", "d", "e", "f", "g", "h" };
-        return letters[file];
-    }
-
 }

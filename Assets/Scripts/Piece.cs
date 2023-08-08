@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
+
+    public const int None = 0;
     public const int King = 1;
     public const int Queen = 2;
     public const int Bishop = 3;
