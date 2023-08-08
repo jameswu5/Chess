@@ -14,7 +14,8 @@ public class Move
 
     */
 
-    private int id = 0;
+    public int id = 0;
+    public string currentFEN = "";
 
 
     // This can fit in 3 bits
@@ -40,23 +41,20 @@ public class Move
     private const int MoveTypeMask = 0b111 << MoveTypeShift;
     private const int MovedPieceMask = 0b111 << MovedPieceShift;
     private const int CapturedPieceMask = 0b111 << CapturedPieceShift;
+    private const int CastlingRightsMask = 0b1111 << CastlingRightsShift;
+    private const int FiftyMoveCounterMask = 0b1111111 << FiftyMoveCounterShift;
 
-    public Move(int moveType, int startIndex, int endIndex, int pieceType, bool isCaptureMove)
+    public Move(int moveType, int startIndex, int endIndex, int pieceType, int capturedPieceType)
     {
 
         id |= endIndex << EndIndexShift;
         id |= startIndex << StartIndexShift;
         id |= moveType << MoveTypeShift;
-        // Captured piece??
+        id |= capturedPieceType << CapturedPieceShift;
         id |= pieceType << MovedPieceShift;
         // Castling rights
         // previous fifty move counter
 
-        //Temporary
-        if (isCaptureMove)
-        {
-            id |= 1 << CapturedPieceShift;
-        }
     }
 
     public int GetMoveType()
@@ -88,6 +86,47 @@ public class Move
     {
         return (id & EndIndexMask) >> EndIndexShift;
     }
+
+
+    public void SetCastlingRights(bool[] change)
+    {
+        int cur = 0;
+        for (int i = 3; i >= 0; i--)
+        {
+            if (change[i])
+            {
+                cur += 1;
+            }
+            cur <<= 1;
+        }
+        cur >>= 1;
+        id |= cur << CastlingRightsShift;
+    }
+
+    public bool[] GetCastlingRights() // This needs fixing
+    {
+        bool[] rights = new bool[4];
+        int rightsAsInt = (id & CastlingRightsMask) >> CastlingRightsShift;
+
+        for (int i = 0; i < 4; i++)
+        {
+            rights[i] = rightsAsInt % 2 != 0;
+            rightsAsInt >>= 1;
+        }
+
+        return rights;
+    }
+
+    public void SetFiftyMoveCounter(int counter)
+    {
+        id |= counter << FiftyMoveCounterShift;
+    }
+
+    public int GetFiftyMoveCounter()
+    {
+        return (id & FiftyMoveCounterMask) >> FiftyMoveCounterShift;
+    }
+
 
     public string GetMoveAsString()
     {

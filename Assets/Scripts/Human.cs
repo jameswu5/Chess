@@ -15,9 +15,9 @@ public class Human : Player
     {
         if (Input.GetMouseButtonDown(1))
         {
-            // This is now broken
-            // CancelMove();
-            // board.UndoMove();
+            // This is broken when you try to play a bot
+            CancelMove();
+            board.UndoMove();
         }
 
         if (board.gameResult == Board.Result.Playing)

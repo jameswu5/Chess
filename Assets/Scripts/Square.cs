@@ -80,5 +80,29 @@ public class Square : MonoBehaviour
         return letters[file];
     }
 
+    public static int GetIndexFromSquareName(string name)
+    {
+        int index = 0;
+
+        foreach (char c in name)
+        {
+            if ("abcdefgh".Contains(c))
+            {
+                index += c - 'a';
+            }
+            else
+            {
+                index += (c - '1') * 8;
+            }
+        }
+
+        return index;
+    }
+
+    public static int GetRank(int index)
+    {
+        return (index / 8) + 1;
+    }
+
 
 }
