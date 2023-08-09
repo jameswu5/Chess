@@ -123,12 +123,12 @@ public static class Evaluator
 
         for (int i = 0; i < 64; i++)
         {
-            Piece piece = board.GetPieceAtIndex(i);
-            if (piece != null && board.CheckIfPieceIsColour(i, colour))
+            int piece = board.GetPieceAtIndex(i);
+            if (piece != Piece.None && board.CheckIfPieceIsColour(i, colour))
             {
-                totalValue += PieceValues[piece.GetPieceType()];
+                totalValue += PieceValues[Piece.GetPieceType(piece)];
                 int index = colour == Piece.White ? i : ConvertBlackIndexToWhite(i);
-                totalValue += SquareTables[piece.GetPieceType()][index];
+                totalValue += SquareTables[Piece.GetPieceType(piece)][index];
             }
         }
 

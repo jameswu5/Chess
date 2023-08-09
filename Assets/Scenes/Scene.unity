@@ -502,7 +502,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boardPrefab: {fileID: 3924292577320015185, guid: 747d7843b86d54b958ef7bb8e72f72f9, type: 3}
   board: {fileID: 0}
+  whitePlayer: {fileID: 0}
+  blackPlayer: {fileID: 0}
   camera: {fileID: 519420031}
+  human: {fileID: 0}
+  bot: {fileID: 0}
 --- !u!1 &1148719011
 GameObject:
   m_ObjectHideFlags: 0

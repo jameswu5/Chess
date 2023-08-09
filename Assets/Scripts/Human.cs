@@ -17,7 +17,7 @@ public class Human : Player
         {
             // This is broken when you try to play a bot
             CancelMove();
-            board.UndoMove();
+            board.UndoMove(true);
         }
 
         if (board.gameResult == Board.Result.Playing)
@@ -61,15 +61,15 @@ public class Human : Player
 
             if (index != -1)
             {
-                if (board.boardState[index] != null && board.CheckIfPieceIsColour(index, board.turn))
+                if (board.GetPieceTypeAtIndex(index) != Piece.None && board.CheckIfPieceIsColour(index, board.turn))
                 {
                     pieceIndex = index;
                     currentState = InputState.Dragging;
 
-                    board.HighlightSquare(pieceIndex);
+                    boardUI.HighlightSquare(pieceIndex);
 
                     HashSet<int> legalMoves = board.GetLegalMoves(pieceIndex);
-                    board.HighlightOptions(legalMoves);
+                    boardUI.HighlightOptions(legalMoves);
                 }
             }
 
@@ -96,8 +96,8 @@ public class Human : Player
             }
 
             currentState = InputState.Idle;
-            board.ResetSquareColour(pieceIndex);
-            board.UnHighlightOptionsAllSquares();
+            boardUI.ResetSquareColour(pieceIndex);
+            boardUI.UnHighlightOptionsAllSquares();
         }
     }
 
@@ -108,7 +108,7 @@ public class Human : Player
 
         if (newIndex != -1)
         {
-            board.HighlightHover(newIndex);
+            boardUI.HighlightHover(newIndex);
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -117,9 +117,9 @@ public class Human : Player
             if (newIndex == pieceIndex) // Trying to place at the same square
             {
                 currentState = InputState.Selecting;
-                board.boardState[pieceIndex].SnapToSquare(pieceIndex);
 
-                board.UnHighlightHover(pieceIndex);
+                boardUI.MovePieceToSquare(pieceIndex, pieceIndex);
+                boardUI.UnHighlightHover(pieceIndex);
             }
             else
             {
@@ -133,7 +133,7 @@ public class Human : Player
                     else
                     {
                         board.TryToPlacePiece(pieceIndex, newIndex);
-                        board.UnHighlightHover(newIndex);
+                        boardUI.UnHighlightHover(newIndex);
                     }
 
                 }
@@ -145,9 +145,9 @@ public class Human : Player
                 }
 
                 currentState = InputState.Idle;
-                board.ResetSquareColour(pieceIndex);
+                boardUI.ResetSquareColour(pieceIndex);
 
-                board.UnHighlightOptionsAllSquares();
+                boardUI.UnHighlightOptionsAllSquares();
             }
         }
     }
@@ -204,9 +204,9 @@ public class Human : Player
             Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
 
             board.ResetPiecePosition(pieceIndex);
-            board.ResetSquareColour(pieceIndex);
-            board.UnHighlightHover(GetIndexFromMousePosition(mousePosition));
-            board.UnHighlightOptionsAllSquares();
+            boardUI.ResetSquareColour(pieceIndex);
+            boardUI.UnHighlightHover(GetIndexFromMousePosition(mousePosition));
+            boardUI.UnHighlightOptionsAllSquares();
         }
 
         if (board.inPromotionScreen != -1)

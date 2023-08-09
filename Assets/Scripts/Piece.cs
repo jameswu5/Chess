@@ -2,9 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Piece : MonoBehaviour
+public static class Piece
 {
-
     public const int None = 0;
     public const int King = 1;
     public const int Queen = 2;
@@ -16,85 +15,35 @@ public class Piece : MonoBehaviour
     public const int White = 0;
     public const int Black = 8;
 
-    public int pieceID;
-    public int index;
-    public Sprite[] pieceSprites;
-    public SpriteRenderer spriteRenderer;
-
-
-    public void Initialise(int pieceID, int index) {
-        this.pieceID = pieceID;
-        this.index = index;
-        SetSprite();
-    }
-
-    private void SetSprite() {
-        spriteRenderer.sprite = pieceSprites[pieceID];
-    }
-    
-    public void Drag(Vector2 mousePosition, float dragOffset)
+    public static Dictionary<int, string> pieceDictionary = new()
     {
-        transform.position = new Vector3(mousePosition.x, mousePosition.y, -0.1f + dragOffset);
-    }
+        { White + King   , "K" },
+        { White + Queen  , "Q" },
+        { White + Bishop , "B" },
+        { White + Knight , "N" },
+        { White + Rook   , "R" },
+        { White + Pawn   , "P" },
+        { Black + King   , "k" },
+        { Black + Queen  , "q" },
+        { Black + Bishop , "b" },
+        { Black + Knight , "n" },
+        { Black + Rook   , "r" },
+        { Black + Pawn   , "p" }
+    };
 
-    public void SnapToSquare(int newIndex) {
-        int x = newIndex % 8;
-        int y = newIndex / 8;
-        transform.position = new Vector3(x, y, -0.1f);
-    }
 
-    public void DestroyPiece()
-    {
-        Destroy(gameObject);
-    }
-
-
-    public int GetPieceType()
+    public static int GetPieceType(int pieceID)
     {
         return pieceID % 8;
     }
 
-    public bool IsWhite()
+    public static bool IsWhite(int pieceID)
     {
         return pieceID < 8;
     }
 
-
-    public int GetRank()
+    public static string GetCharacterFromPieceType(int pieceID)
     {
-        return (index / 8) + 1;
-    }
-
-    public string GetCharacterFromPieceType()
-    {
-        switch (pieceID)
-        {
-            case White + King:
-                return "K";
-            case White + Queen:
-                return "Q";
-            case White + Bishop:
-                return "B";
-            case White + Knight:
-                return "N";
-            case White + Rook:
-                return "R";
-            case White + Pawn:
-                return "P";
-            case Black + King:
-                return "k";
-            case Black + Queen:
-                return "q";
-            case Black + Bishop:
-                return "b";
-            case Black + Knight:
-                return "n";
-            case Black + Rook:
-                return "r";
-            case Black + Pawn:
-                return "p";
-            default:
-                return "";
-        }
+        return pieceDictionary[pieceID];
     }
 }

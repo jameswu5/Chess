@@ -15,7 +15,7 @@ public class Game : MonoBehaviour
     public new Camera camera;
     public static AudioSource captureSound;
     public static AudioSource moveSound;
-
+    
     public static Text endOfGameText;
     public static Text resultText;
 
@@ -44,11 +44,11 @@ public class Game : MonoBehaviour
         {
             if (board.turn == Piece.White)
             {
-                whitePlayer.Update();
+                //whitePlayer.Update();
             }
             else
             {
-                blackPlayer.Update();
+                //blackPlayer.Update();
             }
         }
     }
@@ -92,12 +92,9 @@ public class Game : MonoBehaviour
     private void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
     {   
         board.ResetBoard();
-        //whitePlayer = whitePlayerType == PlayerType.Human ? new Human() : new Bot();
-        //blackPlayer = blackPlayerType == PlayerType.Human ? new Human() : new Bot();
 
         whitePlayer = whitePlayerType == PlayerType.Human ? human : bot;
         blackPlayer = blackPlayerType == PlayerType.Human ? human : bot;
-
     }
 
 
@@ -115,8 +112,6 @@ public class Game : MonoBehaviour
     {
         StartNewGame(PlayerType.Bot, PlayerType.Bot);
     }
-
-
 
     public static void UpdateEndOfGameScreen(Board.Result gameResult, int turn)
     {

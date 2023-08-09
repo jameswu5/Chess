@@ -18,7 +18,7 @@ public class Bot : Player
         choosingMove = true;
         int chosenMove = ChooseMove(board);
         board.PlayMove(chosenMove);
-        board.ResetSquareColour(Move.GetStartIndex(chosenMove));
+        boardUI.ResetSquareColour(Move.GetStartIndex(chosenMove));
         choosingMove = false;
 
         yield return null;
@@ -34,7 +34,7 @@ public class Bot : Player
 
         foreach (int move in legalMoves)
         {
-            board.MakeMove(move);
+            board.MakeMove(move, false);
             int eval = Search(board, 1);
             if (eval >= bestEval)
             {
@@ -67,7 +67,7 @@ public class Bot : Player
         foreach (int move in legalMoves)
         {
             int eval;
-            board.MakeMove(move);
+            board.MakeMove(move, false);
             Board.Result result = board.GetGameResult();
             if (result != Board.Result.Checkmate && result != Board.Result.Playing)
             {

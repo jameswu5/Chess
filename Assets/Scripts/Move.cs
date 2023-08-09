@@ -7,7 +7,7 @@ using UnityEngine;
 public static class Move
 {
     /*
-    Moves are encoded as an unsigned 32-bit integer:
+    Moves are encoded as a 32-bit integer:
 
     [PrevFiftyMoveCounter] [ChangedCastlingRights] [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
     [         7          ] [          4          ] [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
