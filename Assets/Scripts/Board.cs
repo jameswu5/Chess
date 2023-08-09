@@ -332,14 +332,14 @@ public class Board : MonoBehaviour
         return 0; // null move
     }
 
-    public void PlacePiece(int index, int newIndex, bool changeUI) // parameters assumed to be valid, out of bounds checked in humanInput
+    public void PlacePiece(int index, int newIndex, bool changeUI)
     {
         int selectedPiece = boardState[index];
         boardState[index] = Piece.None;
         
         if (boardState[newIndex] != Piece.None)
         {
-            DestroyPiece(newIndex);
+            DestroyPiece(newIndex, changeUI);
         }
 
         boardState[newIndex] = selectedPiece;
@@ -350,9 +350,9 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void DestroyPiece(int index)
+    public void DestroyPiece(int index, bool changeUI)
     {
-        boardUI.DestroyPieceSprite(index);
+        if (changeUI) boardUI.DestroyPieceSprite(index);
         boardState[index] = Piece.None;
     }
 
@@ -788,42 +788,48 @@ public class Board : MonoBehaviour
             // destroy the piece next to it
             if (isWhite)
             {
-                DestroyPiece(endIndex - 8);
+                DestroyPiece(endIndex - 8, changeUI);
             }
             else
             {
-                DestroyPiece(endIndex + 8);
+                DestroyPiece(endIndex + 8, changeUI);
             }
         }
 
         if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
         {
             PlacePiece(startIndex, endIndex, changeUI);
-            DestroyPiece(endIndex);
+            DestroyPiece(endIndex, changeUI);
 
             int colourOfPiece = Square.GetRank(endIndex) == 8 ? Piece.White : Piece.Black;
+
+            int promotePiece = -1;
 
             switch (moveType)
             {
                 case Move.PromoteToQueen:
-                    boardUI.CreatePiece(colourOfPiece + Piece.Queen, endIndex);
+                    promotePiece = Piece.Queen;
                     boardState[endIndex] = colourOfPiece + Piece.Queen;
                     break;
                 case Move.PromoteToRook:
-                    boardUI.CreatePiece(colourOfPiece + Piece.Rook, endIndex);
+                    promotePiece = Piece.Rook;
                     boardState[endIndex] = colourOfPiece + Piece.Rook;
                     break;
                 case Move.PromoteToBishop:
-                    boardUI.CreatePiece(colourOfPiece + Piece.Bishop, endIndex);
+                    promotePiece = Piece.Bishop;
                     boardState[endIndex] = colourOfPiece + Piece.Bishop;
                     break;
                 case Move.PromoteToKnight:
-                    boardUI.CreatePiece(colourOfPiece + Piece.Knight, endIndex);
+                    promotePiece = Piece.Knight;
                     boardState[endIndex] = colourOfPiece + Piece.Knight;
                     break;
                 default:
                     Debug.Log("A problem has occurred with promoting, cannot find promotion piece.");
                     break;
+            }
+            if (changeUI)
+            {
+                boardUI.CreatePiece(colourOfPiece + promotePiece, endIndex);
             }
         }
 
@@ -1062,6 +1068,7 @@ public class Board : MonoBehaviour
     public HashSet<int> GetAllLegalMoves(int colour)
     {
         HashSet<int> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
+
         HashSet<int> legalMoves = new();
 
         HashSet<int> castlingMoves = new();
@@ -1156,6 +1163,7 @@ public class Board : MonoBehaviour
 
     public void UndoMove(bool changeUI = false)
     {
+
         if (gameMoves.Count == 0) // no moves to undo so exit the function
         {
             return;
@@ -1174,6 +1182,10 @@ public class Board : MonoBehaviour
         int capturedPieceType = Move.GetCapturedPieceType(lastMove);
 
 
+        int capturedPiece = -1;
+        int capturedIndex = -1;
+
+
         // move the pieces
 
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
@@ -1184,7 +1196,9 @@ public class Board : MonoBehaviour
             // replace captured piece if necessary
             if (capturedPieceType != Piece.None)
             {
-                boardUI.CreatePiece(capturedPieceType + opponentColour, endIndex);
+                capturedPiece = capturedPieceType + opponentColour;
+                capturedIndex = endIndex;
+
                 boardState[endIndex] = capturedPieceType + opponentColour;
             }
             
@@ -1198,7 +1212,8 @@ public class Board : MonoBehaviour
             // replace the captured pawn
             int capturedPawnIndex = heroColour == Piece.White ? endIndex - 8 : endIndex + 8;
 
-            boardUI.CreatePiece(Piece.Pawn + opponentColour, capturedPawnIndex);
+            capturedPiece = Piece.Pawn + opponentColour;
+            capturedIndex = capturedPawnIndex;
 
             boardState[capturedPawnIndex] = Piece.Pawn + opponentColour;
         }
@@ -1232,17 +1247,21 @@ public class Board : MonoBehaviour
         else if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
         {
             // destroy the promoted piece
-            DestroyPiece(endIndex);
+            DestroyPiece(endIndex, changeUI);
 
             // create a pawn on the start position
-            boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
+            if (changeUI)
+            {
+                boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
+            }
             boardState[startIndex] = Piece.Pawn + heroColour;
 
 
             // replace captured piece if necessary
             if (capturedPieceType != Piece.None)
             {
-                boardUI.CreatePiece(capturedPieceType + opponentColour, endIndex);
+                capturedPiece = capturedPieceType + opponentColour;
+                capturedIndex = endIndex;
                 boardState[endIndex] = capturedPieceType + opponentColour;
             }
         }
@@ -1250,6 +1269,12 @@ public class Board : MonoBehaviour
         else
         {
             Debug.Log("Cannot identify the nature of the previous move.");
+        }
+
+        // replace the piece on the UI if necessary
+        if (changeUI && capturedPiece != -1)
+        {
+            boardUI.CreatePiece(capturedPiece, capturedIndex);
         }
 
         // revert the castling rights
@@ -1294,6 +1319,7 @@ public class Board : MonoBehaviour
 
         // remove end of game text if necessary
         Game.UpdateEndOfGameScreen(gameResult, turn);
+
 
         // change the turn back
         ChangeTurn();

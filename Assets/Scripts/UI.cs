@@ -23,10 +23,11 @@ public class UI : MonoBehaviour
 
     public void CreateUI(int[] boardState)
     {
-        Debug.Log("Creating UI");
-
         squares = new Square[64];
         pieceRenderers = new SpriteRenderer[64];
+
+        promotionPieces = new SpriteRenderer[4];
+        promotionSquares = new Square[4];
 
         for (int i = 0; i < 64; i++)
         {
@@ -36,10 +37,11 @@ public class UI : MonoBehaviour
             // need to create the pieces based on the board state
             if (boardState[i] != Piece.None)
             {
-                CreatePiece(i, boardState[i]);
+                CreatePiece(boardState[i], i);
             }
-
         }
+
+
     }
 
     private Square CreateSquare(int index, float elevation = 0)
@@ -55,7 +57,7 @@ public class UI : MonoBehaviour
         return spawnSquare;
     }
 
-    public SpriteRenderer CreatePiece(int index, int pieceID, float elevation = pieceOffset, bool putInArray = true)
+    public SpriteRenderer CreatePiece(int pieceID, int index, float elevation = pieceOffset, bool putInArray = true)
     {
         int x = index % 8;
         int y = index / 8;
@@ -72,7 +74,6 @@ public class UI : MonoBehaviour
             pieceRenderers[index] = piece;
         }
 
-
         return piece;
     }
 
@@ -80,11 +81,6 @@ public class UI : MonoBehaviour
     public void DragPiece(int index, Vector2 mousePosition, float dragOffset)
     {
         pieceRenderers[index].transform.position = new Vector3(mousePosition.x, mousePosition.y, -0.1f + dragOffset);
-    }
-
-    public void SetPieceSprite(int index, int pieceID)
-    {
-        pieceRenderers[index].sprite = PieceSprites[pieceID];
     }
 
     public void MovePieceToSquare(int startIndex, int newIndex)
@@ -95,7 +91,8 @@ public class UI : MonoBehaviour
         pieceRenderers[startIndex].transform.position = new Vector3(x, y, -0.1f);
 
         // update position of the piece
-        pieceRenderers[newIndex] = pieceRenderers[startIndex]; // not sure if this is just storing a reference
+        pieceRenderers[newIndex] = pieceRenderers[startIndex];
+
         if (newIndex != startIndex)
         {
             pieceRenderers[startIndex] = null;
@@ -208,20 +205,16 @@ public class UI : MonoBehaviour
 
         // remove the squares and pieces icons
 
-        //foreach (SpriteRenderer piece in promotionPieces)
-        //{
-        //    piece.DestroyPiece();
-        //}
+        foreach (SpriteRenderer piece in promotionPieces)
+        {
+            Destroy(piece.gameObject);
+        }
 
 
         foreach (Square square in promotionSquares)
         {
             square.DestroySquare();
         }
-
-
-
-        // Maybe clearing is just enough? try it out anyway
 
         Array.Clear(promotionPieces, 0, promotionPieces.Length);
         Array.Clear(promotionSquares, 0, promotionSquares.Length);

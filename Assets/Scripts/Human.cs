@@ -10,9 +10,16 @@ public class Human : Player
     public InputState currentState = InputState.Idle;
     private int pieceIndex = -1;
     public float dragOffset = -0.2f;
+    public UI boardUI;
+
+    public Human()
+    {
+        boardUI = board.boardUI;
+    }
 
     public override void Update()
     {
+
         if (Input.GetMouseButtonDown(1))
         {
             // This is broken when you try to play a bot

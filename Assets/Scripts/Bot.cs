@@ -5,7 +5,12 @@ using System.Collections.Generic;
 public class Bot : Player
 {
     private bool choosingMove = false;
+    private UI boardUI;
 
+    public Bot()
+    {
+        boardUI = board.boardUI;
+    }
 
     public override void Update()
     {

@@ -44,11 +44,11 @@ public class Game : MonoBehaviour
         {
             if (board.turn == Piece.White)
             {
-                //whitePlayer.Update();
+                whitePlayer.Update();
             }
             else
             {
-                //blackPlayer.Update();
+                blackPlayer.Update();
             }
         }
     }
