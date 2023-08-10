@@ -44,7 +44,6 @@ public class Board : MonoBehaviour
 
     public void Initialise()
     {
-
         boardState = new int[64];
         inPromotionScreen = -1;
         kingIndices = new int[2];
@@ -52,10 +51,10 @@ public class Board : MonoBehaviour
         boardStrings = new Dictionary<string, int>();
         gameMoves = new List<int>();
         name = "Board";
-
         GenerateBoardStateFromFEN();
-
         boardUI.CreateUI(boardState);
+        gameResult = GetGameResult();
+        Game.UpdateEndOfGameScreen(gameResult, turn);
     }
 
 
@@ -153,11 +152,6 @@ public class Board : MonoBehaviour
 
         // fullmove clock
         moveNumber = Convert.ToInt16(sections[5]) - 1;
-
-
-        //gameResult = GetGameResult();
-        //Game.UpdateEndOfGameScreen(gameResult, turn);
-
     }
 
 
@@ -1375,6 +1369,8 @@ public class Board : MonoBehaviour
         }
         return true;
     }
+
+
 
     public void ResetBoard()
     {

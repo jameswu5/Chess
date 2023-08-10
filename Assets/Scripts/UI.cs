@@ -9,10 +9,8 @@ public class UI : MonoBehaviour
     public SpriteRenderer[] pieceRenderers;
 
     public Square squarePrefab;
-
     public GameObject boardCoverPrefab;
     public GameObject boardCover;
-
 
     public SpriteRenderer[] promotionPieces;
     public Square[] promotionSquares;
@@ -45,8 +43,6 @@ public class UI : MonoBehaviour
                 CreatePiece(boardState[i], i);
             }
         }
-
-
     }
 
     private Square CreateSquare(int index, float elevation = 0)
@@ -57,7 +53,7 @@ public class UI : MonoBehaviour
         Square spawnSquare = Instantiate(squarePrefab, new Vector3(x, y, elevation), Quaternion.identity);
         string squareName = $"{(char)(x + 'a')}{y + 1}";
         bool isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
-        spawnSquare.Initialise(index, squareName, isOffset);
+        spawnSquare.Initialise(squareName, isOffset);
 
         return spawnSquare;
     }
@@ -164,10 +160,6 @@ public class UI : MonoBehaviour
         squares[index].HighlightCheck();
     }
 
-
-
-    // Promotion //
-
     private void SetBoardCover(bool value)
     {
         boardCover.SetActive(value);
@@ -224,8 +216,6 @@ public class UI : MonoBehaviour
         Array.Clear(promotionPieces, 0, promotionPieces.Length);
         Array.Clear(promotionSquares, 0, promotionSquares.Length);
     }
-
-
 
     public void ResetBoardUI()
     {

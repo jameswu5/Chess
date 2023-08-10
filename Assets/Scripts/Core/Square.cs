@@ -12,16 +12,13 @@ public class Square : MonoBehaviour
     public new SpriteRenderer renderer;
 
     private bool isLightSquare;
-    private int squareIndex;
 
 
-    public void Initialise(int squareIndex, string name, bool isLightSquare)
+    public void Initialise(string name, bool isLightSquare)
     {
-        this.squareIndex = squareIndex;
         this.name = name;
         this.isLightSquare = isLightSquare;
         InitialiseColor();
-
     }
 
     public void InitialiseColor()
