@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class Bot : Player
 {
-    private bool choosingMove = false;
     private UI boardUI;
 
     public Bot()
@@ -14,19 +13,14 @@ public class Bot : Player
 
     public override void Update()
     {
-        if (choosingMove == false)
-            StartCoroutine(PlayMove());
+        PlayMove();
     }
 
-    public IEnumerator PlayMove()
+    public void PlayMove()
     {
-        choosingMove = true;
         int chosenMove = ChooseMove(board);
         board.PlayMove(chosenMove);
         boardUI.ResetSquareColour(Move.GetStartIndex(chosenMove));
-        choosingMove = false;
-
-        yield return null;
     }
 
     public int ChooseMove(Board board)

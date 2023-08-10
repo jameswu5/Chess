@@ -10,7 +10,9 @@ public class UI : MonoBehaviour
 
     public Square squarePrefab;
 
+    public GameObject boardCoverPrefab;
     public GameObject boardCover;
+
 
     public SpriteRenderer[] promotionPieces;
     public Square[] promotionSquares;
@@ -28,6 +30,9 @@ public class UI : MonoBehaviour
 
         promotionPieces = new SpriteRenderer[4];
         promotionSquares = new Square[4];
+
+        boardCover = Instantiate(boardCoverPrefab, new Vector3(3.5f, 3.5f, -0.5f), Quaternion.identity);
+        boardCover.name = "Board Cover";
 
         for (int i = 0; i < 64; i++)
         {
@@ -229,6 +234,8 @@ public class UI : MonoBehaviour
             squares[i].DestroySquare();
             DestroyPieceSprite(i);
         }
+
+        Destroy(boardCover);
 
         Array.Clear(squares, 0, 64);
         Array.Clear(pieceRenderers, 0, 64);
