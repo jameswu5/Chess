@@ -84,7 +84,7 @@ public class Board : MonoBehaviour
             } else {
                 int pieceColour = char.IsUpper(c) ? Piece.White : Piece.Black;
                 int pieceType = pieceTypes[char.ToUpper(c)];
-                int index = rank * 8 + file;
+                int index = (rank << 3) + file;
 
                 int pieceID = pieceColour + pieceType;
                 boardState[index] = pieceID;
@@ -165,7 +165,7 @@ public class Board : MonoBehaviour
             int emptyCounter = 0;
             for (int c = 0; c < 8; c++)
             {
-                int index = r * 8 + c;
+                int index = (r << 3) + c;
                 if (boardState[index] == Piece.None)
                 {
                     emptyCounter++;
@@ -1094,11 +1094,11 @@ public class Board : MonoBehaviour
                 legalMoves.Add(move);
                 if (Move.GetMovedPieceType(move) == Piece.King) // find whether king can move to the square castling would pass through
                 {
-                    if (endIndex == homeRank * 8 + 5)
+                    if (endIndex == (homeRank << 3) + 5)
                     {
                         kingside = true;
                     }
-                    if (endIndex == homeRank * 8 + 3)
+                    if (endIndex == (homeRank << 3) + 3)
                     {
                         queenside = true;
                     }

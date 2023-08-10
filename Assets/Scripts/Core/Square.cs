@@ -62,17 +62,15 @@ public class Square : MonoBehaviour
         Destroy(gameObject);
     }
 
-
-
     public static string ConvertIndexToSquareName(int index)
     {
-        int rank = (index / 8) + 1;
+        int rank = (index >> 3) + 1;
         return GetFileName(index) + rank.ToString();
     }
 
     public static string GetFileName(int index)
     {
-        int file = (index % 8) + 1;
+        int file = (index & 0b111) + 1;
         string[] letters = { "#", "a", "b", "c", "d", "e", "f", "g", "h" };
         return letters[file];
     }
@@ -98,7 +96,7 @@ public class Square : MonoBehaviour
 
     public static int GetRank(int index)
     {
-        return (index / 8) + 1;
+        return (index >> 3) + 1;
     }
 
 

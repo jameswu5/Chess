@@ -34,7 +34,7 @@ public static class Piece
 
     public static int GetPieceType(int pieceID)
     {
-        return pieceID % 8;
+        return pieceID & 0b111;
     }
 
     public static bool IsWhite(int pieceID)
