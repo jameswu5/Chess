@@ -35,6 +35,37 @@ public static class Bitboard
         SetSquare(ref bitboard, endIndex);
     }
 
+
+    public static ulong[,] ComputeRayAttacks()
+    {
+
+        ulong[,] rayAttacks = new ulong[8, 64];
+
+        for (int i = 0; i < 64; i++)
+        {
+            // north
+            rayAttacks[0, i] = 0x0101010101010100ul << i;
+
+            // east
+            rayAttacks[1, i] = ((1ul << (i | 7)) - (1ul << i)) << 1;
+
+            // south
+            rayAttacks[2, i] = 0x0080808080808080ul >> (i ^ 63);
+
+            // west
+            rayAttacks[3, i] = (1ul << i) - (1ul << (i & 56));
+
+
+            // need to do diagonals
+        }
+
+
+        return rayAttacks;
+    }
+
+
+
+
     public static void DisplayAsMatrix(ulong bitboard)
     {
         StringBuilder sb = new();
