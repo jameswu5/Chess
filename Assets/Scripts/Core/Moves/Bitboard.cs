@@ -65,7 +65,7 @@ public static class Bitboard
     }
 
 
-    public static bool CheckAtEdgeOfBoard(int direction, ulong position)
+    private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {
 
         int[] north = { Direction.NW, Direction.N, Direction.NE };
@@ -92,7 +92,7 @@ public static class Bitboard
         return false;
     }
 
-    public static ulong[,] PrecomputeRayData()
+    private static ulong[,] PrecomputeRayData()
     {
         int[] directions = { Direction.N, Direction.S, Direction.E, Direction.W, Direction.NW, Direction.SW, Direction.NE, Direction.SE };
 
@@ -111,7 +111,7 @@ public static class Bitboard
     }
 
     // Gets the position of the least significant bit that is a 1
-    public static int BitScanForward(ulong data)
+    private static int BitScanForward(ulong data)
     {
         // There is no bit that is equal to 1
         if (data == 0) return -1;
@@ -129,7 +129,7 @@ public static class Bitboard
     }
 
     // Gets the position of the most significant bit that is a 1
-    public static int BitScanReverse(ulong data)
+    private static int BitScanReverse(ulong data)
     {
         // There is no bit that is equal to 1
         if (data == 0) return -1;
@@ -159,18 +159,23 @@ public static class Bitboard
     }
 
 
-    // Takes blockers into consideration. For now we assume we are allowed to land on the first square the blocker is on.
-    public static ulong GetRayAttacks(ulong occupied, int direction, int squareIndex)
-    {
+    // Takes blockers into consideration.
+    public static ulong GetRayAttacks(ulong hero, ulong opponent, int direction, int squareIndex) {
+
         int dirIndex = Direction.GetIndexFromDirection(direction);
         ulong attacks = PrecomputedData.RayAttacks[dirIndex][squareIndex];
 
-        ulong blockers = attacks & occupied;
-
-        if (blockers > 0)
-        {
+        ulong blockers = attacks & (hero | opponent);
+        if (blockers > 0) {
             int blocker = direction > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
+            ulong block = ShiftLeft(1ul, blocker);
+            
             attacks ^= PrecomputedData.RayAttacks[dirIndex][blocker];
+
+            // if the blocker is my own piece then clear that square
+            if ((block & hero) > 0) {
+                attacks &= ~block;
+            }
         }
 
         return attacks;
