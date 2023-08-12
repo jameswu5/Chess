@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -35,38 +36,83 @@ public static class Bitboard
         SetSquare(ref bitboard, endIndex);
     }
 
-
-    public static ulong[,] ComputeRayAttacks()
+    // left shifts by shift
+    public static ulong ShiftLeft(ulong bitboard, int shift)
     {
+        if (shift > 0)
+        {
+            return bitboard << shift;
+        }
+        else
+        {
+            return bitboard >> -shift;
+        }
+    }
+
+
+    public static ulong GetRayAttacks(int direction, int index)
+    {
+        ulong attacks = 0ul;
+        ulong current = 1ul << index;
+
+        while (current > 0 && !CheckAtEdgeOfBoard(direction, current))
+        {
+            current = ShiftLeft(current, direction);
+            attacks |= current;
+        }
+
+        return attacks;
+    }
+
+
+    public static bool CheckAtEdgeOfBoard(int direction, ulong position)
+    {
+
+        int[] north = { Direction.NW, Direction.N, Direction.NE };
+        int[] east = { Direction.NE, Direction.E, Direction.SE };
+        int[] south = { Direction.SW, Direction.S, Direction.SE };
+        int[] west = { Direction.NW, Direction.W, Direction.SW };
+
+        if (north.Contains(direction) && (position & Rank8) > 0)
+        {
+            return true;
+        }
+        if (east.Contains(direction) && (position & FileH) > 0)
+        {
+            return true;
+        }
+        if (south.Contains(direction) && (position & Rank1) > 0)
+        {
+            return true;
+        }
+        if (west.Contains(direction) && (position & FileA) > 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static ulong[,] PrecomputeRayData()
+    {
+        int[] directions = { Direction.N, Direction.S, Direction.E, Direction.W, Direction.NW, Direction.SW, Direction.NE, Direction.SE };
 
         ulong[,] rayAttacks = new ulong[8, 64];
 
-        for (int i = 0; i < 64; i++)
+        for (int d = 0; d < 8; d++)
         {
-            // north
-            rayAttacks[0, i] = 0x0101010101010100ul << i;
-
-            // east
-            rayAttacks[1, i] = ((1ul << (i | 7)) - (1ul << i)) << 1;
-
-            // south
-            rayAttacks[2, i] = 0x0080808080808080ul >> (i ^ 63);
-
-            // west
-            rayAttacks[3, i] = (1ul << i) - (1ul << (i & 56));
-
-
-            // need to do diagonals
+            int direction = directions[d];
+            for (int sq = 0; sq < 64; sq++)
+            {
+                rayAttacks[d, sq] = GetRayAttacks(direction, sq);
+            }
         }
-
 
         return rayAttacks;
     }
 
 
-
-
-    public static void DisplayAsMatrix(ulong bitboard)
+    // For testing only
+    public static void Display(ulong bitboard)
     {
         StringBuilder sb = new();
         sb.Append("\n");
