@@ -50,7 +50,7 @@ public static class Bitboard
     }
 
 
-    public static ulong GetRayAttacks(int direction, int index)
+    public static ulong GetRayAttacksEmptyBoard(int direction, int index)
     {
         ulong attacks = 0ul;
         ulong current = 1ul << index;
@@ -103,7 +103,7 @@ public static class Bitboard
             int direction = directions[d];
             for (int sq = 0; sq < 64; sq++)
             {
-                rayAttacks[d, sq] = GetRayAttacks(direction, sq);
+                rayAttacks[d, sq] = GetRayAttacksEmptyBoard(direction, sq);
             }
         }
 
@@ -159,7 +159,22 @@ public static class Bitboard
     }
 
 
+    // Takes blockers into consideration. For now we assume we are allowed to land on the first square the blocker is on.
+    public static ulong GetRayAttacks(ulong occupied, int direction, int squareIndex)
+    {
+        int dirIndex = Direction.GetIndexFromDirection(direction);
+        ulong attacks = PrecomputedData.RayAttacks[dirIndex][squareIndex];
 
+        ulong blockers = attacks & occupied;
+
+        if (blockers > 0)
+        {
+            int blocker = direction > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
+            attacks ^= PrecomputedData.RayAttacks[dirIndex][blocker];
+        }
+
+        return attacks;
+    }
 
 
 
