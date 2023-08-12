@@ -110,6 +110,58 @@ public static class Bitboard
         return rayAttacks;
     }
 
+    // Gets the position of the least significant bit that is a 1
+    public static int BitScanForward(ulong data)
+    {
+        // There is no bit that is equal to 1
+        if (data == 0) return -1;
+
+        int n = 0;
+
+        if ((data & 0xFFFFFFFF) == 0) { n += 32; data >>= 32; }
+        if ((data & 0x0000FFFF) == 0) { n += 16; data >>= 16; }
+        if ((data & 0x000000FF) == 0) { n += 8; data >>= 8; }
+        if ((data & 0x0000000F) == 0) { n += 4; data >>= 4; }
+        if ((data & 0x00000003) == 0) { n += 2; data >>= 2; }
+        if ((data & 0x00000001) == 0) { n += 1; }
+
+        return n;
+    }
+
+    // Gets the position of the most significant bit that is a 1
+    public static int BitScanReverse(ulong data)
+    {
+        // There is no bit that is equal to 1
+        if (data == 0) return -1;
+
+        int n = 63;
+
+        if ((data & 0xFFFFFFFF00000000) == 0) { n -= 32; data <<= 32; }
+        if ((data & 0xFFFF000000000000) == 0) { n -= 16; data <<= 16; }
+        if ((data & 0xFF00000000000000) == 0) { n -= 8; data <<= 8; }
+        if ((data & 0xF000000000000000) == 0) { n -= 4; data <<= 4; }
+        if ((data & 0xC000000000000000) == 0) { n -= 2; data <<= 2; }
+        if ((data & 0x8000000000000000) == 0) { n -= 1; }
+
+        return n;
+    }
+
+    // This is for testing only
+    public static ulong CreateBitboard(IEnumerable<int> occupiedIndices)
+    {
+        ulong bitboard = 0;
+
+        foreach (int index in occupiedIndices)
+        {
+            bitboard |= 1ul << index;
+        }
+        return bitboard;
+    }
+
+
+
+
+
 
     // For testing only
     public static void Display(ulong bitboard)
