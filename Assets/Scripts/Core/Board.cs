@@ -384,177 +384,37 @@ public class Board : MonoBehaviour
 
     private HashSet<int> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
     {
-        int pieceID = boardState[index];
-        HashSet<int> legalMoves = new();
-
+        HashSet<int> legalMoves = null!;
 
         bool isWhite = CheckPieceIsWhite(index);
         ulong hero = colourBitboards[GetColourIndex(isWhite)];
         ulong opponent = colourBitboards[GetOpponentColourIndex(isWhite)];
 
-
-
-        switch (pieceID % 8)
+        switch (Piece.GetPieceType(boardState[index]))
         {
             case Piece.King:
-                legalMoves = KingMoves(index);
+                legalMoves = MoveGenerator.GetKingMoves(index, hero, castlingRights, boardState);
                 break;
-
             case Piece.Queen:
                 legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Queen, hero, opponent, boardState);
-                //legalMoves = SlideMoves(index, Directions, Piece.Queen);
                 break;
-
             case Piece.Bishop:
                 legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Bishop, hero, opponent, boardState);
-                //legalMoves = SlideMoves(index, Directions[4..], Piece.Bishop);
                 break;
-
             case Piece.Knight:
                 legalMoves = MoveGenerator.GetKnightMoves(index, hero, boardState);
-                //legalMoves = KnightMoves(index);
                 break;
-
             case Piece.Rook:
-                //legalMoves = SlideMoves(index, Directions[0..4], Piece.Rook);
-
                 legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Rook, hero, opponent, boardState);
                 break;
-
             case Piece.Pawn:
                 legalMoves = PawnMoves(index);
                 break;
-
             default:
                 Debug.Log($"Piece at square index {index} cannot be found!");
                 break;
         }
 
-        return legalMoves;
-    }
-
-    private HashSet<int> SlideMoves(int index, IEnumerable<int> offsets, int pieceNumber)
-    {
-        HashSet<int> legalMoves = new();
-
-        foreach (int offset in offsets)
-        {
-            int currentSquareIndex = index;
-            while (!CheckIfAtEdge(currentSquareIndex, offset))
-            {
-                currentSquareIndex += offset;
-                if (currentSquareIndex >= 0 && currentSquareIndex < 64)
-                {
-                    if (boardState[currentSquareIndex] == Piece.None)
-                    {
-                        legalMoves.Add(Move.Initialise(Move.Standard, index, currentSquareIndex, pieceNumber, Piece.None));
-                    }
-                    else
-                    {
-                        if (Piece.IsWhite(boardState[currentSquareIndex]) != Piece.IsWhite(boardState[index])) // different colour so can capture
-                        {
-                            int capturedPieceType = GetPieceTypeAtIndex(currentSquareIndex);
-
-                            legalMoves.Add(Move.Initialise(Move.Standard, index, currentSquareIndex, pieceNumber, capturedPieceType));
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-        }
-
-        return legalMoves;
-    }
-
-    private HashSet<int> KingMoves(int index)
-    {
-        HashSet<int> legalMoves = new();
-
-        bool pieceIsWhite = Piece.IsWhite(boardState[index]);
-
-        foreach (int offset in Directions)
-        {
-            if (!CheckIfAtEdge(index, offset))
-            {
-                int newIndex = index + offset;
-                if (newIndex >= 0 && newIndex < 64)
-                {
-                    if (boardState[newIndex] == Piece.None)
-                    {
-                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.King, Piece.None));
-                    }
-                    else if (Piece.IsWhite(boardState[newIndex]) != pieceIsWhite)
-                    {
-                        int capturedPieceType = GetPieceTypeAtIndex(newIndex);
-                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.King, capturedPieceType));
-
-                    }
-                }
-            }
-
-            // Castling
-
-            if (pieceIsWhite && index == Square.e1) // king is in original position
-            {
-                if (castlingRights[0] == true && boardState[Square.h1] == Piece.White + Piece.Rook
-                    && boardState[Square.f1] == Piece.None && boardState[Square.g1] == Piece.None)
-                {
-                    // can castle kingside
-                    legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
-                }
-                if (castlingRights[1] == true && boardState[Square.a1] == Piece.White + Piece.Rook
-                    && boardState[Square.b1] == Piece.None && boardState[Square.c1] == Piece.None && boardState[Square.d1] == Piece.None)
-                {
-                    // can castle queenside
-                    legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
-
-                }
-            }
-            else if (!pieceIsWhite && index == 60)
-            {
-                if (castlingRights[2] == true && boardState[Square.h8] == Piece.Black + Piece.Rook
-                    && boardState[Square.f8] == Piece.None && boardState[Square.g8] == Piece.None)
-                {
-                    legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
-
-                }
-                if (castlingRights[3] == true && boardState[Square.a8] == Piece.Black + Piece.Rook
-                    && boardState[Square.b8] == Piece.None && boardState[Square.c8] == Piece.None && boardState[Square.d8] == Piece.None)
-                {
-                    legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
-                }
-            }
-        }
-
-        return legalMoves;
-    }
-
-    private HashSet<int> KnightMoves(int index)
-    {
-        int[] offsets = { -15, -6, 10, 17, 15, 6, -10, -17 };
-        HashSet<int> legalMoves = new();
-        foreach (int offset in offsets)
-        {
-            if (!CheckIfAtEdgeForKnight(index, offset))
-            {
-                int newIndex = index + offset;
-                if (newIndex >= 0 && newIndex < 64)
-                {
-                    if (boardState[newIndex] == Piece.None)
-                    {
-                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.Knight, Piece.None));
-                    }
-                    else if (Piece.IsWhite(boardState[newIndex]) != Piece.IsWhite(boardState[index]))
-                    {
-                        int capturedPieceType = GetPieceTypeAtIndex(newIndex);
-                        legalMoves.Add(Move.Initialise(Move.Standard, index, newIndex, Piece.Knight, capturedPieceType));
-
-                    }
-                }
-            }
-        }
         return legalMoves;
     }
 
@@ -679,44 +539,6 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    private bool CheckIfAtEdgeForKnight(int index, int offset)
-    {
-
-        if (offset == -17 || offset == -15)
-        {
-            if (index < 16) return true;
-        }
-        if (offset == -6 || offset == 10)
-        {
-            if (index % 8 == 6 || index % 8 == 7) return true;
-        }
-        if (offset == 15 || offset == 17)
-        {
-            if (index >= 48) return true;
-        }
-        if (offset == -10 || offset == 6)
-        {
-            if (index % 8 == 0 || index % 8 == 1) return true;
-        }
-        if (offset == -10 || offset == -6)
-        {
-            if (index < 8) return true;
-        }
-        if (offset == -15 || offset == 17)
-        {
-            if (index % 8 == 7) return true;
-        }
-        if (offset == 6 || offset == 10)
-        {
-            if (index >= 56) return true;
-        }
-        if (offset == -17 || offset == 15)
-        {
-            if (index % 8 == 0) return true;
-        }
-
-        return false;
-    }
 
     public void MakeMove(int move, bool changeUI = false)
     {

@@ -59,4 +59,52 @@ public static class MoveGenerator
 
         return legalMoves;
     }
+
+    public static HashSet<int> GetKingMoves(int index, ulong hero, bool[] castlingRights, int[] boardState)
+    {
+        HashSet<int> legalMoves = new();
+        ulong kingAttacks = PrecomputedData.KingAttacks[index] & ~hero;
+        bool pieceIsWhite = Piece.IsWhite(boardState[index]);
+
+        List<int> targetIndices = Bitboard.GetIndicesFromBitboard(kingAttacks);
+        foreach (int target in targetIndices)
+        {
+            legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.King, Piece.GetPieceType(boardState[target])));
+        }
+
+        // Castling
+
+        if (pieceIsWhite && index == Square.e1) // king is in original position
+        {
+            if (castlingRights[0] == true && boardState[Square.h1] == Piece.White + Piece.Rook
+                && boardState[Square.f1] == Piece.None && boardState[Square.g1] == Piece.None)
+            {
+                // can castle kingside
+                legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
+            }
+            if (castlingRights[1] == true && boardState[Square.a1] == Piece.White + Piece.Rook
+                && boardState[Square.b1] == Piece.None && boardState[Square.c1] == Piece.None && boardState[Square.d1] == Piece.None)
+            {
+                // can castle queenside
+                legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
+
+            }
+        }
+        else if (!pieceIsWhite && index == 60)
+        {
+            if (castlingRights[2] == true && boardState[Square.h8] == Piece.Black + Piece.Rook
+                && boardState[Square.f8] == Piece.None && boardState[Square.g8] == Piece.None)
+            {
+                legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
+
+            }
+            if (castlingRights[3] == true && boardState[Square.a8] == Piece.Black + Piece.Rook
+                && boardState[Square.b8] == Piece.None && boardState[Square.c8] == Piece.None && boardState[Square.d8] == Piece.None)
+            {
+                legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
+            }
+        }
+
+        return legalMoves;
+    }
 }
