@@ -80,6 +80,24 @@ public static class Bitboard
         return moves;
     }
 
+    public static ulong GeneratePawnAttacks(int index, int colour)
+    {
+        int[] directions = colour == 0 ? new int[] { Direction.NE, Direction.NW } : new int[] { Direction.SE, Direction.SW };
+
+        ulong position = 1ul << index;
+        ulong attacks = 0ul;
+
+        foreach (int direction in directions)
+        {
+            if (!CheckAtEdgeOfBoard(direction, position))
+            {
+                attacks |= ShiftLeft(position, direction);
+            }
+        }
+
+        return attacks;
+    }
+
 
     private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {
