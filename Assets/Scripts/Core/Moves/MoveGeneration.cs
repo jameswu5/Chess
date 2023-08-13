@@ -28,6 +28,8 @@ public class MoveGeneration
         return moves;
     }
 
+    
+
     public bool IsValidSquare(int x, int y, out int index)
     {
         index = x + (y << 3);

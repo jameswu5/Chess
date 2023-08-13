@@ -64,6 +64,22 @@ public static class Bitboard
         return attacks;
     }
 
+    public static ulong GenerateKingAttacks(int index)
+    {
+        ulong position = 1ul << index;
+        ulong moves = 0ul;
+
+        foreach (int direction in Direction.directions)
+        {
+            if (!CheckAtEdgeOfBoard(direction, position))
+            {
+                moves |= ShiftLeft(position, direction);
+            }
+        }
+
+        return moves;
+    }
+
 
     private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {
