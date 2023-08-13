@@ -20,6 +20,8 @@ public static class Direction
      */ 
     public static int[] directions = { N, S, E, W, NW, SW, NE, SE };
 
+    public static (int, int)[] knightDirections = { (2, 1), (2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2), (-2, 1), (-2, -1) };
+
 
     public static int GetIndexFromDirection(int direction)
     {

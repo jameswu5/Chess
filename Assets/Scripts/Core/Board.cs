@@ -28,8 +28,11 @@ public class Board : MonoBehaviour
     public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
     public int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
     public int GetColourIndex(int c) => Piece.IsWhite(c) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
+    public int GetColourIndex(bool isWhite) => isWhite ? 0 : 1;
     public int GetOpponentColourIndex(int c) => Piece.IsWhite(c) ? 1 : 0;
-    
+    public int GetOpponentColourIndex(bool isWhite) => isWhite ? 1 : 0;
+
+
 
     public bool[] castlingRights; // W kingside, W queenside, B kingside, B queenside
 
@@ -384,6 +387,13 @@ public class Board : MonoBehaviour
         int pieceID = boardState[index];
         HashSet<int> legalMoves = new();
 
+
+        bool isWhite = CheckPieceIsWhite(index);
+        ulong hero = colourBitboards[GetColourIndex(isWhite)];
+        ulong opponent = colourBitboards[GetOpponentColourIndex(isWhite)];
+
+
+
         switch (pieceID % 8)
         {
             case Piece.King:
@@ -391,11 +401,13 @@ public class Board : MonoBehaviour
                 break;
 
             case Piece.Queen:
-                legalMoves = SlideMoves(index, Directions, Piece.Queen);
+                legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Queen, hero, opponent, boardState);
+                //legalMoves = SlideMoves(index, Directions, Piece.Queen);
                 break;
 
             case Piece.Bishop:
-                legalMoves = SlideMoves(index, Directions[4..], Piece.Bishop);
+                legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Bishop, hero, opponent, boardState);
+                //legalMoves = SlideMoves(index, Directions[4..], Piece.Bishop);
                 break;
 
             case Piece.Knight:
@@ -403,7 +415,9 @@ public class Board : MonoBehaviour
                 break;
 
             case Piece.Rook:
-                legalMoves = SlideMoves(index, Directions[0..4], Piece.Rook);
+                //legalMoves = SlideMoves(index, Directions[0..4], Piece.Rook);
+
+                legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Rook, hero, opponent, boardState);
                 break;
 
             case Piece.Pawn:

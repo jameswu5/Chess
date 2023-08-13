@@ -121,6 +121,35 @@ public static class Bitboard
     }
 
 
+    public static ulong GenerateKnightAttacks(int startIndex)
+    {
+        ulong moves = 0ul;
+
+        int file = startIndex & 0b111;
+        int rank = startIndex >> 3;
+        int index;
+
+        foreach ((int x, int y) d in Direction.knightDirections)
+        {
+            if (IsValidSquare(file + d.x, rank + d.y, out index))
+            {
+                moves |= 1ul << index;
+            }
+        }
+
+        return moves;
+    }
+
+
+
+    public static bool IsValidSquare(int x, int y, out int index)
+    {
+        index = x + (y << 3);
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
+    }
+
+
+
     private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {
 
@@ -235,6 +264,29 @@ public static class Bitboard
         }
 
         return attacks;
+    }
+
+
+    public static List<int> GetIndicesFromBitboard(ulong bitboard)
+    {
+        List<int> indices = new();
+
+        // int index = BitScanForward(bitboard);
+        // while (index != -1)
+        // {
+        //     indices.Add(index);
+        //     ClearSquare(ref bitboard, index);
+        //     index = BitScanForward(bitboard);
+        // }
+
+        // This iterates through the whole array but there is no work repeated, I have no idea if this is more efficient or not
+        ulong mask = 1;
+        for (int i = 0; i < 64; i++, mask <<= 1)
+        {
+            if ((bitboard & mask) > 0) indices.Add(i);
+        }
+
+        return indices;
     }
 
 
