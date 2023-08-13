@@ -82,7 +82,7 @@ public static class Bitboard
 
     public static ulong GeneratePawnAttacks(int index, int colour)
     {
-        int[] directions = colour == 0 ? new int[] { Direction.NE, Direction.NW } : new int[] { Direction.SE, Direction.SW };
+        int[] directions = colour == Piece.White ? new int[] { Direction.NE, Direction.NW } : new int[] { Direction.SE, Direction.SW };
 
         ulong position = 1ul << index;
         ulong attacks = 0ul;
@@ -96,6 +96,28 @@ public static class Bitboard
         }
 
         return attacks;
+    }
+
+    public static ulong GeneratePawnPushes(int index, int colour)
+    {
+
+        int direction = colour == Piece.White ? Direction.N : Direction.S;
+        ulong position = 1ul << index;
+        ulong pushes = 0ul;
+
+        if (!CheckAtEdgeOfBoard(direction, position))
+        {
+            ulong singlePush = ShiftLeft(position, direction);
+            pushes |= singlePush;
+
+            if ((colour == Piece.White && (position & Rank2) > 0) || (colour == Piece.Black && (position & Rank7) > 0))
+            {
+                pushes |= ShiftLeft(singlePush, direction);
+            }
+        }
+
+        return pushes;
+
     }
 
 
