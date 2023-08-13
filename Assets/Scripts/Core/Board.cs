@@ -23,7 +23,14 @@ public class Board : MonoBehaviour
     public int[] boardState;
 
     public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
+
     public int turn;
+    public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
+    public int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
+    public int GetColourIndex(int c) => Piece.IsWhite(c) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
+    public int GetOpponentColourIndex(int c) => Piece.IsWhite(c) ? 1 : 0;
+    
+
     public bool[] castlingRights; // W kingside, W queenside, B kingside, B queenside
 
     public int[] kingIndices;
@@ -38,6 +45,16 @@ public class Board : MonoBehaviour
     public List<string> boardPositions;
     Dictionary<string, int> boardStrings;
 
+
+    // Bitboards
+
+    public ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
+    public ulong[] colourBitboards; // 0: white | 1: black
+
+
+
+
+
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
 
     public Result gameResult;
@@ -51,10 +68,15 @@ public class Board : MonoBehaviour
         boardStrings = new Dictionary<string, int>();
         gameMoves = new List<int>();
         name = "Board";
+
+        pieceBitboards = new ulong[12];
+        colourBitboards = new ulong[2];
+
         GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
+
     }
 
 
@@ -88,6 +110,9 @@ public class Board : MonoBehaviour
 
                 int pieceID = pieceColour + pieceType;
                 boardState[index] = pieceID;
+
+                // update the bitboards
+                AddPieceToBitboard(pieceID, index);
 
                 if (pieceType == Piece.King)
                 {
@@ -456,16 +481,16 @@ public class Board : MonoBehaviour
 
             // Castling
 
-            if (pieceIsWhite && index == 4) // king is in original position
+            if (pieceIsWhite && index == Square.e1) // king is in original position
             {
-                if (castlingRights[0] == true && boardState[7] != Piece.None && boardState[7] == Piece.White + Piece.Rook
-                    && boardState[5] == Piece.None && boardState[6] == Piece.None)
+                if (castlingRights[0] == true && boardState[Square.h1] == Piece.White + Piece.Rook
+                    && boardState[Square.f1] == Piece.None && boardState[Square.g1] == Piece.None)
                 {
                     // can castle kingside
                     legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
                 }
-                if (castlingRights[1] == true && boardState[0] != Piece.None && boardState[0] == Piece.White + Piece.Rook
-                    && boardState[1] == Piece.None && boardState[2] == Piece.None && boardState[3] == Piece.None)
+                if (castlingRights[1] == true && boardState[Square.a1] == Piece.White + Piece.Rook
+                    && boardState[Square.b1] == Piece.None && boardState[Square.c1] == Piece.None && boardState[Square.d1] == Piece.None)
                 {
                     // can castle queenside
                     legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
@@ -474,14 +499,14 @@ public class Board : MonoBehaviour
             }
             else if (!pieceIsWhite && index == 60)
             {
-                if (castlingRights[2] == true && boardState[63] != Piece.None && boardState[63] == Piece.Black + Piece.Rook
-                    && boardState[61] == Piece.None && boardState[62] == Piece.None)
+                if (castlingRights[2] == true && boardState[Square.h8] == Piece.Black + Piece.Rook
+                    && boardState[Square.f8] == Piece.None && boardState[Square.g8] == Piece.None)
                 {
                     legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
 
                 }
-                if (castlingRights[3] == true && boardState[56] != Piece.None && boardState[56] == Piece.Black + Piece.Rook
-                    && boardState[57] == Piece.None && boardState[58] == Piece.None && boardState[59] == Piece.None)
+                if (castlingRights[3] == true && boardState[Square.a8] == Piece.Black + Piece.Rook
+                    && boardState[Square.b8] == Piece.None && boardState[Square.c8] == Piece.None && boardState[Square.d8] == Piece.None)
                 {
                     legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
                 }
@@ -684,8 +709,12 @@ public class Board : MonoBehaviour
         int endIndex = Move.GetEndIndex(move);
         int moveType = Move.GetMoveType(move);
         int movedPieceType = Move.GetMovedPieceType(move);
+        int capturedPieceType = Move.GetCapturedPieceType(move);
 
         bool isWhite = CheckPieceIsWhite(startIndex);
+        int colour = GetColour(isWhite);
+        int opponentColour = GetOpponentColour(isWhite);
+
         bool[] disabledCastlingRights = new bool[4];
 
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
@@ -715,43 +744,48 @@ public class Board : MonoBehaviour
             }
 
             // if piece is rook and in original position, disable castling right
-            if (startIndex == 0 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
+            if (startIndex == Square.a1 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
             {
                 disabledCastlingRights[1] = castlingRights[1];
                 ChangeCastlingRight(true, false, false);
             }
-            if (startIndex == 7 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
+            if (startIndex == Square.h1 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
             {
                 disabledCastlingRights[0] = castlingRights[0];
                 ChangeCastlingRight(true, true, false);
             }
-            if (startIndex == 56 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
+            if (startIndex == Square.a8 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
             {
                 disabledCastlingRights[3] = castlingRights[3];
                 ChangeCastlingRight(false, false, false);
             }
-            if (startIndex == 63 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
+            if (startIndex == Square.h8 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
             {
                 disabledCastlingRights[2] = castlingRights[2];
                 ChangeCastlingRight(false, true, false);
             }
 
             PlacePiece(startIndex, endIndex, changeUI);
+            UpdateBitboardForMove(movedPieceType + colour, capturedPieceType + opponentColour, startIndex, endIndex);
         }
 
         if (moveType == Move.Castling)
         {
             // move the king
             PlacePiece(startIndex, endIndex, changeUI);
+            UpdateBitboardForMove(Piece.King + colour, Piece.None, startIndex, endIndex);
 
             // move the rook
             if (endIndex > startIndex) // kingside
             {
                 PlacePiece(startIndex + 3, startIndex + 1, changeUI);
+                UpdateBitboardForMove(Piece.Rook + colour, Piece.None, startIndex + 3, startIndex + 1);
+
             }
             else // queenside
             {
                 PlacePiece(startIndex - 4, startIndex - 1, changeUI);
+                UpdateBitboardForMove(Piece.Rook + colour, Piece.None, startIndex - 4, startIndex - 1);
             }
 
             // Disable castling rights
@@ -778,15 +812,18 @@ public class Board : MonoBehaviour
         {
             // move the pawn
             PlacePiece(startIndex, endIndex, changeUI);
+            UpdateBitboardForMove(Piece.Pawn + colour, capturedPieceType + opponentColour, startIndex, endIndex);
 
             // destroy the piece next to it
             if (isWhite)
             {
                 DestroyPiece(endIndex - 8, changeUI);
+                ClearSquareFromBitboard(Piece.Pawn + opponentColour, endIndex - 8);
             }
             else
             {
                 DestroyPiece(endIndex + 8, changeUI);
+                ClearSquareFromBitboard(Piece.Pawn + opponentColour, endIndex + 8);
             }
         }
 
@@ -795,7 +832,8 @@ public class Board : MonoBehaviour
             PlacePiece(startIndex, endIndex, changeUI);
             DestroyPiece(endIndex, changeUI);
 
-            int colourOfPiece = Square.GetRank(endIndex) == 8 ? Piece.White : Piece.Black;
+            UpdateBitboardForMove(Piece.Pawn + colour, capturedPieceType + opponentColour, startIndex, endIndex);
+            ClearSquareFromBitboard(Piece.Pawn + colour, endIndex);
 
             int promotePiece = -1;
 
@@ -803,29 +841,33 @@ public class Board : MonoBehaviour
             {
                 case Move.PromoteToQueen:
                     promotePiece = Piece.Queen;
-                    boardState[endIndex] = colourOfPiece + Piece.Queen;
+                    boardState[endIndex] = colour + Piece.Queen;
                     break;
                 case Move.PromoteToRook:
                     promotePiece = Piece.Rook;
-                    boardState[endIndex] = colourOfPiece + Piece.Rook;
+                    boardState[endIndex] = colour + Piece.Rook;
                     break;
                 case Move.PromoteToBishop:
                     promotePiece = Piece.Bishop;
-                    boardState[endIndex] = colourOfPiece + Piece.Bishop;
+                    boardState[endIndex] = colour + Piece.Bishop;
                     break;
                 case Move.PromoteToKnight:
                     promotePiece = Piece.Knight;
-                    boardState[endIndex] = colourOfPiece + Piece.Knight;
+                    boardState[endIndex] = colour + Piece.Knight;
                     break;
                 default:
                     Debug.Log("A problem has occurred with promoting, cannot find promotion piece.");
                     break;
             }
+
+            AddPieceToBitboard(promotePiece + colour, endIndex);
+
             if (changeUI)
             {
-                boardUI.CreatePiece(colourOfPiece + promotePiece, endIndex);
+                boardUI.CreatePiece(promotePiece + colour, endIndex);
             }
         }
+
 
         // Update position of the king
         if (movedPieceType == Piece.King)
@@ -962,8 +1004,6 @@ public class Board : MonoBehaviour
         }
         return false;
     }
-
-    // Checks //
 
     public HashSet<int> GetAllPseudoLegalMoves(int colour)
     {
@@ -1176,7 +1216,7 @@ public class Board : MonoBehaviour
         int capturedPieceType = Move.GetCapturedPieceType(lastMove);
 
 
-        int capturedPiece = -1;
+        int capturedPiece = Piece.None;
         int capturedIndex = -1;
 
 
@@ -1186,14 +1226,13 @@ public class Board : MonoBehaviour
         {
             // move the piece back to its original position
             PlacePiece(endIndex, startIndex, changeUI);
+            UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
 
             // replace captured piece if necessary
             if (capturedPieceType != Piece.None)
             {
                 capturedPiece = capturedPieceType + opponentColour;
                 capturedIndex = endIndex;
-
-                boardState[endIndex] = capturedPieceType + opponentColour;
             }
             
         }
@@ -1202,35 +1241,37 @@ public class Board : MonoBehaviour
         {
             // Move the pawn back to its original position
             PlacePiece(endIndex, startIndex, changeUI);
+            UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
 
             // replace the captured pawn
-            int capturedPawnIndex = heroColour == Piece.White ? endIndex - 8 : endIndex + 8;
-
             capturedPiece = Piece.Pawn + opponentColour;
-            capturedIndex = capturedPawnIndex;
-
-            boardState[capturedPawnIndex] = Piece.Pawn + opponentColour;
+            capturedIndex = heroColour == Piece.White ? endIndex - 8 : endIndex + 8;
         }
 
         else if (moveType == Move.Castling)
         {
             // Move the king back to its original position
             PlacePiece(endIndex, startIndex, changeUI);
+            UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
 
             // Move the rook back to its original position
             switch (endIndex)
             {
-                case 6:
-                    PlacePiece(5, 7, changeUI);
+                case Square.g1:
+                    PlacePiece(Square.f1, Square.h1, changeUI);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.f1, Square.h1);
                     break;
-                case 2:
-                    PlacePiece(3, 0, changeUI);
+                case Square.c1:
+                    PlacePiece(Square.d1, Square.a1, changeUI);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.d1, Square.a1);
                     break;
-                case 62:
-                    PlacePiece(61, 63, changeUI);
+                case Square.g8:
+                    PlacePiece(Square.f8, Square.h8, changeUI);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.f8, Square.h8);
                     break;
-                case 58:
-                    PlacePiece(59, 56, changeUI);
+                case Square.c8:
+                    PlacePiece(Square.d8, Square.a8, changeUI);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.d8, Square.a8);
                     break;
                 default:
                     Debug.Log("There has been a problem undoing the castling move.");
@@ -1241,7 +1282,9 @@ public class Board : MonoBehaviour
         else if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
         {
             // destroy the promoted piece
+            int promotedPieceID = boardState[endIndex];
             DestroyPiece(endIndex, changeUI);
+            ClearSquareFromBitboard(promotedPieceID, endIndex);
 
             // create a pawn on the start position
             if (changeUI)
@@ -1249,14 +1292,13 @@ public class Board : MonoBehaviour
                 boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
             }
             boardState[startIndex] = Piece.Pawn + heroColour;
-
+            AddPieceToBitboard(Piece.Pawn + heroColour, startIndex);
 
             // replace captured piece if necessary
             if (capturedPieceType != Piece.None)
             {
                 capturedPiece = capturedPieceType + opponentColour;
                 capturedIndex = endIndex;
-                boardState[endIndex] = capturedPieceType + opponentColour;
             }
         }
 
@@ -1265,11 +1307,18 @@ public class Board : MonoBehaviour
             Debug.Log("Cannot identify the nature of the previous move.");
         }
 
-        // replace the piece on the UI if necessary
-        if (changeUI && capturedPiece != -1)
+        // add the captured piece to the bitboard and replace on UI if necessary
+        if (capturedPiece != Piece.None)
         {
-            boardUI.CreatePiece(capturedPiece, capturedIndex);
+            boardState[capturedIndex] = capturedPiece;
+            AddPieceToBitboard(capturedPiece, endIndex);
+
+            if (changeUI)
+            {
+                boardUI.CreatePiece(capturedPiece, capturedIndex);
+            }
         }
+
 
         // revert the castling rights
 
@@ -1318,8 +1367,6 @@ public class Board : MonoBehaviour
         // change the turn back
         ChangeTurn();
         HandleCheck();
-
-        //Debug.Log($"Move undone: {lastMove.GetMoveAsString()}");
     }
 
     public Result GetGameResult()
@@ -1400,8 +1447,40 @@ public class Board : MonoBehaviour
         return numOfPositions;
     }
 
+    // Returns the pieceID of the piece at location index
     public int GetPieceAtIndex(int index)
     {
         return boardState[index];
+    }
+
+
+    // Bitboards
+
+
+    // Takes care of captures as well (since capturedPieceID can be Piece.None)
+    public void UpdateBitboardForMove(int pieceID, int capturedPieceID, int startIndex, int endIndex)
+    {
+        int bitboardIndex = Piece.GetBitboardIndex(pieceID);
+        Bitboard.Move(ref pieceBitboards[bitboardIndex], startIndex, endIndex);
+        Bitboard.Move(ref colourBitboards[GetColourIndex(pieceID)], startIndex, endIndex);
+
+        if (Piece.GetPieceType(capturedPieceID) != Piece.None)
+        {
+            ClearSquareFromBitboard(capturedPieceID, endIndex);
+        }
+    }
+
+    public void ClearSquareFromBitboard(int pieceID, int index)
+    {
+        int bitboardIndex = Piece.GetBitboardIndex(pieceID);
+        Bitboard.ClearSquare(ref pieceBitboards[bitboardIndex], index);
+        Bitboard.ClearSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
+    }
+
+    public void AddPieceToBitboard(int pieceID, int index)
+    {
+        int bitboardIndex = Piece.GetBitboardIndex(pieceID);
+        Bitboard.SetSquare(ref pieceBitboards[bitboardIndex], index);
+        Bitboard.SetSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }
 }

@@ -46,4 +46,15 @@ public static class Piece
     {
         return pieceDictionary[pieceID];
     }
+
+    public static int GetBitboardIndex(int pieceID)
+    {
+        int res = pieceID - 1;
+        if (!IsWhite(res))
+        {
+            res -= 2;
+        }
+        return res;
+    }
+
 }
