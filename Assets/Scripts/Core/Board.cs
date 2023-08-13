@@ -411,7 +411,8 @@ public class Board : MonoBehaviour
                 break;
 
             case Piece.Knight:
-                legalMoves = KnightMoves(index);
+                legalMoves = MoveGenerator.GetKnightMoves(index, hero, boardState);
+                //legalMoves = KnightMoves(index);
                 break;
 
             case Piece.Rook:

@@ -44,4 +44,19 @@ public static class MoveGenerator
         }
         return legalMoves;
     }
+
+    public static HashSet<int> GetKnightMoves(int index, ulong hero, int[] boardState)
+    {
+        HashSet<int> legalMoves = new();
+
+        ulong knightAttacks = PrecomputedData.KnightAttacks[index] & ~hero;
+
+        List<int> targetIndices = Bitboard.GetIndicesFromBitboard(knightAttacks);
+        foreach (int target in targetIndices)
+        {
+            legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Knight, Piece.GetPieceType(boardState[target])));
+        }
+
+        return legalMoves;
+    }
 }
