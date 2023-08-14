@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using UnityEngine;
+
 public static class MoveGenerator
 {
     
@@ -103,6 +105,66 @@ public static class MoveGenerator
             {
                 legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
             }
+        }
+
+        return legalMoves;
+    }
+
+
+    public static HashSet<int> GetPawnMoves(int index, int colourIndex, ulong hero, ulong opponent, int[] boardState, int enPassantTarget)
+    {
+        HashSet<int> legalMoves = new();
+
+        // pushes
+        ulong pawnPushes = PrecomputedData.PawnPushes[colourIndex][index] & ~hero & ~opponent;
+
+        bool promote = (pawnPushes & (Bitboard.Rank1 | Bitboard.Rank8)) > 0;
+
+        List<int> pushIndices = Bitboard.GetIndicesFromBitboard(pawnPushes);
+        foreach (int target in pushIndices)
+        {
+            if (Math.Abs(target - index) == 16)
+            {
+                legalMoves.Add(Move.Initialise(Move.PawnTwoSquares, index, target, Piece.Pawn, Piece.None));
+            }
+            else if (promote)
+            {
+                legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, target, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, target, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, target, Piece.Pawn, Piece.None));
+                legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.None));
+            }
+            else
+            {
+                legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.None));
+            }
+        }
+
+        // captures
+        ulong pawnAttacks = PrecomputedData.PawnAttacks[colourIndex][index] & opponent;
+
+        List<int> targetIndices = Bitboard.GetIndicesFromBitboard(pawnAttacks);
+        foreach (int target in targetIndices)
+        {
+            if (promote)
+            {
+                legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+            }
+            else
+            {
+                legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+            }
+        }
+
+        // en passant
+
+        // The problem about this is if I run a 1 ply search for checking for checks, pawns from our own side will mistake this square as a viable square
+        if (enPassantTarget != -1 && (PrecomputedData.PawnAttacks[colourIndex][index] & (1ul << enPassantTarget)) > 0)
+        {
+            legalMoves.Add(Move.Initialise(Move.EnPassant, index, enPassantTarget, Piece.Pawn, Piece.Pawn));
         }
 
         return legalMoves;

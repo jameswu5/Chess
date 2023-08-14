@@ -9,8 +9,8 @@ public static class Move
     /*
     Moves are encoded as a 32-bit integer:
 
-    [PrevFiftyMoveCounter] [ChangedCastlingRights] [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
-    [         7          ] [          4          ] [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
+    [    empty    ] [ChangedCastlingRights] [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
+    [      7      ] [          4          ] [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
 
     */
 
@@ -30,7 +30,6 @@ public static class Move
     private const int CapturedPieceShift = 15;
     private const int MovedPieceShift = 18;
     private const int CastlingRightsShift = 21;
-    private const int FiftyMoveCounterShift = 25;
 
     private const int StartIndexMask = 0b111111 << StartIndexShift;
     private const int EndIndexMask = 0b111111 << EndIndexShift;
@@ -38,8 +37,6 @@ public static class Move
     private const int MovedPieceMask = 0b111 << MovedPieceShift;
     private const int CapturedPieceMask = 0b111 << CapturedPieceShift;
     private const int CastlingRightsMask = 0b1111 << CastlingRightsShift;
-    //private const int FiftyMoveCounterMask = 0b1111111 << FiftyMoveCounterShift;
-    private const int FiftyMoveCounterMask = 0b1111111;
 
     public static int Initialise(int moveType, int startIndex, int endIndex, int pieceType, int capturedPieceType)
     {
@@ -51,7 +48,6 @@ public static class Move
         move |= pieceType << MovedPieceShift;
 
         return move;
-
     }
 
     public static int GetMoveType(int move)
@@ -115,18 +111,6 @@ public static class Move
 
         return rights;
     }
-
-    public static int SetFiftyMoveCounter(int move, int counter)
-    {
-        move |= counter << FiftyMoveCounterShift;
-        return move;
-    }
-
-    public static int GetFiftyMoveCounter(int move)
-    {
-        return move >> FiftyMoveCounterShift & FiftyMoveCounterMask;
-    }
-
 
     public static string GetMoveAsString(int move)
     {

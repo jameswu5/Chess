@@ -110,7 +110,7 @@ public class Human : Player
 
     public void HandleInputDragging(Vector2 mousePosition)
     {
-        board.DragPiece(pieceIndex, mousePosition, dragOffset);
+        boardUI.DragPiece(pieceIndex, mousePosition, dragOffset);
         int newIndex = GetIndexFromMousePosition(mousePosition);
 
         if (newIndex != -1)
@@ -148,7 +148,7 @@ public class Human : Player
                 {
                     // move back to original place
                     Debug.Log("Tried to place out of bounds");
-                    board.ResetPiecePosition(pieceIndex);
+                    boardUI.MovePieceToSquare(pieceIndex, pieceIndex);
                 }
 
                 currentState = InputState.Idle;
@@ -183,7 +183,7 @@ public class Human : Player
                     board.TryToPlacePiece(pieceIndex, promotionIndex, Piece.Knight);
                     break;
                 default:
-                    board.ResetPiecePosition(pieceIndex);
+                    boardUI.MovePieceToSquare(pieceIndex, pieceIndex);
                     board.DisablePromotionScreen();
                     board.inPromotionScreen = -1;
                     break;
@@ -210,7 +210,7 @@ public class Human : Player
         {
             Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
 
-            board.ResetPiecePosition(pieceIndex);
+            boardUI.MovePieceToSquare(pieceIndex, pieceIndex);
             boardUI.ResetSquareColour(pieceIndex);
             boardUI.UnHighlightHover(GetIndexFromMousePosition(mousePosition));
             boardUI.UnHighlightOptionsAllSquares();
@@ -218,7 +218,7 @@ public class Human : Player
 
         if (board.inPromotionScreen != -1)
         {
-            board.ResetPiecePosition(pieceIndex);
+            boardUI.MovePieceToSquare(pieceIndex, pieceIndex);
             board.DisablePromotionScreen();
             board.inPromotionScreen = -1;
         }
