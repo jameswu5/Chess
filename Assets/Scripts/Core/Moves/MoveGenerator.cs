@@ -116,15 +116,22 @@ public static class MoveGenerator
         HashSet<int> legalMoves = new();
 
         // pushes
+        int direction = colourIndex == 0 ? 8 : -8;
+
         ulong pawnPushes = PrecomputedData.PawnPushes[colourIndex][index] & ~hero & ~opponent;
-        bool promote = (pawnPushes & (Bitboard.Rank1 | Bitboard.Rank8)) > 0;
+        ulong pawnAttacks = PrecomputedData.PawnAttacks[colourIndex][index] & opponent;
+
+        bool promote = ((pawnPushes | pawnAttacks) & (Bitboard.Rank1 | Bitboard.Rank8)) > 0;
 
         List<int> pushIndices = Bitboard.GetIndicesFromBitboard(pawnPushes);
         foreach (int target in pushIndices)
         {
             if (Math.Abs(target - index) == 16)
             {
-                legalMoves.Add(Move.Initialise(Move.PawnTwoSquares, index, target, Piece.Pawn, Piece.None));
+                if (boardState[index + direction] == Piece.None)
+                {
+                    legalMoves.Add(Move.Initialise(Move.PawnTwoSquares, index, target, Piece.Pawn, Piece.None));
+                }
             }
             else if (promote)
             {
@@ -140,10 +147,6 @@ public static class MoveGenerator
         }
 
         // captures
-        ulong pawnAttacks = PrecomputedData.PawnAttacks[colourIndex][index] & opponent;
-
-        promote = (pawnAttacks & (Bitboard.Rank1 | Bitboard.Rank8)) > 0;
-
 
         List<int> targetIndices = Bitboard.GetIndicesFromBitboard(pawnAttacks);
         foreach (int target in targetIndices)

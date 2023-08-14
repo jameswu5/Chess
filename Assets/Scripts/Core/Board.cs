@@ -19,6 +19,7 @@ public class Board : MonoBehaviour
     public const string insufficientMaterialFEN = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
     public const string checkmateFEN = "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w kq - 0 1";
 
+
     public UI boardUI;
     public int[] boardState;
 
@@ -585,9 +586,11 @@ public class Board : MonoBehaviour
 
         // Get updated game state as FEN
         string boardString = GetFENStringFromBoardState();
-        if (boardStrings.ContainsKey(boardString)) {
+        if (boardStrings.ContainsKey(boardString))
+        {
             boardStrings[boardString]++;
-        } else
+        }
+        else
         {
             boardStrings.Add(boardString, 1);
         }
@@ -595,6 +598,7 @@ public class Board : MonoBehaviour
         move = Move.SetCastlingRights(move, disabledCastlingRights);
 
         boardPositions.Push(boardString);
+
         gameMoves.Push(move);
 
         ChangeTurn();
@@ -1074,25 +1078,6 @@ public class Board : MonoBehaviour
     {
         boardUI.ResetBoardUI();
         Initialise();
-    }
-
-    // Testing and searching
-
-    private int Perft(int depth)
-    {
-        if (depth == 0) return 1;
-
-        HashSet<int> legalMoves = GetAllLegalMoves(turn);
-        int numOfPositions = 0;
-
-        foreach (int move in legalMoves)
-        {
-            MakeMove(move);
-            numOfPositions += Perft(depth - 1);
-            UndoMove();
-        }
-
-        return numOfPositions;
     }
 
     // Bitboards
