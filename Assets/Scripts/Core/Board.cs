@@ -257,7 +257,7 @@ public class Board : MonoBehaviour
         return FENStringAsArray[0];
     }
 
-    public void TryToPlacePiece(int index, int newIndex, int promotionType = -1) // tries to place a piece in a new square
+    public void TryToPlacePiece(int index, int newIndex, int promotionType = -1)
     {
         // promotionType = -1 if the move isn't a promotion, otherwise it is Piece.[promotionPiece]
 
@@ -340,10 +340,6 @@ public class Board : MonoBehaviour
         if (changeUI) boardUI.DestroyPieceSprite(index);
         boardState[index] = Piece.None;
     }
-
-    //////////////////
-    // Moving rules //
-    //////////////////
 
     private HashSet<int> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
     {
@@ -615,15 +611,9 @@ public class Board : MonoBehaviour
         Game.UpdateEndOfGameScreen(gameResult, turn);
     }
 
-    public bool CheckIfPieceIsColour(int index, int colour)
-    {
-        return (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
-    }
+    public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
 
-    private void ChangeTurn()
-    {
-        turn = turn == Piece.White ? Piece.Black : Piece.White;
-    }
+    private void ChangeTurn() => turn = turn == Piece.White ? Piece.Black : Piece.White;
 
     private void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
     {
@@ -651,16 +641,11 @@ public class Board : MonoBehaviour
         }
     }
 
-    public int GetPieceTypeAtIndex(int index)
-    {
-        return boardState[index] & 0b111;
-        
-    }
+    public int GetPieceTypeAtIndex(int index) => boardState[index] & 0b111;
 
-    public bool CheckPieceIsWhite(int index)
-    {
-        return Piece.IsWhite(boardState[index]);
-    }
+    public int GetPieceAtIndex(int index) => boardState[index];
+
+    public bool CheckPieceIsWhite(int index) => Piece.IsWhite(boardState[index]);
 
     public void EnablePromotionScreen(int index)
     {
@@ -674,10 +659,7 @@ public class Board : MonoBehaviour
         inPromotionScreen = -1;
     }
 
-    public bool CheckNeedForPromotion(int index, int newIndex)
-    {
-        return (Square.GetRank(newIndex) == 1 || Square.GetRank(newIndex) == 8) && GetPieceTypeAtIndex(index) == Piece.Pawn;
-    }
+    public bool CheckNeedForPromotion(int index, int newIndex) => (Square.GetRank(newIndex) == 1 || Square.GetRank(newIndex) == 8) && GetPieceTypeAtIndex(index) == Piece.Pawn;
 
     public bool CheckPieceCanMoveThere(int index, int newIndex)
     {
@@ -726,19 +708,7 @@ public class Board : MonoBehaviour
         return coverageOfOpponent.Contains(index);
     }
 
-    private bool CheckIfInCheck(int colour)
-    {
-        if (colour == Piece.White)
-        {
-            return CheckIfPieceIsAttacked(kingIndices[0]);
-
-        }
-        else
-        {
-            return CheckIfPieceIsAttacked(kingIndices[1]);
-
-        }
-    }
+    private bool CheckIfInCheck(int colour) => colour == Piece.White ? CheckIfPieceIsAttacked(kingIndices[0]) : CheckIfPieceIsAttacked(kingIndices[1]);
 
     private void HandleCheck()
     {
@@ -864,7 +834,6 @@ public class Board : MonoBehaviour
 
         foreach (int move in allLegalMoves)
         {
-
             if (Move.GetStartIndex(move) == index)
             {
                 legalMoves.Add(move);
@@ -872,7 +841,6 @@ public class Board : MonoBehaviour
         }
 
         return legalMoves;
-
     }
 
     public void UndoMove(bool changeUI = false)
@@ -883,8 +851,7 @@ public class Board : MonoBehaviour
             return;
         }
 
-        int lastMove = gameMoves.Peek();
-        gameMoves.Pop();
+        int lastMove = gameMoves.Pop();
 
         int heroColour = turn == Piece.White ? Piece.Black : Piece.White;
         int opponentColour = turn;
@@ -1103,8 +1070,6 @@ public class Board : MonoBehaviour
         return true;
     }
 
-
-
     public void ResetBoard()
     {
         boardUI.ResetBoardUI();
@@ -1113,12 +1078,9 @@ public class Board : MonoBehaviour
 
     // Testing and searching
 
-    private int MoveGenerationTest(int depth)
+    private int Perft(int depth)
     {
-        if (depth == 0)
-        {
-            return 1;
-        }
+        if (depth == 0) return 1;
 
         HashSet<int> legalMoves = GetAllLegalMoves(turn);
         int numOfPositions = 0;
@@ -1126,19 +1088,12 @@ public class Board : MonoBehaviour
         foreach (int move in legalMoves)
         {
             MakeMove(move);
-            numOfPositions += MoveGenerationTest(depth - 1);
+            numOfPositions += Perft(depth - 1);
             UndoMove();
         }
 
         return numOfPositions;
     }
-
-    // Returns the pieceID of the piece at location index
-    public int GetPieceAtIndex(int index)
-    {
-        return boardState[index];
-    }
-
 
     // Bitboards
 

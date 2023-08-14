@@ -19,7 +19,7 @@ public class UI : MonoBehaviour
 
     const float pieceOffset = -0.1f;
     const float promotionPieceOffset = -0.7f;
-    const float pieceSize = 0.33f;
+    const float pieceSize = 0.31f;
 
     public void CreateUI(int[] boardState)
     {
