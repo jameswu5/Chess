@@ -146,22 +146,41 @@ public static class MoveGenerator
         List<int> targetIndices = Bitboard.GetIndicesFromBitboard(pawnAttacks);
         foreach (int target in targetIndices)
         {
-            if (promote)
+
+            // Problem:
+            // If I include the en passant code further down, boardState[target] can hold Piece.None and still make it to this
+            // part of the code. As a result you can move a pawn diagonally without capturing. I am suspicious this is because I make every move
+            // possible to check if the king is attacked.
+            
+            // Here is a plaster solution where I just enforce that there must be a piece at that square. Hopefully when I rewrite
+            // legal move generation this if statement (*) can be removed
+
+            if (boardState[target] != Piece.None) // (*)
             {
-                legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-                legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-                legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-                legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+
+                if (promote)
+                {
+                    legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                    legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                    legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                    legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+                }
+                else
+                {
+                    legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
+
+                    if (Piece.GetPieceType(boardState[target]) == Piece.None)
+                    {
+                        Debug.Log(Square.ConvertIndexToSquareName(target));
+                    }
+                }
+
             }
-            else
-            {
-                legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-            }
+
         }
 
         // en passant
 
-        // The problem about this is if I run a 1 ply search for checking for checks, pawns from our own side will mistake this square as a viable square
         if (enPassantTarget != -1 && (PrecomputedData.PawnAttacks[colourIndex][index] & (1ul << enPassantTarget)) > 0)
         {
             legalMoves.Add(Move.Initialise(Move.EnPassant, index, enPassantTarget, Piece.Pawn, Piece.Pawn));

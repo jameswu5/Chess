@@ -613,8 +613,6 @@ public class Board : MonoBehaviour
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
-
-        //Debug.Log(Evaluator.EvaluateBoard(this));
     }
 
     public bool CheckIfPieceIsColour(int index, int colour)
@@ -789,15 +787,7 @@ public class Board : MonoBehaviour
     public HashSet<int> GetAllLegalMoves(int colour)
     {
         HashSet<int> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
-
-        // plaster solution to en passant: but of course now protecting your king is not enforced when in check
-        return pseudoLegalMoves;
-
-
-
-
         HashSet<int> legalMoves = new();
-
         HashSet<int> castlingMoves = new();
 
         bool kingside = false;
