@@ -9,8 +9,8 @@ public static class Move
     /*
     Moves are encoded as a 32-bit integer:
 
-    [    empty    ] [ChangedCastlingRights] [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
-    [      7      ] [          4          ] [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
+    [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
+    [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
 
     */
 
@@ -29,14 +29,12 @@ public static class Move
     private const int MoveTypeShift = 12;
     private const int CapturedPieceShift = 15;
     private const int MovedPieceShift = 18;
-    private const int CastlingRightsShift = 21;
 
     private const int StartIndexMask = 0b111111 << StartIndexShift;
     private const int EndIndexMask = 0b111111 << EndIndexShift;
     private const int MoveTypeMask = 0b111 << MoveTypeShift;
     private const int MovedPieceMask = 0b111 << MovedPieceShift;
     private const int CapturedPieceMask = 0b111 << CapturedPieceShift;
-    private const int CastlingRightsMask = 0b1111 << CastlingRightsShift;
 
     public static int Initialise(int moveType, int startIndex, int endIndex, int pieceType, int capturedPieceType)
     {
@@ -78,38 +76,6 @@ public static class Move
     public static int GetEndIndex(int move)
     {
         return (move & EndIndexMask) >> EndIndexShift;
-    }
-
-
-    public static int SetCastlingRights(int move, bool[] change)
-    {
-        int cur = 0;
-        for (int i = 3; i >= 0; i--)
-        {
-            if (change[i])
-            {
-                cur += 1;
-            }
-            cur <<= 1;
-        }
-        cur >>= 1;
-        move |= cur << CastlingRightsShift;
-
-        return move;
-    }
-
-    public static bool[] GetCastlingRights(int move)
-    {
-        bool[] rights = new bool[4];
-        int rightsAsInt = (move & CastlingRightsMask) >> CastlingRightsShift;
-
-        for (int i = 0; i < 4; i++)
-        {
-            rights[i] = rightsAsInt % 2 != 0;
-            rightsAsInt >>= 1;
-        }
-
-        return rights;
     }
 
     public static string GetMoveAsString(int move)

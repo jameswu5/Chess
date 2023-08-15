@@ -62,7 +62,7 @@ public static class MoveGenerator
         return legalMoves;
     }
 
-    public static HashSet<int> GetKingMoves(int index, ulong hero, bool[] castlingRights, int[] boardState)
+    public static HashSet<int> GetKingMoves(int index, ulong hero, int castlingRights, int[] boardState)
     {
         HashSet<int> legalMoves = new();
         ulong kingAttacks = PrecomputedData.KingAttacks[index] & ~hero;
@@ -78,13 +78,13 @@ public static class MoveGenerator
 
         if (pieceIsWhite && index == Square.e1) // king is in original position
         {
-            if (castlingRights[0] == true && boardState[Square.h1] == Piece.White + Piece.Rook
+            if ((castlingRights & 0b1000) > 0 && boardState[Square.h1] == Piece.White + Piece.Rook
                 && boardState[Square.f1] == Piece.None && boardState[Square.g1] == Piece.None)
             {
                 // can castle kingside
                 legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
             }
-            if (castlingRights[1] == true && boardState[Square.a1] == Piece.White + Piece.Rook
+            if ((castlingRights & 0b0100) > 0 && boardState[Square.a1] == Piece.White + Piece.Rook
                 && boardState[Square.b1] == Piece.None && boardState[Square.c1] == Piece.None && boardState[Square.d1] == Piece.None)
             {
                 // can castle queenside
@@ -94,13 +94,13 @@ public static class MoveGenerator
         }
         else if (!pieceIsWhite && index == 60)
         {
-            if (castlingRights[2] == true && boardState[Square.h8] == Piece.Black + Piece.Rook
+            if ((castlingRights & 0b0010) > 0 && boardState[Square.h8] == Piece.Black + Piece.Rook
                 && boardState[Square.f8] == Piece.None && boardState[Square.g8] == Piece.None)
             {
                 legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
 
             }
-            if (castlingRights[3] == true && boardState[Square.a8] == Piece.Black + Piece.Rook
+            if ((castlingRights & 0b0001) > 0 && boardState[Square.a8] == Piece.Black + Piece.Rook
                 && boardState[Square.b8] == Piece.None && boardState[Square.c8] == Piece.None && boardState[Square.d8] == Piece.None)
             {
                 legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
@@ -158,7 +158,7 @@ public static class MoveGenerator
             // possible to check if the king is attacked.
 
             // Here is a plaster solution where I just enforce that there must be a piece at that square. Hopefully when I rewrite
-            // legal move generation this if statement (*) can be removed
+            // legal move generation this else if statement (*) can be removed and replaced with just else
 
 
             if (promote)
@@ -169,7 +169,7 @@ public static class MoveGenerator
                 legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
 
             }
-            else if (boardState[target] != Piece.None)
+            else if (boardState[target] != Piece.None) // (*)
             {
                 legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
             }

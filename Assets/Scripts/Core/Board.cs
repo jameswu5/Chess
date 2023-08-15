@@ -23,8 +23,6 @@ public class Board : MonoBehaviour
     public UI boardUI;
     public int[] boardState;
 
-    public static int[] Directions = { -8, 1, 8, -1, -7, 9, 7, -9 };
-
     public int turn;
     public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
     public int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
@@ -33,8 +31,8 @@ public class Board : MonoBehaviour
     public int GetOpponentColourIndex(int c) => Piece.IsWhite(c) ? 1 : 0;
     public int GetOpponentColourIndex(bool isWhite) => isWhite ? 1 : 0;
 
-
-    public bool[] castlingRights; // W kingside, W queenside, B kingside, B queenside
+    public int castlingRights;
+    public Stack<int> castlingRightStates;
 
     public int[] kingIndices;
     public bool inCheck;
@@ -51,12 +49,8 @@ public class Board : MonoBehaviour
     public Stack<string> boardPositions;
     Dictionary<string, int> boardStrings;
 
-
-    // Bitboards
-
     public ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
     public ulong[] colourBitboards; // 0: white | 1: black
-
 
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
 
@@ -69,6 +63,9 @@ public class Board : MonoBehaviour
         inPromotionScreen = -1;
         enPassantTarget = -1;
         enPassantTargets = new Stack<int>();
+
+        castlingRights = 0;
+        castlingRightStates = new Stack<int>();
 
         kingIndices = new int[2];
         boardPositions = new Stack<string>();
@@ -153,6 +150,7 @@ public class Board : MonoBehaviour
                     break;
             }
         }
+        castlingRightStates.Push(castlingRights);
 
 
         // en passant targets
@@ -213,19 +211,19 @@ public class Board : MonoBehaviour
 
         // castling rights
         StringBuilder castlingStringBuilder = new();
-        if (castlingRights[0])
+        if ((castlingRights & 0b1000) > 0)
         {
             castlingStringBuilder.Append("K");
         }
-        if (castlingRights[1])
+        if ((castlingRights & 0b0100) > 0)
         {
             castlingStringBuilder.Append("Q");
         }
-        if (castlingRights[2])
+        if ((castlingRights & 0b0010) > 0)
         {
             castlingStringBuilder.Append("k");
         }
-        if (castlingRights[3])
+        if ((castlingRights & 0b0001) > 0)
         {
             castlingStringBuilder.Append("q");
         }
@@ -390,8 +388,6 @@ public class Board : MonoBehaviour
         int colour = GetColour(isWhite);
         int opponentColour = GetOpponentColour(isWhite);
 
-        bool[] disabledCastlingRights = new bool[4];
-
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
         {
 
@@ -400,8 +396,6 @@ public class Board : MonoBehaviour
             {
                 if (CheckPieceIsWhite(startIndex))
                 {
-                    disabledCastlingRights[0] = castlingRights[0];
-                    disabledCastlingRights[1] = castlingRights[1];
 
                     ChangeCastlingRight(true, true, false); // isWhite, isKingside, value
                     ChangeCastlingRight(true, false, false);
@@ -409,34 +403,26 @@ public class Board : MonoBehaviour
                 }
                 else
                 {
-                    disabledCastlingRights[2] = castlingRights[2];
-                    disabledCastlingRights[3] = castlingRights[3];
-
                     ChangeCastlingRight(false, true, false);
                     ChangeCastlingRight(false, false, false);
-
                 }
             }
 
             // if piece is rook and in original position, disable castling right
             if (startIndex == Square.a1 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
             {
-                disabledCastlingRights[1] = castlingRights[1];
                 ChangeCastlingRight(true, false, false);
             }
             if (startIndex == Square.h1 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
             {
-                disabledCastlingRights[0] = castlingRights[0];
                 ChangeCastlingRight(true, true, false);
             }
             if (startIndex == Square.a8 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
             {
-                disabledCastlingRights[3] = castlingRights[3];
                 ChangeCastlingRight(false, false, false);
             }
             if (startIndex == Square.h8 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
             {
-                disabledCastlingRights[2] = castlingRights[2];
                 ChangeCastlingRight(false, true, false);
             }
 
@@ -466,20 +452,13 @@ public class Board : MonoBehaviour
             // Disable castling rights
             if (isWhite)
             {
-                disabledCastlingRights[0] = castlingRights[0];
-                disabledCastlingRights[1] = castlingRights[1];
-
                 ChangeCastlingRight(true, true, false);
                 ChangeCastlingRight(true, false, false);
             }
             else
             {
-                disabledCastlingRights[2] = castlingRights[2];
-                disabledCastlingRights[3] = castlingRights[3];
-
                 ChangeCastlingRight(false, true, false);
                 ChangeCastlingRight(false, false, false);
-
             }
         }
 
@@ -557,7 +536,8 @@ public class Board : MonoBehaviour
             }
         }
 
-        //int previousFiftyMoveCounter = fiftyMoveCounter;
+        // Update castling rights
+        castlingRightStates.Push(castlingRights);
 
         // Update en passant target
         if (moveType == Move.PawnTwoSquares)
@@ -595,10 +575,7 @@ public class Board : MonoBehaviour
             boardStrings.Add(boardString, 1);
         }
 
-        move = Move.SetCastlingRights(move, disabledCastlingRights);
-
         boardPositions.Push(boardString);
-
         gameMoves.Push(move);
 
         ChangeTurn();
@@ -621,27 +598,17 @@ public class Board : MonoBehaviour
 
     private void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
     {
-        if (isWhite)
+        int mask = 0b0001;
+        if (isWhite) mask <<= 2;
+        if (isKingside) mask <<= 1;
+
+        if (value)
         {
-            if (isKingside)
-            {
-                castlingRights[0] = value;
-            }
-            else
-            {
-                castlingRights[1] = value;
-            }
+            castlingRights |= mask;
         }
         else
         {
-            if (isKingside)
-            {
-                castlingRights[2] = value;
-            }
-            else
-            {
-                castlingRights[3] = value;
-            }
+            castlingRights &= ~mask;
         }
     }
 
@@ -849,7 +816,6 @@ public class Board : MonoBehaviour
 
     public void UndoMove(bool changeUI = false)
     {
-
         if (gameMoves.Count == 0) // no moves to undo so exit the function
         {
             return;
@@ -866,10 +832,8 @@ public class Board : MonoBehaviour
         int movedPieceType = Move.GetMovedPieceType(lastMove);
         int capturedPieceType = Move.GetCapturedPieceType(lastMove);
 
-
         int capturedPiece = Piece.None;
         int capturedIndex = -1;
-
 
         // move the pieces
 
@@ -970,18 +934,9 @@ public class Board : MonoBehaviour
             }
         }
 
-
         // revert the castling rights
-
-        bool[] disabledCastlingRights = Move.GetCastlingRights(lastMove);
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (disabledCastlingRights[i] == true)
-            {
-                castlingRights[i] = true;
-            }
-        }
+        castlingRightStates.Pop();
+        castlingRights = castlingRightStates.Peek();
 
         // revert en passant target
         enPassantTargets.Pop();
@@ -1003,10 +958,7 @@ public class Board : MonoBehaviour
         fiftyMoveCounter = fiftyMoveCounters.Peek();
 
         // change the move number if undoing a move made by black
-        if (turn == Piece.Black)
-        {
-            moveNumber--;
-        }
+        if (turn == Piece.Black) moveNumber--;
 
         // remove the move from the list of seen board states
         string boardString = boardPositions.Peek();
@@ -1019,7 +971,6 @@ public class Board : MonoBehaviour
 
         // remove end of game text if necessary
         Game.UpdateEndOfGameScreen(gameResult, turn);
-
 
         // change the turn back
         ChangeTurn();

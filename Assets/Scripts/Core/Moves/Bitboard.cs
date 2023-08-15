@@ -271,20 +271,20 @@ public static class Bitboard
     {
         List<int> indices = new();
 
-        // int index = BitScanForward(bitboard);
-        // while (index != -1)
-        // {
-        //     indices.Add(index);
-        //     ClearSquare(ref bitboard, index);
-        //     index = BitScanForward(bitboard);
-        // }
+         int index = BitScanForward(bitboard);
+         while (index != -1)
+         {
+             indices.Add(index);
+             ClearSquare(ref bitboard, index);
+             index = BitScanForward(bitboard);
+         }
 
         // This iterates through the whole array but there is no work repeated, I have no idea if this is more efficient or not
-        ulong mask = 1;
-        for (int i = 0; i < 64; i++, mask <<= 1)
-        {
-            if ((bitboard & mask) > 0) indices.Add(i);
-        }
+        //ulong mask = 1;
+        //for (int i = 0; i < 64; i++, mask <<= 1)
+        //{
+        //    if ((bitboard & mask) > 0) indices.Add(i);
+        //}
 
         return indices;
     }
