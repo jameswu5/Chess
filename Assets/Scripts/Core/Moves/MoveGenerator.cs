@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-
 using UnityEngine;
 
 public static class MoveGenerator
@@ -22,8 +21,7 @@ public static class MoveGenerator
             {
                 int direction = Direction.directions[i];
                 ulong rayAttacks = Bitboard.GetRayAttacks(hero, opponent, direction, index);
-                List<int> targetIndices = Bitboard.GetIndicesFromBitboard(rayAttacks);
-                foreach (int target in targetIndices)
+                foreach (int target in Bitboard.GetIndicesFromBitboard(rayAttacks))
                 {
                     legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Rook, Piece.GetPieceType(boardState[target])));
                 }
@@ -36,8 +34,7 @@ public static class MoveGenerator
             {
                 int direction = Direction.directions[i];
                 ulong rayAttacks = Bitboard.GetRayAttacks(hero, opponent, direction, index);
-                List<int> targetIndices = Bitboard.GetIndicesFromBitboard(rayAttacks);
-                foreach (int target in targetIndices)
+                foreach (int target in Bitboard.GetIndicesFromBitboard(rayAttacks))
                 {
                     legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Rook, Piece.GetPieceType(boardState[target])));
                 }
@@ -53,8 +50,7 @@ public static class MoveGenerator
 
         ulong knightAttacks = PrecomputedData.KnightAttacks[index] & ~hero;
 
-        List<int> targetIndices = Bitboard.GetIndicesFromBitboard(knightAttacks);
-        foreach (int target in targetIndices)
+        foreach (int target in Bitboard.GetIndicesFromBitboard(knightAttacks))
         {
             legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Knight, Piece.GetPieceType(boardState[target])));
         }
@@ -68,8 +64,7 @@ public static class MoveGenerator
         ulong kingAttacks = PrecomputedData.KingAttacks[index] & ~hero;
         bool pieceIsWhite = Piece.IsWhite(boardState[index]);
 
-        List<int> targetIndices = Bitboard.GetIndicesFromBitboard(kingAttacks);
-        foreach (int target in targetIndices)
+        foreach (int target in Bitboard.GetIndicesFromBitboard(kingAttacks))
         {
             legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.King, Piece.GetPieceType(boardState[target])));
         }
@@ -123,8 +118,7 @@ public static class MoveGenerator
 
         bool promote = ((pawnPushes | pawnAttacks) & (Bitboard.Rank1 | Bitboard.Rank8)) > 0;
 
-        List<int> pushIndices = Bitboard.GetIndicesFromBitboard(pawnPushes);
-        foreach (int target in pushIndices)
+        foreach (int target in Bitboard.GetIndicesFromBitboard(pawnPushes))
         {
             if (Math.Abs(target - index) == 16)
             {
@@ -148,8 +142,7 @@ public static class MoveGenerator
 
         // captures
 
-        List<int> targetIndices = Bitboard.GetIndicesFromBitboard(pawnAttacks);
-        foreach (int target in targetIndices)
+        foreach (int target in Bitboard.GetIndicesFromBitboard(pawnAttacks))
         {
 
             // Problem:
