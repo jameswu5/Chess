@@ -22,6 +22,8 @@ public class Board : MonoBehaviour
     public UI boardUI;
     private int[] boardState;
 
+    private MoveGenerator mg;
+
     public int turn;
     public int opponentColour => turn == Piece.White ? Piece.Black : Piece.White;
     public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
@@ -60,6 +62,7 @@ public class Board : MonoBehaviour
     public void Initialise()
     {
         boardState = new int[64];
+        mg = new MoveGenerator();
 
         inPromotionScreen = -1;
         enPassantTarget = -1;

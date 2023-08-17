@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 public class MoveGenerator
 {
-
-
     bool inCheck;
     bool inDoubleCheck;
 
@@ -12,7 +10,6 @@ public class MoveGenerator
     ulong pinRays;
 
     int heroColour;
-    int opponentColour;
     int heroIndex;
     int opponentIndex;
     int heroKingIndex;
@@ -57,7 +54,6 @@ public class MoveGenerator
 
 
         heroColour = board.turn;
-        opponentColour = board.opponentColour;
         heroIndex = board.GetColourIndex(board.turn);
         opponentIndex = board.GetOpponentColourIndex(board.turn);
         heroKingIndex = board.kingIndices[heroIndex];
@@ -465,8 +461,8 @@ public class MoveGenerator
 
                 if (CheckIfPinned(index))
                 {
-                    // can only move along the pin ray (can be optimised with lookup table perhaps?)
-                    targetSquares &= Bitboard.GetMaskBetweenSquares(index, heroKingIndex);
+                    // can only move along the pin ray
+                    targetSquares &= Data.MaskBetweenSquares[index, heroKingIndex];
                 }
 
                 foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
@@ -484,7 +480,7 @@ public class MoveGenerator
 
                 if (CheckIfPinned(index))
                 {
-                    targetSquares &= Bitboard.GetMaskBetweenSquares(index, heroKingIndex);
+                    targetSquares &= Data.MaskBetweenSquares[index, heroKingIndex];
                 }
 
                 foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
@@ -498,12 +494,141 @@ public class MoveGenerator
 
     void GenerateKnightMoves(List<int> moves)
     {
+        ulong legalSquares = ~hero & checkRayMask;
+        ulong knights = board.GetPieceBitboard(Piece.Knight, heroIndex) & ~pinRays;
 
+        foreach (int index in Bitboard.GetIndicesFromBitboard(knights))
+        {
+            ulong targetSquares = Data.KnightAttacks[index] & legalSquares;
+
+            foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
+            {
+                moves.Add(Move.Initialise(Move.Standard, index, target, Piece.Knight, board.GetPieceTypeAtIndex(target)));
+            }
+        }
     }
 
     void GeneratePawnMoves(List<int> moves)
     {
+        int dir = heroColour == Piece.White ? 1 : -1;
+        int offset = dir * 8;
+        ulong pawns = board.GetPieceBitboard(Piece.Pawn, heroIndex);
 
+        ulong promotionMask = heroColour == Piece.White ? Bitboard.Rank8 : Bitboard.Rank1;
+
+        // ulong singlePush = Bitboard.ShiftLeft(pawns, offset) & emptySquares & checkRayMask;
+        ulong singlePush = Bitboard.ShiftLeft(pawns, offset) & emptySquares;
+        ulong promotions = singlePush & promotionMask & checkRayMask;
+        ulong singlePushNoPromotion = singlePush & ~promotionMask & checkRayMask;
+
+        ulong edgeMask1 = heroColour == Piece.White ? Bitboard.FileA : Bitboard.FileH;
+        ulong edgeMask2 = heroColour == Piece.White ? Bitboard.FileH : Bitboard.FileA;
+
+        ulong capture1 = Bitboard.ShiftLeft(pawns & ~edgeMask1, dir * 7) & opponent & checkRayMask;
+        ulong capture2 = Bitboard.ShiftLeft(pawns & ~edgeMask2, dir * 9) & opponent & checkRayMask;
+
+        ulong promotions1 = capture1 & promotionMask;
+        ulong promotions2 = capture2 & promotionMask;
+        capture1 &= ~promotionMask;
+        capture2 &= ~promotionMask;
+
+
+        // single pushes without promotion
+        foreach (int target in Bitboard.GetIndicesFromBitboard(singlePushNoPromotion))
+        {
+            int start = target - offset;
+            // pawn needs to not be pinned or moving in the ray of the pin
+            if (!CheckIfPinned(start) || true)
+            {
+                moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, Piece.None));
+            }
+        }
+
+        // double pushes
+        ulong doublePushMask = heroColour == Piece.White ? Bitboard.Rank4 : Bitboard.Rank5;
+        ulong doublePush = Bitboard.ShiftLeft(singlePush, offset) & emptySquares & doublePushMask & checkRayMask;
+
+        foreach (int target in Bitboard.GetIndicesFromBitboard(doublePush))
+        {
+            int start = target - offset * 2;
+            if (!CheckIfPinned(start) || true)
+            {
+                moves.Add(Move.Initialise(Move.PawnTwoSquares, start, target, Piece.Pawn, Piece.None));
+            }
+        }
+
+        // captures
+        foreach (int target in Bitboard.GetIndicesFromBitboard(capture1))
+        {
+            int start = target - offset * 7;
+            if (!CheckIfPinned(start) || true)
+            {
+                moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
+            }
+        }
+
+        foreach (int target in Bitboard.GetIndicesFromBitboard(capture2))
+        {
+            int start = target - offset * 9;
+            if (!CheckIfPinned(start) || true)
+            {
+                moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
+            }
+        }
+
+        // promotions
+        foreach (int target in Bitboard.GetIndicesFromBitboard(promotions))
+        {
+            int start = target - offset * 8;
+            if (!CheckIfPinned(start))
+            {
+                AddPromotions(start, target, moves);
+            }
+        }
+
+        foreach (int target in Bitboard.GetIndicesFromBitboard(promotions1))
+        {
+            int start = target - offset * 7;
+            if (!CheckIfPinned(start))
+            {
+                AddPromotions(start, target, moves);
+            }
+        }
+
+        foreach (int target in Bitboard.GetIndicesFromBitboard(promotions2))
+        {
+            int start = target - offset * 9;
+            if (!CheckIfPinned(start))
+            {
+                AddPromotions(start, target, moves);
+            }
+        }
+
+        // en passant
+
+        int enPassantTarget = board.enPassantTarget;
+        int capturedPawnIndex = enPassantTarget - offset;
+
+        if ((checkRayMask & (1ul << capturedPawnIndex)) > 0)
+        {
+            ulong possiblePawns = pawns & Data.PawnAttacks[opponentIndex][enPassantTarget];
+
+            foreach (int start in Bitboard.GetIndicesFromBitboard(possiblePawns))
+            {
+                if (!CheckIfPinned(start))
+                {
+                    moves.Add(Move.Initialise(Move.EnPassant, start, enPassantTarget, Piece.Pawn, Piece.Pawn));
+                }
+            }
+        }
+    }
+
+    void AddPromotions(int start, int target, List<int> moves)
+    {
+        moves.Add(Move.Initialise(Move.PromoteToBishop, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
+        moves.Add(Move.Initialise(Move.PromoteToKnight, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
+        moves.Add(Move.Initialise(Move.PromoteToQueen, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
+        moves.Add(Move.Initialise(Move.PromoteToRook, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
     }
 
 
