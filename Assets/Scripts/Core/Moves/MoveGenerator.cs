@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class MoveGenerator
 {
-    bool inCheck;
+    public bool inCheck;
     bool inDoubleCheck;
 
     ulong checkRayMask;
@@ -44,14 +44,12 @@ public class MoveGenerator
     }
 
 
-
     void Initialise()
     {
         inCheck = false;
         inDoubleCheck = false;
         checkRayMask = 0ul;
         pinRays = 0ul;
-
 
         heroColour = board.turn;
         heroIndex = board.GetColourIndex(board.turn);
@@ -443,7 +441,7 @@ public class MoveGenerator
     {
         ulong legalSquares = ~hero & checkRayMask;
         ulong orthogonalPieces = board.GetOrthogonalSlidingBitboard(heroIndex);
-        ulong diagonalPieces = board.GetDiagonalSlidingBitboard(opponentIndex);
+        ulong diagonalPieces = board.GetDiagonalSlidingBitboard(heroIndex);
 
         if (inCheck)
         {
@@ -457,7 +455,9 @@ public class MoveGenerator
             // This can be optimised with another lookup table maybe?
             for (int d = 0; d < 4; d++)
             {
-                ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
+                //ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
+
+                ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, Direction.directions[d], index) & legalSquares;
 
                 if (CheckIfPinned(index))
                 {
@@ -476,7 +476,9 @@ public class MoveGenerator
         {
             for (int d = 4; d < 8; d++)
             {
-                ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
+                //ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
+                ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, Direction.directions[d], index) & legalSquares;
+
 
                 if (CheckIfPinned(index))
                 {
@@ -607,17 +609,20 @@ public class MoveGenerator
         // en passant
 
         int enPassantTarget = board.enPassantTarget;
-        int capturedPawnIndex = enPassantTarget - offset;
-
-        if ((checkRayMask & (1ul << capturedPawnIndex)) > 0)
+        if (enPassantTarget != -1)
         {
-            ulong possiblePawns = pawns & Data.PawnAttacks[opponentIndex][enPassantTarget];
+            int capturedPawnIndex = enPassantTarget - offset;
 
-            foreach (int start in Bitboard.GetIndicesFromBitboard(possiblePawns))
+            if ((checkRayMask & (1ul << capturedPawnIndex)) > 0)
             {
-                if (!CheckIfPinned(start))
+                ulong possiblePawns = pawns & Data.PawnAttacks[opponentIndex][enPassantTarget];
+
+                foreach (int start in Bitboard.GetIndicesFromBitboard(possiblePawns))
                 {
-                    moves.Add(Move.Initialise(Move.EnPassant, start, enPassantTarget, Piece.Pawn, Piece.Pawn));
+                    if (!CheckIfPinned(start))
+                    {
+                        moves.Add(Move.Initialise(Move.EnPassant, start, enPassantTarget, Piece.Pawn, Piece.Pawn));
+                    }
                 }
             }
         }

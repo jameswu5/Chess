@@ -9,11 +9,11 @@ public static class Perft
     {
         if (depth == 0) return 1;
 
-        HashSet<int> legalMoves = board.GetAllLegalMoves(board.turn);
         int numOfPositions = 0;
 
-        foreach (int move in legalMoves)
+        foreach (int move in board.allLegalMoves)
         {
+            Debug.Log(Move.GetMoveAsString(move));
             board.MakeMove(move);
             numOfPositions += Search(board, depth - 1);
             board.UndoMove();
@@ -24,9 +24,8 @@ public static class Perft
 
     public static void SearchWithBreakdown(Board board, int depth)
     {
-        HashSet<int> legalMoves = board.GetAllLegalMoves(board.turn);
         int numOfPositions = 0;
-        foreach (int move in legalMoves)
+        foreach (int move in board.allLegalMoves)
         {
             board.MakeMove(move);
             int positions = Search(board, depth - 1);

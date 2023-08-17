@@ -27,11 +27,9 @@ public class Bot : Player
     {
         int bestEval = -100000;
 
-        HashSet<int> legalMoves = board.GetAllLegalMoves(board.turn);
-        List<int> legalMovesAsList = new(legalMoves);
-        int chosenMove = legalMovesAsList[0];
+        int chosenMove = board.allLegalMoves[0];
 
-        foreach (int move in legalMoves)
+        foreach (int move in board.allLegalMoves)
         {
             board.MakeMove(move, false);
             int eval = Search(board, 1);
@@ -54,16 +52,15 @@ public class Bot : Player
             return Evaluator.EvaluateBoard(board);
         }
 
-        HashSet<int> legalMoves = board.GetAllLegalMoves(board.turn);
 
-        if (legalMoves.Count == 0)
+        if (board.allLegalMoves.Count == 0)
         {
             return board.inCheck ? -100000 : 0; // checkmate : stalemate
         }
 
         int best = -100000;
 
-        foreach (int move in legalMoves)
+        foreach (int move in board.allLegalMoves)
         {
             int eval;
             board.MakeMove(move, false);

@@ -23,6 +23,7 @@ public class Board : MonoBehaviour
     private int[] boardState;
 
     private MoveGenerator mg;
+    public List<int> allLegalMoves;
 
     public int turn;
     public int opponentColour => turn == Piece.White ? Piece.Black : Piece.White;
@@ -83,6 +84,9 @@ public class Board : MonoBehaviour
 
         GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
+        allLegalMoves = mg.GenerateMoves(this);
+
+
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
     }
@@ -281,9 +285,9 @@ public class Board : MonoBehaviour
 
     public int TryToGetMove(int index, int newIndex, int promotionType)
     {
-        foreach (int move in GetLegalMoves(index))
+        foreach (int move in allLegalMoves)
         {
-            if (Move.GetEndIndex(move) == newIndex)
+            if (Move.GetStartIndex(move) == index && Move.GetEndIndex(move) == newIndex)
             {
                 int moveType = Move.GetMoveType(move);
                 switch (promotionType)
@@ -579,6 +583,9 @@ public class Board : MonoBehaviour
         gameMoves.Push(move);
 
         ChangeTurn();
+
+        allLegalMoves = mg.GenerateMoves(this);
+
         HandleCheck();
     }
 
@@ -657,45 +664,9 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public HashSet<int> GetAllPseudoLegalMoves(int colour)
-    {
-        HashSet<int> pseudoLegalMoves = new();
-        for (int i = 0; i < 64; i++)
-        {
-            if (boardState[i] != Piece.None && CheckIfPieceIsColour(i, colour))
-            {
-                HashSet<int> moves = GetPseudoLegalMoves(i);
-                pseudoLegalMoves.UnionWith(moves);
-            }
-        }
-        return pseudoLegalMoves;
-    }
-
-    private HashSet<int> FindCoverageOfColour(int colour)
-    {
-        HashSet<int> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
-
-        HashSet<int> coverage = new();
-        foreach (int move in pseudoLegalMoves)
-        {
-            // maybe watch out for moves like castling
-            coverage.Add(Move.GetEndIndex(move));
-        }
-
-        return coverage;
-    }
-
-    private bool CheckIfPieceIsAttacked(int index)
-    {
-        HashSet<int> coverageOfOpponent = CheckPieceIsWhite(index) == true ? FindCoverageOfColour(Piece.Black) : FindCoverageOfColour(Piece.White);
-        return coverageOfOpponent.Contains(index);
-    }
-
-    private bool CheckIfInCheck(int colour) => colour == Piece.White ? CheckIfPieceIsAttacked(kingIndices[0]) : CheckIfPieceIsAttacked(kingIndices[1]);
 
     private void HandleCheck()
     {
-        inCheck = CheckIfInCheck(turn);
         if (inCheck)
         {
             DisplayCheck(turn);
@@ -735,95 +706,22 @@ public class Board : MonoBehaviour
         }
     }
 
-    // Strictly legal moves
-
-    public HashSet<int> GetAllLegalMoves(int colour)
+    public List<int> GetAllLegalMoves()
     {
-        HashSet<int> pseudoLegalMoves = GetAllPseudoLegalMoves(colour);
-        HashSet<int> legalMoves = new();
-        HashSet<int> castlingMoves = new();
-
-        bool kingside = false;
-        bool queenside = false;
-
-        int homeRank = colour == Piece.White ? 0 : 7;
-
-        foreach (int move in pseudoLegalMoves)
-        {
-            int endIndex = Move.GetEndIndex(move);
-
-
-            if (Move.GetMoveType(move) == Move.Castling) // hold the castling moves for later: an optimisation
-            {
-                if (!inCheck) // don't need to consider if in check: it's not allowed
-                {
-                    castlingMoves.Add(move);
-                }
-
-                continue;
-            }
-
-            MakeMove(move);
-            if (CheckIfInCheck(colour) == false)
-            {
-                legalMoves.Add(move);
-                if (Move.GetMovedPieceType(move) == Piece.King) // find whether king can move to the square castling would pass through
-                {
-                    if (endIndex == (homeRank << 3) + 5)
-                    {
-                        kingside = true;
-                    }
-                    if (endIndex == (homeRank << 3) + 3)
-                    {
-                        queenside = true;
-                    }
-                }
-            }
-            UndoMove();
-        }
-
-        foreach (int move in castlingMoves)
-        {
-            int endIndex = Move.GetEndIndex(move);
-
-            if ((endIndex & 0b111) == 6 && kingside)
-            {
-                MakeMove(move);
-                if (CheckIfInCheck(colour) == false) {
-                    legalMoves.Add(move);
-                }
-                UndoMove();
-
-            }
-            if ((endIndex & 0b111) == 2 && queenside)
-            {
-                MakeMove(move);
-                if (CheckIfInCheck(colour) == false)
-                {
-                    legalMoves.Add(move);
-                }
-                UndoMove();
-            }
-        }
-
-
-        return legalMoves;
+        List<int> moves = mg.GenerateMoves(this);
+        inCheck = mg.inCheck;
+        return moves;
     }
 
-    public HashSet<int> GetLegalMoves(int index)
+    // Must be called after GetAllLegalMoves
+    public List<int> GetLegalMoves(int index)
     {
-        HashSet<int> allLegalMoves = CheckPieceIsWhite(index) ? GetAllLegalMoves(Piece.White) : GetAllLegalMoves(Piece.Black);
-        HashSet<int> legalMoves = new();
-
+        List<int> moves = new();
         foreach (int move in allLegalMoves)
         {
-            if (Move.GetStartIndex(move) == index)
-            {
-                legalMoves.Add(move);
-            }
+            if (Move.GetStartIndex(move) == index) moves.Add(move);
         }
-
-        return legalMoves;
+        return moves;
     }
 
     public void UndoMove(bool changeUI = false)
@@ -986,13 +884,16 @@ public class Board : MonoBehaviour
 
         // change the turn back
         ChangeTurn();
+
+        // Regenerate all legal moves
+        allLegalMoves = mg.GenerateMoves(this);
+
         HandleCheck();
     }
 
     public Result GetGameResult()
     {
-        HashSet<int> legalMoves = GetAllLegalMoves(turn);
-        if (legalMoves.Count == 0)
+        if (allLegalMoves.Count == 0)
         {
             return inCheck ? Result.Checkmate : Result.Stalemate;
         }
@@ -1060,6 +961,7 @@ public class Board : MonoBehaviour
     public void ClearSquareFromBitboard(int pieceID, int index)
     {
         int bitboardIndex = Piece.GetBitboardIndex(pieceID);
+        Debug.Log($"{pieceID} {index}");
         Bitboard.ClearSquare(ref pieceBitboards[bitboardIndex], index);
         Bitboard.ClearSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }

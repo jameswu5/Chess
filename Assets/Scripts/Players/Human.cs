@@ -75,7 +75,7 @@ public class Human : Player
 
                     boardUI.HighlightSquare(pieceIndex);
 
-                    HashSet<int> legalMoves = board.GetLegalMoves(pieceIndex);
+                    List<int> legalMoves = board.GetLegalMoves(pieceIndex);
                     boardUI.HighlightOptions(legalMoves);
                 }
             }
