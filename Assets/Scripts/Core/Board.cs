@@ -609,6 +609,18 @@ public class Board : MonoBehaviour
         }
     }
 
+    public bool CanCastleKingside(int colour)
+    {
+        int mask = colour == Piece.White ? 0b1000 : 0b0010;
+        return (castlingRights & mask) > 0;
+    }
+
+    public bool CanCastleQueenside(int colour)
+    {
+        int mask = colour == Piece.White ? 0b0100 : 0b0001;
+        return (castlingRights & mask) > 0;
+    }
+
     public int GetPieceTypeAtIndex(int index) => boardState[index] & 0b111;
 
     public int GetPieceAtIndex(int index) => boardState[index];

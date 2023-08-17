@@ -34,6 +34,14 @@ public class MoveGenerator
 
         Initialise();
 
+        GenerateKingMoves(moves);
+
+        if (!inDoubleCheck)
+        {
+            GenerateKnightMoves(moves);
+            GenerateSlidingMoves(moves);
+            GeneratePawnMoves(moves);
+        }
 
         return moves;
     }
@@ -60,6 +68,8 @@ public class MoveGenerator
         opponent = board.colourBitboards[opponentIndex];
         allPieces = board.AllPiecesBiboard;
         emptySquares = ~allPieces;
+
+        GetAttackData();
 
     }
 
@@ -393,4 +403,58 @@ public class MoveGenerator
 
         return attacks;
     }
+
+
+    void GenerateKingMoves(List<int> moves)
+    {
+        ulong kingMoves = Data.KingAttacks[heroKingIndex] & ~(opponentAttacks | hero);
+        foreach (int target in Bitboard.GetIndicesFromBitboard(kingMoves))
+        {
+            moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.GetPieceType(board.GetPieceAtIndex(target))));
+        }
+
+        // Castling
+        if (!inCheck)
+        {
+            ulong blockers = opponentAttacks | allPieces;
+
+            if (board.CanCastleKingside(heroColour)) // implies king is in original position
+            {
+                ulong castleMask = heroColour == Piece.White ? Bitboard.WhiteKingsideMask : Bitboard.BlackKingsideMask;
+                if ((castleMask & blockers) == 0)
+                {
+                    int target = heroColour == Piece.White ? Square.g1 : Square.g8;
+                    moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.None));
+                }
+            }
+
+            if (board.CanCastleQueenside(heroColour))
+            {
+                ulong castleMask = heroColour == Piece.White ? Bitboard.WhiteQueensideMask : Bitboard.BlackQueensideMask;
+                if ((castleMask & blockers) == 0)
+                {
+                    int target = heroColour == Piece.White ? Square.c1 : Square.c8;
+                    moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.None));
+                }
+            }
+        }
+    }
+
+
+    void GenerateSlidingMoves(List<int> moves)
+    {
+
+    }
+
+    void GenerateKnightMoves(List<int> moves)
+    {
+
+    }
+
+    void GeneratePawnMoves(List<int> moves)
+    {
+
+    }
+
+
 }

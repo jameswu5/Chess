@@ -26,6 +26,11 @@ public static class Bitboard
     public const int Rook = 4;
     public const int Pawn = 5;
 
+    public const ulong WhiteKingsideMask  = 1ul << Square.f1 | 1ul << Square.g1;
+    public const ulong WhiteQueensideMask = 1ul << Square.b1 | 1ul << Square.c1 | 1ul << Square.d1;
+    public const ulong BlackKingsideMask  = 1ul << Square.f8 | 1ul << Square.g8;
+    public const ulong BlackQueensideMask = 1ul << Square.b8 | 1ul << Square.c8 | 1ul << Square.d8;
+
     public static void SetSquare(ref ulong bitboard, int index)
     {
         bitboard |= 1ul << index;
