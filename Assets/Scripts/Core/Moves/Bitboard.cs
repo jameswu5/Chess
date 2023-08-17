@@ -19,6 +19,13 @@ public static class Bitboard
     public const ulong Rank7 = Rank6 << 8;
     public const ulong Rank8 = Rank7 << 8;
 
+    public const int King = 0;
+    public const int Queen = 1;
+    public const int Bishop = 2;
+    public const int Knight = 3;
+    public const int Rook = 4;
+    public const int Pawn = 5;
+
     public static void SetSquare(ref ulong bitboard, int index)
     {
         bitboard |= 1ul << index;
@@ -144,6 +151,17 @@ public static class Bitboard
         return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
+    private static int GetSquaresFromEdgeOfBoard(int index, int direction)
+    {
+        int count = 0;
+        while (!CheckAtEdgeOfBoard(direction, 1ul << index)) {
+            count++;
+            index += direction;
+        }
+        return count;
+    }
+
+
     private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {
 
@@ -229,14 +247,14 @@ public static class Bitboard
     public static ulong GetRayAttacks(ulong hero, ulong opponent, int direction, int squareIndex) {
 
         int dirIndex = Direction.GetIndexFromDirection(direction);
-        ulong attacks = PrecomputedData.RayAttacks[dirIndex][squareIndex];
+        ulong attacks = Data.RayAttacks[dirIndex][squareIndex];
 
         ulong blockers = attacks & (hero | opponent);
         if (blockers > 0) {
             int blocker = direction > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
             ulong block = ShiftLeft(1ul, blocker);
             
-            attacks ^= PrecomputedData.RayAttacks[dirIndex][blocker];
+            attacks ^= Data.RayAttacks[dirIndex][blocker];
 
             // if the blocker is my own piece then clear that square
             if ((block & hero) > 0) {
