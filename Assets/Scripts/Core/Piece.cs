@@ -37,9 +37,9 @@ public static class Piece
         return pieceID & 0b111;
     }
 
-    public static bool IsWhite(int pieceID)
+    public static bool IsColour(int pieceID, int colour)
     {
-        return pieceID < 8;
+        return (pieceID < 8 && colour == White) || (pieceID >= 8 && colour == Black);
     }
 
     public static string GetCharacterFromPieceType(int pieceID)
@@ -50,7 +50,7 @@ public static class Piece
     public static int GetBitboardIndex(int pieceID)
     {
         int res = pieceID - 1;
-        if (!IsWhite(res))
+        if (!IsColour(res, White))
         {
             res -= 2;
         }

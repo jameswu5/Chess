@@ -14,7 +14,6 @@ public static class Move
 
     */
 
-    // This can fit in 3 bits
     public const int Standard = 0;
     public const int PawnTwoSquares = 1;
     public const int Castling = 2;

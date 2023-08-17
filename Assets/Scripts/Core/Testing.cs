@@ -47,7 +47,7 @@ public static class Perft
         Debug.Log(Search(board, depth));
         stopwatch.Stop();
         TimeSpan ts = stopwatch.Elapsed;
-        string elapsedTime = string.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+        string elapsedTime = string.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
         Debug.Log($"Runtime: {elapsedTime}");
     }
 }

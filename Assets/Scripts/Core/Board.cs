@@ -19,16 +19,16 @@ public class Board : MonoBehaviour
     public const string insufficientMaterialFEN = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
     public const string checkmateFEN = "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w kq - 0 1";
 
-
     public UI boardUI;
-    public int[] boardState;
+    private int[] boardState;
 
     public int turn;
+    public int opponentColour => turn == Piece.White ? Piece.Black : Piece.White;
     public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
     public int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
-    public int GetColourIndex(int c) => Piece.IsWhite(c) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
+    public int GetColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
     public int GetColourIndex(bool isWhite) => isWhite ? 0 : 1;
-    public int GetOpponentColourIndex(int c) => Piece.IsWhite(c) ? 1 : 0;
+    public int GetOpponentColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 1 : 0;
     public int GetOpponentColourIndex(bool isWhite) => isWhite ? 1 : 0;
 
     public int castlingRights;
@@ -51,6 +51,7 @@ public class Board : MonoBehaviour
 
     public ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
     public ulong[] colourBitboards; // 0: white | 1: black
+    public ulong AllPiecesBiboard => colourBitboards[0] | colourBitboards[1];
 
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
 
@@ -152,9 +153,7 @@ public class Board : MonoBehaviour
         }
         castlingRightStates.Push(castlingRights);
 
-
         // en passant targets
-
         enPassantTarget = sections[3] == "-" ? -1 : Square.GetIndexFromSquareName(sections[3]);
         enPassantTargets.Push(enPassantTarget);
 
@@ -200,7 +199,6 @@ public class Board : MonoBehaviour
         }
 
         sb.Remove(sb.Length - 1, 1);
-
         sb.Append(' ');
 
         // turn
@@ -260,11 +258,10 @@ public class Board : MonoBehaviour
     {
         // promotionType = -1 if the move isn't a promotion, otherwise it is Piece.[promotionPiece]
 
-        int tryMove = TryToGetMove(index, newIndex, promotionType);
+        int move = TryToGetMove(index, newIndex, promotionType);
 
-        if (tryMove != 0)
+        if (move != 0)
         {
-            int move = tryMove;
             PlayMove(move);
 
             int moveType = Move.GetMoveType(move);
@@ -616,7 +613,7 @@ public class Board : MonoBehaviour
 
     public int GetPieceAtIndex(int index) => boardState[index];
 
-    public bool CheckPieceIsWhite(int index) => Piece.IsWhite(boardState[index]);
+    public bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
 
     public void EnablePromotionScreen(int index)
     {
@@ -1031,8 +1028,6 @@ public class Board : MonoBehaviour
         Initialise();
     }
 
-    // Bitboards
-
 
     // Takes care of captures as well (since capturedPieceID can be Piece.None)
     public void UpdateBitboardForMove(int pieceID, int capturedPieceID, int startIndex, int endIndex)
@@ -1060,4 +1055,24 @@ public class Board : MonoBehaviour
         Bitboard.SetSquare(ref pieceBitboards[bitboardIndex], index);
         Bitboard.SetSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }
+
+
+    public ulong GetDiagonalSlidingBitboard(int colourIndex)
+    {
+        int offset = colourIndex == 0 ? 0 : 6;
+        return pieceBitboards[offset + Bitboard.Queen] | pieceBitboards[offset + Bitboard.Bishop];
+    }
+
+    public ulong GetOrthogonalSlidingBitboard(int colourIndex)
+    {
+        int offset = colourIndex == 0 ? 0 : 6;
+        return pieceBitboards[offset + Bitboard.Queen] | pieceBitboards[offset + Bitboard.Rook];
+    }
+
+    // Takes Piece.[piece] as argument
+    public ulong GetPieceBitboard(int pieceType, int colourIndex)
+    {
+        return pieceBitboards[Piece.GetBitboardIndex(pieceType + (colourIndex << 3))];
+    }
+
 }
