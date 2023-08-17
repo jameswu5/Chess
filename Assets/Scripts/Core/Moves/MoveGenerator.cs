@@ -240,6 +240,8 @@ public class MoveGenerator
 
     void GetAttackData()
     {
+        // sliding pieces
+
         // get the attack map / coverage of the opponent for sliding pieces
         opponentAttacks = GetAttackBitboardSlidingPieces(opponentIndex);
 
@@ -307,7 +309,7 @@ public class MoveGenerator
 
                     // we don't need to look any further as we have found a piece
                     break;
-                    
+
                 }
             }
 
@@ -316,6 +318,53 @@ public class MoveGenerator
                 break;
         }
 
+
+        // knights
+
+        ulong knightAttacks = 0ul;
+        ulong knights = board.GetPieceBitboard(Piece.Knight, opponentIndex);
+        ulong heroKingBitboard = board.GetPieceBitboard(Piece.King, heroIndex);
+
+        foreach (int knightSquare in Bitboard.GetIndicesFromBitboard(knights))
+        {
+            knightAttacks |= Data.KnightAttacks[knightSquare];
+            if ((knightAttacks & heroKingBitboard) > 0)
+            {
+                inDoubleCheck = inCheck;
+                inCheck = true;
+                checkRayMask |= 1ul << knightSquare;
+            }
+        }
+
+        opponentAttacks |= knightAttacks;
+
+        // pawns
+
+        ulong pawns = board.GetPieceBitboard(Piece.Pawn, opponentIndex);
+        ulong pawnAttacks = 0ul;
+
+        foreach (int pawnSquare in Bitboard.GetIndicesFromBitboard(pawns))
+        {
+            pawnAttacks |= Data.PawnAttacks[opponentIndex][pawnSquare];
+            if ((pawnAttacks & heroKingBitboard) > 0)
+            {
+                inDoubleCheck = inCheck;
+                inCheck = true;
+                checkRayMask |= 1ul << pawnSquare;
+            }
+        }
+
+        opponentAttacks |= pawnAttacks;
+
+        // opponent king
+        opponentAttacks |= Data.KingAttacks[opponentKingIndex];
+
+
+        // If not in check we have no restrictions in move choice
+        if (!inCheck)
+        {
+            checkRayMask = ulong.MaxValue;
+        }
     }
 
     ulong GetAttackBitboardSlidingPieces(int colourIndex)
