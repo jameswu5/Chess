@@ -212,6 +212,17 @@ public static class Bitboard
         return rayAttacks;
     }
 
+
+    // This is a commutative operation - todo
+    public static ulong GetMaskBetweenSquares(int startIndex, int endIndex)
+    {
+        ulong mask = 0;
+
+        return mask;
+    }
+
+
+
     // Gets the position of the least significant bit that is a 1
     private static int BitScanForward(ulong data)
     {

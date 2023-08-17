@@ -404,13 +404,15 @@ public class MoveGenerator
         return attacks;
     }
 
+    bool CheckIfPinned(int index) => (pinRays & (1ul << index)) > 0;
+
 
     void GenerateKingMoves(List<int> moves)
     {
         ulong kingMoves = Data.KingAttacks[heroKingIndex] & ~(opponentAttacks | hero);
         foreach (int target in Bitboard.GetIndicesFromBitboard(kingMoves))
         {
-            moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.GetPieceType(board.GetPieceAtIndex(target))));
+            moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.GetPieceType(board.GetPieceTypeAtIndex(target))));
         }
 
         // Castling
@@ -443,6 +445,54 @@ public class MoveGenerator
 
     void GenerateSlidingMoves(List<int> moves)
     {
+        ulong legalSquares = ~hero & checkRayMask;
+        ulong orthogonalPieces = board.GetOrthogonalSlidingBitboard(heroIndex);
+        ulong diagonalPieces = board.GetDiagonalSlidingBitboard(opponentIndex);
+
+        if (inCheck)
+        {
+            // cannot move pinned pieces
+            orthogonalPieces &= ~pinRays;
+            diagonalPieces &= ~pinRays;
+        }
+
+        foreach (int index in Bitboard.GetIndicesFromBitboard(orthogonalPieces))
+        {
+            // This can be optimised with another lookup table maybe?
+            for (int d = 0; d < 4; d++)
+            {
+                ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
+
+                if (CheckIfPinned(index))
+                {
+                    // can only move along the pin ray (can be optimised with lookup table perhaps?)
+                    targetSquares &= Bitboard.GetMaskBetweenSquares(index, heroKingIndex);
+                }
+
+                foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
+                {
+                    moves.Add(Move.Initialise(Move.Standard, index, target, board.GetPieceTypeAtIndex(index), board.GetPieceTypeAtIndex(target)));
+                }
+            }
+        }
+
+        foreach (int index in Bitboard.GetIndicesFromBitboard(diagonalPieces))
+        {
+            for (int d = 4; d < 8; d++)
+            {
+                ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
+
+                if (CheckIfPinned(index))
+                {
+                    targetSquares &= Bitboard.GetMaskBetweenSquares(index, heroKingIndex);
+                }
+
+                foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
+                {
+                    moves.Add(Move.Initialise(Move.Standard, index, target, board.GetPieceTypeAtIndex(index), board.GetPieceTypeAtIndex(target)));
+                }
+            }
+        }
 
     }
 
