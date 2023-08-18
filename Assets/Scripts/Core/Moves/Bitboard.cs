@@ -283,6 +283,33 @@ public static class Bitboard
                 }
             }
         }
+
+        // top edge - SE
+        for (int i = 56; i < 64; i++)
+        {
+            position = 1ul << i;
+            ray = position;
+            cur = i;
+            indices = new() { i };
+            while (!CheckAtEdgeOfBoard(Direction.SE, position))
+            {
+                position = ShiftLeft(position, Direction.SE);
+                ray |= position;
+                cur += Direction.SE;
+                indices.Add(cur);
+            }
+            for (int a = 0; a < indices.Count; a++)
+            {
+                for (int b = 0; b < indices.Count; b++)
+                {
+                    if (a != b)
+                    {
+                        result[indices[a], indices[b]] = ray;
+                    }
+                }
+            }
+        }
+
         return result;
     }
 

@@ -36,7 +36,8 @@ public class Game : MonoBehaviour
 
         StartNewGamePlayerVsPlayer();
 
-        Perft.Test(board, 2);
+        Perft.Test(board, 4);
+
     }
 
 
