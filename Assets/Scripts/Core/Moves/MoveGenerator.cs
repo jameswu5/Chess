@@ -537,7 +537,7 @@ public class MoveGenerator
         {
             int start = target - offset;
             // pawn needs to not be pinned or moving in the ray of the pin
-            if (!CheckIfPinned(start) || true)
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, Piece.None));
             }
@@ -550,7 +550,7 @@ public class MoveGenerator
         foreach (int target in Bitboard.GetIndicesFromBitboard(doublePush))
         {
             int start = target - offset * 2;
-            if (!CheckIfPinned(start) || true)
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 moves.Add(Move.Initialise(Move.PawnTwoSquares, start, target, Piece.Pawn, Piece.None));
             }
@@ -560,7 +560,7 @@ public class MoveGenerator
         foreach (int target in Bitboard.GetIndicesFromBitboard(capture1))
         {
             int start = target - dir * 7;
-            if (!CheckIfPinned(start) || true)
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
             }
@@ -569,7 +569,7 @@ public class MoveGenerator
         foreach (int target in Bitboard.GetIndicesFromBitboard(capture2))
         {
             int start = target - dir * 9;
-            if (!CheckIfPinned(start) || true)
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
             }
@@ -579,7 +579,7 @@ public class MoveGenerator
         foreach (int target in Bitboard.GetIndicesFromBitboard(promotions))
         {
             int start = target - dir * 8;
-            if (!CheckIfPinned(start))
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 AddPromotions(start, target, moves);
             }
@@ -588,7 +588,7 @@ public class MoveGenerator
         foreach (int target in Bitboard.GetIndicesFromBitboard(promotions1))
         {
             int start = target - dir * 7;
-            if (!CheckIfPinned(start))
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 AddPromotions(start, target, moves);
             }
@@ -597,7 +597,7 @@ public class MoveGenerator
         foreach (int target in Bitboard.GetIndicesFromBitboard(promotions2))
         {
             int start = target - dir * 9;
-            if (!CheckIfPinned(start))
+            if (!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[target, heroKingIndex])
             {
                 AddPromotions(start, target, moves);
             }

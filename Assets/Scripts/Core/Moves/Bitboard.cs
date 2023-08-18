@@ -224,102 +224,61 @@ public static class Bitboard
         List<int> indices;
 
         // bottom and left edges will cover every possible ray
-
-        // bottom edge - N and NE
+        // bottom edge - N, NW, NE
         for (int i = 0; i < 8; i++)
         {
-            // North
-            position = 1ul << i;
-            ray = position;
-            cur = i;
-            indices = new() { i };
-            while (!CheckAtEdgeOfBoard(Direction.N, position))
+            int[] dir = { Direction.N, Direction.NW, Direction.NE };
+            foreach (int d in dir)
             {
-                position = ShiftLeft(position, Direction.N);
-                ray |= position;
-                cur += Direction.N;
-                indices.Add(cur);
-            }
-            for (int a = 0; a < indices.Count; a++)
-            {
-                for (int b = 0; b < indices.Count; b++)
+                position = 1ul << i;
+                ray = position;
+                cur = i;
+                indices = new() { i };
+                while (!CheckAtEdgeOfBoard(d, position))
                 {
-                    if (a != b)
-                    {
-                        result[indices[a], indices[b]] = ray;
-                    }
+                    position = ShiftLeft(position, d);
+                    ray |= position;
+                    cur += d;
+                    indices.Add(cur);
                 }
-            }
-
-            // North east
-            position = 1ul << i;
-            ray = position;
-            cur = i;
-            indices = new() { i };
-            while (!CheckAtEdgeOfBoard(Direction.NE, position))
-            {
-                position = ShiftLeft(position, Direction.NE);
-                ray |= position;
-                cur += Direction.NE;
-                indices.Add(cur);
-            }
-            for (int a = 0; a < indices.Count; a++)
-            {
-                for (int b = 0; b < indices.Count; b++)
+                for (int a = 0; a < indices.Count; a++)
                 {
-                    if (a != b)
+                    for (int b = 0; b < indices.Count; b++)
                     {
-                        result[indices[a], indices[b]] = ray;
+                        if (a != b)
+                        {
+                            result[indices[a], indices[b]] = ray;
+                        }
                     }
                 }
             }
         }
 
-        // left edge - E and SE
+        // left edge - E, SE and NE
         for (int i = 0; i < 64; i += 8)
         {
-            // East
-            position = 1ul << i;
-            ray = position;
-            cur = i;
-            indices = new() { i };
-            while (!CheckAtEdgeOfBoard(Direction.E, position))
+            int[] dir = { Direction.E, Direction.SE, Direction.NE };
+            foreach (int d in dir)
             {
-                position = ShiftLeft(position, Direction.E);
-                ray |= position;
-                cur += Direction.E;
-                indices.Add(cur);
-            }
-            for (int a = 0; a < indices.Count; a++)
-            {
-                for (int b = 0; b < indices.Count; b++)
+                position = 1ul << i;
+                ray = position;
+                cur = i;
+                indices = new() { i };
+                while (!CheckAtEdgeOfBoard(d, position))
                 {
-                    if (a != b)
-                    {
-                        result[indices[a], indices[b]] = ray;
-                    }
+                    position = ShiftLeft(position, d);
+                    ray |= position;
+                    cur += d;
+                    indices.Add(cur);
                 }
-            }
-
-            // South east
-            position = 1ul << i;
-            ray = position;
-            cur = i;
-            indices = new() { i };
-            while (!CheckAtEdgeOfBoard(Direction.SE, position))
-            {
-                position = ShiftLeft(position, Direction.SE);
-                ray |= position;
-                cur += Direction.SE;
-                indices.Add(cur);
-            }
-            for (int a = 0; a < indices.Count; a++)
-            {
-                for (int b = 0; b < indices.Count; b++)
+                for (int a = 0; a < indices.Count; a++)
                 {
-                    if (a != b)
+                    for (int b = 0; b < indices.Count; b++)
                     {
-                        result[indices[a], indices[b]] = ray;
+                        if (a != b)
+                        {
+                            result[indices[a], indices[b]] = ray;
+                        }
                     }
                 }
             }
