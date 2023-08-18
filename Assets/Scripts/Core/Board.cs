@@ -7,22 +7,10 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-    public const string startFENPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    public const string testFENPosition = "8/8/8/8/2n5/8/8/8 w - - 0 1";
-    public const string testEnPassantFEN = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-    public const string testPromotionFEN = "8/4PP2/8/3k1K2/8/8/3pp3/8 w - - 0 1";
-    public const string stalemateFEN = "8/8/8/8/8/8/q5k1/5K3 w - - 0 1";
-    public const string moveGenerationTestFEN = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
-    public const string moveGenerationTestFEN2 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 1 8";
-    public const string moveGenerationTestFEN3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 1 1";
-    public const string fiftyMoveRuleFEN = "8/8/r2k5/8/8/4K3/8/8 w - - 86 64";
-    public const string insufficientMaterialFEN = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
-    public const string checkmateFEN = "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w kq - 0 1";
-
     public UI boardUI;
     private int[] boardState;
 
-    private MoveGenerator mg;
+    public MoveGenerator mg;
     public List<int> allLegalMoves;
 
     public int turn;
@@ -82,17 +70,16 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[12];
         colourBitboards = new ulong[2];
 
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(FEN.PerftTest1);
         boardUI.CreateUI(boardState);
-        allLegalMoves = mg.GenerateMoves(this);
-
+        allLegalMoves = GetAllLegalMoves();
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
     }
 
 
-    private void GenerateBoardStateFromFEN(string FENPosition = startFENPosition) {
+    private void GenerateBoardStateFromFEN(string FENPosition = FEN.standard) {
         Dictionary<char, int> pieceTypes = new Dictionary<char, int>() {
             {'K', Piece.King},
             {'Q', Piece.Queen},
@@ -584,7 +571,7 @@ public class Board : MonoBehaviour
 
         ChangeTurn();
 
-        allLegalMoves = mg.GenerateMoves(this);
+        allLegalMoves = GetAllLegalMoves();
 
         HandleCheck();
     }
@@ -856,8 +843,7 @@ public class Board : MonoBehaviour
         // revert the king index
         if (movedPieceType == Piece.King)
         {
-            int index = heroColour == Piece.White ? 0 : 1;
-            kingIndices[index] = startIndex;
+            kingIndices[GetColourIndex(heroColour)] = startIndex;
         }
 
         // undo end of game (if applicable in the first place);
@@ -886,7 +872,7 @@ public class Board : MonoBehaviour
         ChangeTurn();
 
         // Regenerate all legal moves
-        allLegalMoves = mg.GenerateMoves(this);
+        allLegalMoves = GetAllLegalMoves();
 
         HandleCheck();
     }
@@ -961,7 +947,6 @@ public class Board : MonoBehaviour
     public void ClearSquareFromBitboard(int pieceID, int index)
     {
         int bitboardIndex = Piece.GetBitboardIndex(pieceID);
-        Debug.Log($"{pieceID} {index}");
         Bitboard.ClearSquare(ref pieceBitboards[bitboardIndex], index);
         Bitboard.ClearSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class MoveGenerator
 {
@@ -64,7 +65,6 @@ public class MoveGenerator
         emptySquares = ~allPieces;
 
         GetAttackData();
-
     }
 
 
@@ -420,7 +420,7 @@ public class MoveGenerator
                 if ((castleMask & blockers) == 0)
                 {
                     int target = heroColour == Piece.White ? Square.g1 : Square.g8;
-                    moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.None));
+                    moves.Add(Move.Initialise(Move.Castling, heroKingIndex, target, Piece.King, Piece.None));
                 }
             }
 
@@ -430,7 +430,7 @@ public class MoveGenerator
                 if ((castleMask & blockers) == 0)
                 {
                     int target = heroColour == Piece.White ? Square.c1 : Square.c8;
-                    moves.Add(Move.Initialise(Move.Standard, heroKingIndex, target, Piece.King, Piece.None));
+                    moves.Add(Move.Initialise(Move.Castling, heroKingIndex, target, Piece.King, Piece.None));
                 }
             }
         }
@@ -455,8 +455,6 @@ public class MoveGenerator
             // This can be optimised with another lookup table maybe?
             for (int d = 0; d < 4; d++)
             {
-                //ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
-
                 ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, Direction.directions[d], index) & legalSquares;
 
                 if (CheckIfPinned(index))
@@ -476,7 +474,6 @@ public class MoveGenerator
         {
             for (int d = 4; d < 8; d++)
             {
-                //ulong targetSquares = Data.RayAttacks[d][index] & legalSquares;
                 ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, Direction.directions[d], index) & legalSquares;
 
 
@@ -562,7 +559,7 @@ public class MoveGenerator
         // captures
         foreach (int target in Bitboard.GetIndicesFromBitboard(capture1))
         {
-            int start = target - offset * 7;
+            int start = target - dir * 7;
             if (!CheckIfPinned(start) || true)
             {
                 moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
@@ -571,7 +568,7 @@ public class MoveGenerator
 
         foreach (int target in Bitboard.GetIndicesFromBitboard(capture2))
         {
-            int start = target - offset * 9;
+            int start = target - dir * 9;
             if (!CheckIfPinned(start) || true)
             {
                 moves.Add(Move.Initialise(Move.Standard, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
@@ -581,7 +578,7 @@ public class MoveGenerator
         // promotions
         foreach (int target in Bitboard.GetIndicesFromBitboard(promotions))
         {
-            int start = target - offset * 8;
+            int start = target - dir * 8;
             if (!CheckIfPinned(start))
             {
                 AddPromotions(start, target, moves);
@@ -590,7 +587,7 @@ public class MoveGenerator
 
         foreach (int target in Bitboard.GetIndicesFromBitboard(promotions1))
         {
-            int start = target - offset * 7;
+            int start = target - dir * 7;
             if (!CheckIfPinned(start))
             {
                 AddPromotions(start, target, moves);
@@ -599,7 +596,7 @@ public class MoveGenerator
 
         foreach (int target in Bitboard.GetIndicesFromBitboard(promotions2))
         {
-            int start = target - offset * 9;
+            int start = target - dir * 9;
             if (!CheckIfPinned(start))
             {
                 AddPromotions(start, target, moves);

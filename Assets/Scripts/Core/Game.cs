@@ -35,6 +35,8 @@ public class Game : MonoBehaviour
         bot = new Bot();
 
         StartNewGamePlayerVsPlayer();
+
+        Perft.Test(board, 2);
     }
 
 

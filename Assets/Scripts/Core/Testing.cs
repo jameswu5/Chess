@@ -11,9 +11,10 @@ public static class Perft
 
         int numOfPositions = 0;
 
-        foreach (int move in board.allLegalMoves)
+        List<int> legalMoves = new List<int>(board.allLegalMoves);
+
+        foreach (int move in legalMoves)
         {
-            Debug.Log(Move.GetMoveAsString(move));
             board.MakeMove(move);
             numOfPositions += Search(board, depth - 1);
             board.UndoMove();
