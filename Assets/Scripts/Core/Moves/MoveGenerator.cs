@@ -460,7 +460,7 @@ public class MoveGenerator
                 if (CheckIfPinned(index))
                 {
                     // can only move along the pin ray
-                    targetSquares &= Data.MaskBetweenSquares[index, heroKingIndex];
+                    targetSquares &= Data.RayThroughSquares[index, heroKingIndex];
                 }
 
                 foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
@@ -479,7 +479,7 @@ public class MoveGenerator
 
                 if (CheckIfPinned(index))
                 {
-                    targetSquares &= Data.MaskBetweenSquares[index, heroKingIndex];
+                    targetSquares &= Data.RayThroughSquares[index, heroKingIndex];
                 }
 
                 foreach (int target in Bitboard.GetIndicesFromBitboard(targetSquares))
