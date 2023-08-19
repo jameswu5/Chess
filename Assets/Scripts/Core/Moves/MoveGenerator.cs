@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class MoveGenerator
 {
     public bool inCheck;
-    bool inDoubleCheck;
+    public bool inDoubleCheck;
 
     public ulong checkRayMask;
     public ulong pinRays;
@@ -341,7 +341,7 @@ public class MoveGenerator
 
         opponentAttacks |= knightAttacks;
 
-        // pawns - there is a bug and we might need to treat it separately
+        // pawns
 
         ulong pawns = board.GetPieceBitboard(Piece.Pawn, opponentIndex);
         ulong pawnAttacks = 0ul;
@@ -349,7 +349,7 @@ public class MoveGenerator
         foreach (int pawnSquare in Bitboard.GetIndicesFromBitboard(pawns))
         {
             pawnAttacks |= Data.PawnAttacks[opponentIndex][pawnSquare];
-            if ((pawnAttacks & heroKingBitboard) > 0)
+            if ((Data.PawnAttacks[opponentIndex][pawnSquare] & heroKingBitboard) > 0)
             {
                 inDoubleCheck = inCheck;
                 inCheck = true;

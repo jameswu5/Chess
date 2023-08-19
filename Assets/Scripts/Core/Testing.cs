@@ -11,9 +11,7 @@ public static class Perft
 
         int numOfPositions = 0;
 
-        List<int> legalMoves = new List<int>(board.allLegalMoves);
-
-        foreach (int move in legalMoves)
+        foreach (int move in board.allLegalMoves)
         {
             board.MakeMove(move);
             numOfPositions += Search(board, depth - 1);
@@ -25,6 +23,9 @@ public static class Perft
 
     public static void SearchWithBreakdown(Board board, int depth)
     {
+        System.Diagnostics.Stopwatch stopwatch = new();
+        stopwatch.Start();
+
         int numOfPositions = 0;
         foreach (int move in board.allLegalMoves)
         {
@@ -37,6 +38,10 @@ public static class Perft
 
         Debug.Log($"Total: {numOfPositions} positions");
 
+        stopwatch.Stop();
+        TimeSpan ts = stopwatch.Elapsed;
+        string elapsedTime = string.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
+        Debug.Log($"Runtime: {elapsedTime}");
     }
 
 
