@@ -8,7 +8,7 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     public UI boardUI;
-    private int[] boardState;
+    public int[] boardState;
 
     public MoveGenerator mg;
     public List<int> allLegalMoves;
@@ -70,7 +70,8 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[12];
         colourBitboards = new ulong[2];
 
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(FEN.PerftTest2);
+        //GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
         allLegalMoves = GetAllLegalMoves();
 
@@ -584,6 +585,9 @@ public class Board : MonoBehaviour
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
+
+        Bitboard.Display(mg.checkRayMask);
+
     }
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
@@ -823,7 +827,7 @@ public class Board : MonoBehaviour
         if (capturedPiece != Piece.None)
         {
             boardState[capturedIndex] = capturedPiece;
-            AddPieceToBitboard(capturedPiece, endIndex);
+            AddPieceToBitboard(capturedPiece, capturedIndex);
 
             if (changeUI)
             {
@@ -838,7 +842,6 @@ public class Board : MonoBehaviour
         // revert en passant target
         enPassantTargets.Pop();
         enPassantTarget = enPassantTargets.Peek();
-
 
         // revert the king index
         if (movedPieceType == Piece.King)

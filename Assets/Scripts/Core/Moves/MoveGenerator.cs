@@ -6,8 +6,8 @@ public class MoveGenerator
     public bool inCheck;
     bool inDoubleCheck;
 
-    ulong checkRayMask;
-    ulong pinRays;
+    public ulong checkRayMask;
+    public ulong pinRays;
 
     int heroColour;
     int heroIndex;
@@ -341,7 +341,7 @@ public class MoveGenerator
 
         opponentAttacks |= knightAttacks;
 
-        // pawns
+        // pawns - there is a bug and we might need to treat it separately
 
         ulong pawns = board.GetPieceBitboard(Piece.Pawn, opponentIndex);
         ulong pawnAttacks = 0ul;
@@ -426,7 +426,8 @@ public class MoveGenerator
             if (board.CanCastleQueenside(heroColour))
             {
                 ulong castleMask = heroColour == Piece.White ? Bitboard.WhiteQueensideMask : Bitboard.BlackQueensideMask;
-                if ((castleMask & blockers) == 0)
+                ulong castleMask2 = heroColour == Piece.White ? (1ul << Square.b1) : (1ul << Square.b8);
+                if ((castleMask & blockers) == 0 && (castleMask2 & allPieces) == 0)
                 {
                     int target = heroColour == Piece.White ? Square.c1 : Square.c8;
                     moves.Add(Move.Initialise(Move.Castling, heroKingIndex, target, Piece.King, Piece.None));

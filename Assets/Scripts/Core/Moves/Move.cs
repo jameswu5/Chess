@@ -165,4 +165,16 @@ public static class Move
 
         return sb.ToString();
     }
+
+
+    public static void DisplayMoveInformation(int move)
+    {
+        int startIndex = GetStartIndex(move);
+        int endIndex = GetEndIndex(move);
+        int moveType = GetMoveType(move);
+        int movedPiece = GetMovedPieceType(move);
+        int capturedPiece = GetCapturedPieceType(move);
+
+        Debug.Log($"Start {Square.ConvertIndexToSquareName(startIndex)} | End {Square.ConvertIndexToSquareName(endIndex)} | MoveType {moveType} | movedPiece {movedPiece} | capturedPiece {capturedPiece}");
+    }
 }
