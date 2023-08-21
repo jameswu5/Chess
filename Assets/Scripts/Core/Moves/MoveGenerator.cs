@@ -384,13 +384,11 @@ public class MoveGenerator
         ulong attacks = 0ul;
         foreach (int index in Bitboard.GetIndicesFromBitboard(pieceBoard))
         {
-            // we want to be able to x-ray the king so we don't consider it a blocker
-            ulong blockers = allPieces & ~(1ul << heroKingIndex);
-
             int offset = orthogonal ? 0 : 4;
             for (int i = offset; i < offset + 4; i++)
             {
-                attacks |= Bitboard.GetRayAttacks(hero, opponent, Direction.directions[i], index);
+                // we want to be able to x-ray the king so we don't consider it a blocker
+                attacks |= Bitboard.GetRayAttacks(hero, opponent, Direction.directions[i], index, heroKingIndex);
             }
         }
 
@@ -616,7 +614,7 @@ public class MoveGenerator
 
                 foreach (int start in Bitboard.GetIndicesFromBitboard(possiblePawns))
                 {
-                    if (!CheckIfPinned(start))
+                    if ((!CheckIfPinned(start) || Data.RayThroughSquares[start, heroKingIndex] == Data.RayThroughSquares[enPassantTarget, heroKingIndex]) && CheckEnPassant(start, enPassantTarget, capturedPawnIndex))
                     {
                         moves.Add(Move.Initialise(Move.EnPassant, start, enPassantTarget, Piece.Pawn, Piece.Pawn));
                     }
@@ -633,5 +631,25 @@ public class MoveGenerator
         moves.Add(Move.Initialise(Move.PromoteToRook, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
     }
 
+    // returns false if the king is in check after playing the en passant
+    bool CheckEnPassant(int start, int target, int captureSquare)
+    {
+        ulong opponentOrthogonalPieces = board.GetOrthogonalSlidingBitboard(opponentIndex);
 
+        if (opponentOrthogonalPieces != 0)
+        {
+            ulong blockers = allPieces ^ (1ul << start | 1ul << target | 1ul << captureSquare);
+            ulong attacks = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                int dir = Direction.directions[i];
+                attacks |= Bitboard.GetRayAttacks(blockers, dir, heroKingIndex);
+            }
+
+            return (opponentOrthogonalPieces & attacks) == 0;
+
+        }
+
+        return true;
+    }
 }

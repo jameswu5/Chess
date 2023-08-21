@@ -74,7 +74,7 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[12];
         colourBitboards = new ulong[2];
 
-        GenerateBoardStateFromFEN(FEN.PerftTest1);
+        GenerateBoardStateFromFEN(FEN.PerftTestPos3);
         //GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
         allLegalMoves = GetAllLegalMoves();
