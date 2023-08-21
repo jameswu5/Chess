@@ -24,6 +24,10 @@ public class Board : MonoBehaviour
 
     public int castlingRights;
     public Stack<int> castlingRightStates;
+    public const int WhiteKingsideRightMask  = 0b1000;
+    public const int WhiteQueensideRightMask = 0b0100;
+    public const int BlackKingsideRightMask  = 0b0010;
+    public const int BlackQueensideRightMask = 0b0001;
 
     public int[] kingIndices;
     public bool inCheck;
@@ -70,7 +74,7 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[12];
         colourBitboards = new ulong[2];
 
-        GenerateBoardStateFromFEN(FEN.PerftTest2);
+        GenerateBoardStateFromFEN(FEN.PerftTest1);
         //GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
         allLegalMoves = GetAllLegalMoves();
@@ -131,16 +135,16 @@ public class Board : MonoBehaviour
         foreach (char c in sections[2]) {
             switch (c) {
                 case 'K':
-                    ChangeCastlingRight(true, true, true);
+                    castlingRights |= WhiteKingsideRightMask;
                     break;
                 case 'Q':
-                    ChangeCastlingRight(true, false, true);
+                    castlingRights |= WhiteQueensideRightMask;
                     break;
                 case 'k':
-                    ChangeCastlingRight(false, true, true);
+                    castlingRights |= BlackKingsideRightMask;
                     break;
                 case 'q':
-                    ChangeCastlingRight(false, false, true);
+                    castlingRights |= BlackQueensideRightMask;
                     break;
                 default:
                     break;
@@ -204,19 +208,19 @@ public class Board : MonoBehaviour
 
         // castling rights
         StringBuilder castlingStringBuilder = new();
-        if ((castlingRights & 0b1000) > 0)
+        if ((castlingRights & WhiteKingsideRightMask) > 0)
         {
             castlingStringBuilder.Append("K");
         }
-        if ((castlingRights & 0b0100) > 0)
+        if ((castlingRights & WhiteQueensideRightMask) > 0)
         {
             castlingStringBuilder.Append("Q");
         }
-        if ((castlingRights & 0b0010) > 0)
+        if ((castlingRights & BlackKingsideRightMask) > 0)
         {
             castlingStringBuilder.Append("k");
         }
-        if ((castlingRights & 0b0001) > 0)
+        if ((castlingRights & BlackQueensideRightMask) > 0)
         {
             castlingStringBuilder.Append("q");
         }
@@ -382,40 +386,17 @@ public class Board : MonoBehaviour
 
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
         {
-
             // if piece is a king, then disable both castling rights
             if (GetPieceTypeAtIndex(startIndex) == Piece.King)
             {
                 if (CheckPieceIsWhite(startIndex))
                 {
-
-                    ChangeCastlingRight(true, true, false); // isWhite, isKingside, value
-                    ChangeCastlingRight(true, false, false);
-
+                    castlingRights &= 0b0011;
                 }
                 else
                 {
-                    ChangeCastlingRight(false, true, false);
-                    ChangeCastlingRight(false, false, false);
+                    castlingRights &= 0b1100;
                 }
-            }
-
-            // if piece is rook and in original position, disable castling right
-            if (startIndex == Square.a1 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
-            {
-                ChangeCastlingRight(true, false, false);
-            }
-            if (startIndex == Square.h1 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && CheckPieceIsWhite(startIndex))
-            {
-                ChangeCastlingRight(true, true, false);
-            }
-            if (startIndex == Square.a8 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
-            {
-                ChangeCastlingRight(false, false, false);
-            }
-            if (startIndex == Square.h8 && GetPieceTypeAtIndex(startIndex) == Piece.Rook && !CheckPieceIsWhite(startIndex))
-            {
-                ChangeCastlingRight(false, true, false);
             }
 
             PlacePiece(startIndex, endIndex, changeUI);
@@ -444,13 +425,11 @@ public class Board : MonoBehaviour
             // Disable castling rights
             if (isWhite)
             {
-                ChangeCastlingRight(true, true, false);
-                ChangeCastlingRight(true, false, false);
+                castlingRights &= 0b0011;
             }
             else
             {
-                ChangeCastlingRight(false, true, false);
-                ChangeCastlingRight(false, false, false);
+                castlingRights &= 0b1100;
             }
         }
 
@@ -529,6 +508,23 @@ public class Board : MonoBehaviour
         }
 
         // Update castling rights
+        if (startIndex == Square.a1 || endIndex == Square.a1)
+        {
+            castlingRights &= ~WhiteQueensideRightMask;
+        }
+        if (startIndex == Square.h1 || endIndex == Square.h1)
+        {
+            castlingRights &= ~WhiteKingsideRightMask;
+        }
+        if (startIndex == Square.a8 || endIndex == Square.a8)
+        {
+            castlingRights &= ~BlackQueensideRightMask;
+        }
+        if (startIndex == Square.h8 || endIndex == Square.h8)
+        {
+            castlingRights &= ~BlackKingsideRightMask;
+        }
+
         castlingRightStates.Push(castlingRights);
 
         // Update en passant target
@@ -586,39 +582,21 @@ public class Board : MonoBehaviour
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
 
-        Bitboard.Display(mg.checkRayMask);
-
     }
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
 
     private void ChangeTurn() => turn = turn == Piece.White ? Piece.Black : Piece.White;
 
-    private void ChangeCastlingRight(bool isWhite, bool isKingside, bool value)
-    {
-        int mask = 0b0001;
-        if (isWhite) mask <<= 2;
-        if (isKingside) mask <<= 1;
-
-        if (value)
-        {
-            castlingRights |= mask;
-        }
-        else
-        {
-            castlingRights &= ~mask;
-        }
-    }
-
     public bool CanCastleKingside(int colour)
     {
-        int mask = colour == Piece.White ? 0b1000 : 0b0010;
+        int mask = colour == Piece.White ? WhiteKingsideRightMask : BlackKingsideRightMask;
         return (castlingRights & mask) > 0;
     }
 
     public bool CanCastleQueenside(int colour)
     {
-        int mask = colour == Piece.White ? 0b0100 : 0b0001;
+        int mask = colour == Piece.White ? WhiteQueensideRightMask : BlackQueensideRightMask;
         return (castlingRights & mask) > 0;
     }
 
