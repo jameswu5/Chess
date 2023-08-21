@@ -352,16 +352,12 @@ public static class Bitboard
     }
 
     // Takes blockers into consideration.
-    public static ulong GetRayAttacks(ulong hero, ulong opponent, int direction, int squareIndex, int ignoreIndex = -1) {
+    public static ulong GetRayAttacks(ulong hero, ulong opponent, int direction, int squareIndex, ulong ignore = 0) {
 
         int dirIndex = Direction.GetIndexFromDirection(direction);
         ulong attacks = Data.RayAttacks[dirIndex][squareIndex];
 
-        ulong blockers = attacks & (hero | opponent);
-        if (ignoreIndex != -1)
-        {
-            blockers &= ~(1ul << ignoreIndex);
-        }
+        ulong blockers = attacks & (hero | opponent) & ~ignore;
 
         if (blockers > 0) {
             int blocker = direction > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
@@ -373,21 +369,6 @@ public static class Bitboard
             if ((block & hero) > 0) {
                 attacks &= ~block;
             }
-        }
-
-        return attacks;
-    }
-
-    // these blockers are included in the attacks
-    public static ulong GetRayAttacks(ulong blockers, int direction, int squareIndex)
-    {
-        int dirIndex = Direction.GetIndexFromDirection(direction); // can be optimised?
-        ulong attacks = Data.RayAttacks[dirIndex][squareIndex];
-
-        if (blockers > 0)
-        {
-            int blocker = direction > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
-            attacks ^= Data.RayAttacks[dirIndex][blocker];
         }
 
         return attacks;

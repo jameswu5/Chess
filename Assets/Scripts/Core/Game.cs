@@ -36,8 +36,7 @@ public class Game : MonoBehaviour
 
         StartNewGamePlayerVsPlayer();
 
-        Perft.Test(board, 4);
-
+        Perft.SearchWithBreakdown(board, 5);
     }
 
 

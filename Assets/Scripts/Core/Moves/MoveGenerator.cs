@@ -388,7 +388,7 @@ public class MoveGenerator
             for (int i = offset; i < offset + 4; i++)
             {
                 // we want to be able to x-ray the king so we don't consider it a blocker
-                attacks |= Bitboard.GetRayAttacks(hero, opponent, Direction.directions[i], index, heroKingIndex);
+                attacks |= Bitboard.GetRayAttacks(hero, opponent, Direction.directions[i], index, 1ul << heroKingIndex);
             }
         }
 
@@ -638,12 +638,12 @@ public class MoveGenerator
 
         if (opponentOrthogonalPieces != 0)
         {
-            ulong blockers = allPieces ^ (1ul << start | 1ul << target | 1ul << captureSquare);
+            ulong ignore = 1ul << start | 1ul << target | 1ul << captureSquare;
             ulong attacks = 0;
             for (int i = 0; i < 4; i++)
             {
                 int dir = Direction.directions[i];
-                attacks |= Bitboard.GetRayAttacks(blockers, dir, heroKingIndex);
+                attacks |= Bitboard.GetRayAttacks(hero, opponent, dir, heroKingIndex, ignore);
             }
 
             return (opponentOrthogonalPieces & attacks) == 0;
