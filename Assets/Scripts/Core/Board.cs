@@ -74,8 +74,7 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[12];
         colourBitboards = new ulong[2];
 
-        GenerateBoardStateFromFEN(FEN.PerftTestPos3);
-        //GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
         allLegalMoves = GetAllLegalMoves();
 
@@ -581,7 +580,6 @@ public class Board : MonoBehaviour
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
-
     }
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);

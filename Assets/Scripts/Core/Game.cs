@@ -35,8 +35,6 @@ public class Game : MonoBehaviour
         bot = new Bot();
 
         StartNewGamePlayerVsPlayer();
-
-        Perft.SearchWithBreakdown(board, 5);
     }
 
 

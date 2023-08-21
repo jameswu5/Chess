@@ -331,7 +331,7 @@ public class MoveGenerator
         foreach (int knightSquare in Bitboard.GetIndicesFromBitboard(knights))
         {
             knightAttacks |= Data.KnightAttacks[knightSquare];
-            if ((knightAttacks & heroKingBitboard) > 0)
+            if ((Data.KnightAttacks[knightSquare] & heroKingBitboard) > 0)
             {
                 inDoubleCheck = inCheck;
                 inCheck = true;
