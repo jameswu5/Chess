@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public static class Data
 {
-    public static ulong[] NorthAttacks =
+    public static readonly ulong[] NorthAttacks =
     {
         72340172838076672,
         144680345676153344,
@@ -72,7 +72,7 @@ public static class Data
         0
     };
 
-    public static ulong[] SouthAttacks =
+    public static readonly ulong[] SouthAttacks =
     {
         0,
         0,
@@ -140,7 +140,7 @@ public static class Data
         36170086419038336
     };
 
-    public static ulong[] EastAttacks =
+    public static readonly ulong[] EastAttacks =
     {
         254,
         252,
@@ -208,7 +208,7 @@ public static class Data
         0
     };
 
-    public static ulong[] WestAttacks =
+    public static readonly ulong[] WestAttacks =
     {
         0,
         1,
@@ -276,7 +276,7 @@ public static class Data
         9151314442816847872
     };
 
-    public static ulong[] NorthWestAttacks =
+    public static readonly ulong[] NorthWestAttacks =
     {
         0,
         256,
@@ -344,7 +344,7 @@ public static class Data
         0
     };
 
-    public static ulong[] SouthWestAttacks =
+    public static readonly ulong[] SouthWestAttacks =
     {
         0,
         0,
@@ -412,7 +412,7 @@ public static class Data
         18049651735527937
     };
 
-    public static ulong[] NorthEastAttacks =
+    public static readonly ulong[] NorthEastAttacks =
     {
         9241421688590303744,
         36099303471055872,
@@ -480,7 +480,7 @@ public static class Data
         0
     };
 
-    public static ulong[] SouthEastAttacks =
+    public static readonly ulong[] SouthEastAttacks =
     {
         0,
         0,
@@ -548,9 +548,9 @@ public static class Data
         0
     };
 
-    public static ulong[][] RayAttacks = { NorthAttacks, SouthAttacks, EastAttacks, WestAttacks, NorthWestAttacks, SouthWestAttacks, NorthEastAttacks, SouthEastAttacks };
+    public static readonly ulong[][] RayAttacks = { NorthAttacks, SouthAttacks, EastAttacks, WestAttacks, NorthWestAttacks, SouthWestAttacks, NorthEastAttacks, SouthEastAttacks };
 
-    public static ulong[] KnightAttacks =
+    public static readonly ulong[] KnightAttacks =
     {
         132096,
         329728,
@@ -618,7 +618,7 @@ public static class Data
         9077567998918656
     };
 
-    public static ulong[] KingAttacks =
+    public static readonly ulong[] KingAttacks =
     {
         770,
         1797,
@@ -686,7 +686,7 @@ public static class Data
         4665729213955833856
     };
 
-    public static ulong[] WhitePawnAttacks =
+    public static readonly ulong[] WhitePawnAttacks =
     {
         512,
         1280,
@@ -754,7 +754,7 @@ public static class Data
         0
     };
 
-    public static ulong[] BlackPawnAttacks =
+    public static readonly ulong[] BlackPawnAttacks =
     {
         0,
         0,
@@ -822,9 +822,9 @@ public static class Data
         18014398509481984,
     };
 
-    public static ulong[][] PawnAttacks = { WhitePawnAttacks, BlackPawnAttacks };
+    public static readonly ulong[][] PawnAttacks = { WhitePawnAttacks, BlackPawnAttacks };
 
-    public static ulong[] WhitePawnPushes =
+    public static readonly ulong[] WhitePawnPushes =
     {
         256,
         512,
@@ -892,7 +892,7 @@ public static class Data
         0
     };
 
-    public static ulong[] BlackPawnPushes =
+    public static readonly ulong[] BlackPawnPushes =
     {
         0,
         0,
@@ -960,9 +960,9 @@ public static class Data
         36028797018963968
     };
 
-    public static ulong[][] PawnPushes = { WhitePawnPushes, BlackPawnPushes };
+    public static readonly ulong[][] PawnPushes = { WhitePawnPushes, BlackPawnPushes };
 
-    public static int[,] SquaresFromEdge =
+    public static readonly int[,] SquaresFromEdge =
     {
         { 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7 },
@@ -974,7 +974,7 @@ public static class Data
         { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2, 1, 0, 3, 3, 3, 3, 3, 2, 1, 0, 4, 4, 4, 4, 3, 2, 1, 0, 5, 5, 5, 4, 3, 2, 1, 0, 6, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0 }
     };
 
-    public static ulong[,] RayThroughSquares =
+    public static readonly ulong[,] RayThroughSquares =
     {
         { 0, 255, 255, 255, 255, 255, 255, 255, 72340172838076673, 9241421688590303745, 0, 0, 0, 0, 0, 0, 72340172838076673, 0, 9241421688590303745, 0, 0, 0, 0, 0, 72340172838076673, 0, 0, 9241421688590303745, 0, 0, 0, 0, 72340172838076673, 0, 0, 0, 9241421688590303745, 0, 0, 0, 72340172838076673, 0, 0, 0, 0, 9241421688590303745, 0, 0, 72340172838076673, 0, 0, 0, 0, 0, 9241421688590303745, 0, 72340172838076673, 0, 0, 0, 0, 0, 0, 9241421688590303745 },
         { 255, 0, 255, 255, 255, 255, 255, 255, 258, 144680345676153346, 36099303471055874, 0, 0, 0, 0, 0, 0, 144680345676153346, 0, 36099303471055874, 0, 0, 0, 0, 0, 144680345676153346, 0, 0, 36099303471055874, 0, 0, 0, 0, 144680345676153346, 0, 0, 0, 36099303471055874, 0, 0, 0, 144680345676153346, 0, 0, 0, 0, 36099303471055874, 0, 0, 144680345676153346, 0, 0, 0, 0, 0, 36099303471055874, 0, 144680345676153346, 0, 0, 0, 0, 0, 0 },

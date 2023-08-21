@@ -4,25 +4,27 @@ using System.Collections.Generic;
 public class MoveGenerator
 {
     public bool inCheck;
-    public bool inDoubleCheck;
+    private bool inDoubleCheck;
 
-    public ulong checkRayMask;
-    public ulong pinRays;
+    private ulong checkMask;
+    private ulong pinRays;
 
-    int heroColour;
-    int heroIndex;
-    int opponentIndex;
-    int heroKingIndex;
-    int opponentKingIndex;
+    private int heroColour;
+    private int heroIndex;
+    private int opponentIndex;
+    private int heroKingIndex;
+    private int opponentKingIndex;
 
-    ulong hero;
-    ulong opponent;
-    ulong allPieces;
-    ulong emptySquares;
+    private ulong hero;
+    private ulong opponent;
+    private ulong allPieces;
+    private ulong emptySquares;
 
-    ulong opponentAttacks;
+    private ulong opponentAttacks;
 
-    Board board;
+    private Board board;
+
+    private bool CheckIfPinned(int index) => (pinRays & (1ul << index)) > 0;
 
     public List<int> GenerateMoves(Board board)
     {
@@ -43,12 +45,11 @@ public class MoveGenerator
         return moves;
     }
 
-
-    void Initialise()
+    private void Initialise()
     {
         inCheck = false;
         inDoubleCheck = false;
-        checkRayMask = 0ul;
+        checkMask = 0ul;
         pinRays = 0ul;
 
         heroColour = board.turn;
@@ -66,182 +67,10 @@ public class MoveGenerator
         GetAttackData();
     }
 
-
-    // Pseudolegal moves
-
     // hero -> bitboard of pieces of your own piece
     // opponent -> bitboard of pieces of opponent's piece
 
-    public static HashSet<int> GetSlideMoves(int index, int pieceType, ulong hero, ulong opponent, int[] boardState)
-    {
-        HashSet<int> legalMoves = new();
-
-        if (pieceType == Piece.Rook || pieceType == Piece.Queen)
-        {
-            // first 4 are orthogonal directions
-            for (int i = 0; i < 4; i++)
-            {
-                int direction = Direction.directions[i];
-                ulong rayAttacks = Bitboard.GetRayAttacks(hero, opponent, direction, index);
-                foreach (int target in Bitboard.GetIndicesFromBitboard(rayAttacks))
-                {
-                    legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Rook, Piece.GetPieceType(boardState[target])));
-                }
-            }
-        }
-        if (pieceType == Piece.Bishop || pieceType == Piece.Queen)
-        {
-            // last 4 are diagonal directions
-            for (int i = 4; i < 8; i++)
-            {
-                int direction = Direction.directions[i];
-                ulong rayAttacks = Bitboard.GetRayAttacks(hero, opponent, direction, index);
-                foreach (int target in Bitboard.GetIndicesFromBitboard(rayAttacks))
-                {
-                    legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Rook, Piece.GetPieceType(boardState[target])));
-                }
-            }
-
-        }
-        return legalMoves;
-    }
-
-    public static HashSet<int> GetKnightMoves(int index, ulong hero, int[] boardState)
-    {
-        HashSet<int> legalMoves = new();
-
-        ulong knightAttacks = Data.KnightAttacks[index] & ~hero;
-
-        foreach (int target in Bitboard.GetIndicesFromBitboard(knightAttacks))
-        {
-            legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Knight, Piece.GetPieceType(boardState[target])));
-        }
-
-        return legalMoves;
-    }
-
-    public static HashSet<int> GetKingMoves(int index, ulong hero, int castlingRights, int[] boardState)
-    {
-        HashSet<int> legalMoves = new();
-        ulong kingAttacks = Data.KingAttacks[index] & ~hero;
-        bool pieceIsWhite = Piece.IsColour(boardState[index], Piece.White);
-
-        foreach (int target in Bitboard.GetIndicesFromBitboard(kingAttacks))
-        {
-            legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.King, Piece.GetPieceType(boardState[target])));
-        }
-
-        // Castling
-
-        if (pieceIsWhite && index == Square.e1) // king is in original position
-        {
-            if ((castlingRights & 0b1000) > 0 && boardState[Square.h1] == Piece.White + Piece.Rook
-                && boardState[Square.f1] == Piece.None && boardState[Square.g1] == Piece.None)
-            {
-                // can castle kingside
-                legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
-            }
-            if ((castlingRights & 0b0100) > 0 && boardState[Square.a1] == Piece.White + Piece.Rook
-                && boardState[Square.b1] == Piece.None && boardState[Square.c1] == Piece.None && boardState[Square.d1] == Piece.None)
-            {
-                // can castle queenside
-                legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
-
-            }
-        }
-        else if (!pieceIsWhite && index == 60)
-        {
-            if ((castlingRights & 0b0010) > 0 && boardState[Square.h8] == Piece.Black + Piece.Rook
-                && boardState[Square.f8] == Piece.None && boardState[Square.g8] == Piece.None)
-            {
-                legalMoves.Add(Move.Initialise(Move.Castling, index, index + 2, Piece.King, Piece.None));
-
-            }
-            if ((castlingRights & 0b0001) > 0 && boardState[Square.a8] == Piece.Black + Piece.Rook
-                && boardState[Square.b8] == Piece.None && boardState[Square.c8] == Piece.None && boardState[Square.d8] == Piece.None)
-            {
-                legalMoves.Add(Move.Initialise(Move.Castling, index, index - 2, Piece.King, Piece.None));
-            }
-        }
-
-        return legalMoves;
-    }
-
-    public static HashSet<int> GetPawnMoves(int index, int colourIndex, ulong hero, ulong opponent, int[] boardState, int enPassantTarget)
-    {
-        HashSet<int> legalMoves = new();
-
-        // pushes
-        int direction = colourIndex == 0 ? 8 : -8;
-
-        ulong pawnPushes = Data.PawnPushes[colourIndex][index] & ~hero & ~opponent;
-        ulong pawnAttacks = Data.PawnAttacks[colourIndex][index] & opponent;
-
-        bool promote = ((pawnPushes | pawnAttacks) & (Bitboard.Rank1 | Bitboard.Rank8)) > 0;
-
-        foreach (int target in Bitboard.GetIndicesFromBitboard(pawnPushes))
-        {
-            if (Math.Abs(target - index) == 16)
-            {
-                if (boardState[index + direction] == Piece.None)
-                {
-                    legalMoves.Add(Move.Initialise(Move.PawnTwoSquares, index, target, Piece.Pawn, Piece.None));
-                }
-            }
-            else if (promote)
-            {
-                legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, target, Piece.Pawn, Piece.None));
-                legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, target, Piece.Pawn, Piece.None));
-                legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, target, Piece.Pawn, Piece.None));
-                legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.None));
-            }
-            else
-            {
-                legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.None));
-            }
-        }
-
-        // captures
-
-        foreach (int target in Bitboard.GetIndicesFromBitboard(pawnAttacks))
-        {
-
-            // Problem:
-            // If I include the en passant code further down, boardState[target] can hold Piece.None and still make it to this
-            // part of the code. As a result you can move a pawn diagonally without capturing. I am suspicious this is because I make every move
-            // possible to check if the king is attacked.
-
-            // Here is a plaster solution where I just enforce that there must be a piece at that square. Hopefully when I rewrite
-            // legal move generation this else if statement (*) can be removed and replaced with just else
-
-
-            if (promote)
-            {
-                legalMoves.Add(Move.Initialise(Move.PromoteToBishop, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-                legalMoves.Add(Move.Initialise(Move.PromoteToKnight, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-                legalMoves.Add(Move.Initialise(Move.PromoteToQueen, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-                legalMoves.Add(Move.Initialise(Move.PromoteToRook, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-
-            }
-            else if (boardState[target] != Piece.None) // (*)
-            {
-                legalMoves.Add(Move.Initialise(Move.Standard, index, target, Piece.Pawn, Piece.GetPieceType(boardState[target])));
-            }
-
-        }
-
-        // en passant
-
-        if (enPassantTarget != -1 && (Data.PawnAttacks[colourIndex][index] & (1ul << enPassantTarget)) > 0)
-        {
-            legalMoves.Add(Move.Initialise(Move.EnPassant, index, enPassantTarget, Piece.Pawn, Piece.Pawn));
-        }
-
-        return legalMoves;
-    }
-
-
-    void GetAttackData()
+    private void GetAttackData()
     {
         // sliding pieces
 
@@ -249,7 +78,6 @@ public class MoveGenerator
         opponentAttacks = GetAttackBitboardSlidingPieces(opponentIndex);
 
         // look for pinned pieces
-
         int start = 0;
         int end = 8;
 
@@ -304,7 +132,7 @@ public class MoveGenerator
                         // no pieces blocking the attack so we are in check
                         else
                         {
-                            checkRayMask |= rayMask;
+                            checkMask |= rayMask;
                             inDoubleCheck = inCheck;
                             inCheck = true;
                         }
@@ -312,7 +140,6 @@ public class MoveGenerator
 
                     // we don't need to look any further as we have found a piece
                     break;
-
                 }
             }
 
@@ -321,9 +148,7 @@ public class MoveGenerator
                 break;
         }
 
-
         // knights
-
         ulong knightAttacks = 0ul;
         ulong knights = board.GetPieceBitboard(Piece.Knight, opponentIndex);
         ulong heroKingBitboard = board.GetPieceBitboard(Piece.King, heroIndex);
@@ -335,14 +160,13 @@ public class MoveGenerator
             {
                 inDoubleCheck = inCheck;
                 inCheck = true;
-                checkRayMask |= 1ul << knightSquare;
+                checkMask |= 1ul << knightSquare;
             }
         }
 
         opponentAttacks |= knightAttacks;
 
         // pawns
-
         ulong pawns = board.GetPieceBitboard(Piece.Pawn, opponentIndex);
         ulong pawnAttacks = 0ul;
 
@@ -353,7 +177,7 @@ public class MoveGenerator
             {
                 inDoubleCheck = inCheck;
                 inCheck = true;
-                checkRayMask |= 1ul << pawnSquare;
+                checkMask |= 1ul << pawnSquare;
             }
         }
 
@@ -362,15 +186,14 @@ public class MoveGenerator
         // opponent king
         opponentAttacks |= Data.KingAttacks[opponentKingIndex];
 
-
         // If not in check we have no restrictions in move choice
         if (!inCheck)
         {
-            checkRayMask = ulong.MaxValue;
+            checkMask = ulong.MaxValue;
         }
     }
 
-    ulong GetAttackBitboardSlidingPieces(int colourIndex)
+    private ulong GetAttackBitboardSlidingPieces(int colourIndex)
     {
         ulong attacks = 0ul;
         attacks |= GetSlidingAttacks(board.GetDiagonalSlidingBitboard(colourIndex), false);
@@ -379,7 +202,7 @@ public class MoveGenerator
         return attacks;
     }
 
-    ulong GetSlidingAttacks(ulong pieceBoard, bool orthogonal)
+    private ulong GetSlidingAttacks(ulong pieceBoard, bool orthogonal)
     {
         ulong attacks = 0ul;
         foreach (int index in Bitboard.GetIndicesFromBitboard(pieceBoard))
@@ -388,17 +211,14 @@ public class MoveGenerator
             for (int i = offset; i < offset + 4; i++)
             {
                 // we want to be able to x-ray the king so we don't consider it a blocker
-                attacks |= Bitboard.GetRayAttacks(hero, opponent, Direction.directions[i], index, 1ul << heroKingIndex);
+                attacks |= Bitboard.GetRayAttacks(hero, opponent, i, index, 1ul << heroKingIndex);
             }
         }
 
         return attacks;
     }
 
-    bool CheckIfPinned(int index) => (pinRays & (1ul << index)) > 0;
-
-
-    void GenerateKingMoves(List<int> moves)
+    private void GenerateKingMoves(List<int> moves)
     {
         ulong kingMoves = Data.KingAttacks[heroKingIndex] & ~(opponentAttacks | hero);
         foreach (int target in Bitboard.GetIndicesFromBitboard(kingMoves))
@@ -411,7 +231,8 @@ public class MoveGenerator
         {
             ulong blockers = opponentAttacks | allPieces;
 
-            if (board.CanCastleKingside(heroColour)) // implies king is in original position
+            // If we have castling rights, then it implies the king and rook are in their original position
+            if (board.CanCastleKingside(heroColour))
             {
                 ulong castleMask = heroColour == Piece.White ? Bitboard.WhiteKingsideMask : Bitboard.BlackKingsideMask;
                 if ((castleMask & blockers) == 0)
@@ -434,10 +255,9 @@ public class MoveGenerator
         }
     }
 
-
-    void GenerateSlidingMoves(List<int> moves)
+    private void GenerateSlidingMoves(List<int> moves)
     {
-        ulong legalSquares = ~hero & checkRayMask;
+        ulong legalSquares = ~hero & checkMask;
         ulong orthogonalPieces = board.GetOrthogonalSlidingBitboard(heroIndex);
         ulong diagonalPieces = board.GetDiagonalSlidingBitboard(heroIndex);
 
@@ -453,7 +273,7 @@ public class MoveGenerator
             // This can be optimised with another lookup table maybe?
             for (int d = 0; d < 4; d++)
             {
-                ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, Direction.directions[d], index) & legalSquares;
+                ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, d, index) & legalSquares;
 
                 if (CheckIfPinned(index))
                 {
@@ -472,8 +292,7 @@ public class MoveGenerator
         {
             for (int d = 4; d < 8; d++)
             {
-                ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, Direction.directions[d], index) & legalSquares;
-
+                ulong targetSquares = Bitboard.GetRayAttacks(hero, opponent, d, index) & legalSquares;
 
                 if (CheckIfPinned(index))
                 {
@@ -486,12 +305,11 @@ public class MoveGenerator
                 }
             }
         }
-
     }
 
-    void GenerateKnightMoves(List<int> moves)
+    private void GenerateKnightMoves(List<int> moves)
     {
-        ulong legalSquares = ~hero & checkRayMask;
+        ulong legalSquares = ~hero & checkMask;
         ulong knights = board.GetPieceBitboard(Piece.Knight, heroIndex) & ~pinRays;
 
         foreach (int index in Bitboard.GetIndicesFromBitboard(knights))
@@ -505,7 +323,7 @@ public class MoveGenerator
         }
     }
 
-    void GeneratePawnMoves(List<int> moves)
+    private void GeneratePawnMoves(List<int> moves)
     {
         int dir = heroColour == Piece.White ? 1 : -1;
         int offset = dir * 8;
@@ -513,16 +331,15 @@ public class MoveGenerator
 
         ulong promotionMask = heroColour == Piece.White ? Bitboard.Rank8 : Bitboard.Rank1;
 
-        // ulong singlePush = Bitboard.ShiftLeft(pawns, offset) & emptySquares & checkRayMask;
         ulong singlePush = Bitboard.ShiftLeft(pawns, offset) & emptySquares;
-        ulong promotions = singlePush & promotionMask & checkRayMask;
-        ulong singlePushNoPromotion = singlePush & ~promotionMask & checkRayMask;
+        ulong promotions = singlePush & promotionMask & checkMask;
+        ulong singlePushNoPromotion = singlePush & ~promotionMask & checkMask;
 
         ulong edgeMask1 = heroColour == Piece.White ? Bitboard.FileA : Bitboard.FileH;
         ulong edgeMask2 = heroColour == Piece.White ? Bitboard.FileH : Bitboard.FileA;
 
-        ulong capture1 = Bitboard.ShiftLeft(pawns & ~edgeMask1, dir * 7) & opponent & checkRayMask;
-        ulong capture2 = Bitboard.ShiftLeft(pawns & ~edgeMask2, dir * 9) & opponent & checkRayMask;
+        ulong capture1 = Bitboard.ShiftLeft(pawns & ~edgeMask1, dir * 7) & opponent & checkMask;
+        ulong capture2 = Bitboard.ShiftLeft(pawns & ~edgeMask2, dir * 9) & opponent & checkMask;
 
         ulong promotions1 = capture1 & promotionMask;
         ulong promotions2 = capture2 & promotionMask;
@@ -543,7 +360,7 @@ public class MoveGenerator
 
         // double pushes
         ulong doublePushMask = heroColour == Piece.White ? Bitboard.Rank4 : Bitboard.Rank5;
-        ulong doublePush = Bitboard.ShiftLeft(singlePush, offset) & emptySquares & doublePushMask & checkRayMask;
+        ulong doublePush = Bitboard.ShiftLeft(singlePush, offset) & emptySquares & doublePushMask & checkMask;
 
         foreach (int target in Bitboard.GetIndicesFromBitboard(doublePush))
         {
@@ -608,7 +425,7 @@ public class MoveGenerator
         {
             int capturedPawnIndex = enPassantTarget - offset;
 
-            if ((checkRayMask & (1ul << capturedPawnIndex)) > 0)
+            if ((checkMask & (1ul << capturedPawnIndex)) > 0)
             {
                 ulong possiblePawns = pawns & Data.PawnAttacks[opponentIndex][enPassantTarget];
 
@@ -623,7 +440,7 @@ public class MoveGenerator
         }
     }
 
-    void AddPromotions(int start, int target, List<int> moves)
+    private void AddPromotions(int start, int target, List<int> moves)
     {
         moves.Add(Move.Initialise(Move.PromoteToBishop, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
         moves.Add(Move.Initialise(Move.PromoteToKnight, start, target, Piece.Pawn, board.GetPieceTypeAtIndex(target)));
@@ -632,7 +449,7 @@ public class MoveGenerator
     }
 
     // returns false if the king is in check after playing the en passant
-    bool CheckEnPassant(int start, int target, int captureSquare)
+    private bool CheckEnPassant(int start, int target, int captureSquare)
     {
         ulong opponentOrthogonalPieces = board.GetOrthogonalSlidingBitboard(opponentIndex);
 
@@ -642,8 +459,7 @@ public class MoveGenerator
             ulong attacks = 0;
             for (int i = 0; i < 4; i++)
             {
-                int dir = Direction.directions[i];
-                attacks |= Bitboard.GetRayAttacks(hero, opponent, dir, heroKingIndex, ignore);
+                attacks |= Bitboard.GetRayAttacks(hero, opponent, i, heroKingIndex, ignore);
             }
 
             return (opponentOrthogonalPieces & attacks) == 0;

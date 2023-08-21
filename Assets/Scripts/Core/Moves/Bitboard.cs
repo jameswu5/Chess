@@ -128,7 +128,6 @@ public static class Bitboard
         }
 
         return pushes;
-
     }
 
     public static ulong GenerateKnightAttacks(int startIndex)
@@ -170,7 +169,6 @@ public static class Bitboard
 
     private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {
-
         int[] north = { Direction.NW, Direction.N, Direction.NE };
         int[] east = { Direction.NE, Direction.E, Direction.SE };
         int[] south = { Direction.SW, Direction.S, Direction.SE };
@@ -313,8 +311,6 @@ public static class Bitboard
         return result;
     }
 
-
-
     // Gets the position of the least significant bit that is a 1
     private static int BitScanForward(ulong data)
     {
@@ -352,15 +348,12 @@ public static class Bitboard
     }
 
     // Takes blockers into consideration.
-    public static ulong GetRayAttacks(ulong hero, ulong opponent, int direction, int squareIndex, ulong ignore = 0) {
-
-        int dirIndex = Direction.GetIndexFromDirection(direction);
+    public static ulong GetRayAttacks(ulong hero, ulong opponent, int dirIndex, int squareIndex, ulong ignore = 0) {
         ulong attacks = Data.RayAttacks[dirIndex][squareIndex];
-
         ulong blockers = attacks & (hero | opponent) & ~ignore;
 
         if (blockers > 0) {
-            int blocker = direction > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
+            int blocker = Direction.directions[dirIndex] > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
             ulong block = ShiftLeft(1ul, blocker);
             
             attacks ^= Data.RayAttacks[dirIndex][blocker];
@@ -384,7 +377,6 @@ public static class Bitboard
     }
 
     // For testing only
-
     public static ulong CreateBitboard(IEnumerable<int> occupiedIndices)
     {
         ulong bitboard = 0;

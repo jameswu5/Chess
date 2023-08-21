@@ -19,7 +19,6 @@ public class Human : Player
 
     public override void Update()
     {
-
         if (Input.GetMouseButtonDown(1))
         {
             // This is broken when you try to play a bot
@@ -38,10 +37,9 @@ public class Human : Player
                 HandlePromotionInput(board.inPromotionScreen);
             }
         }
-
     }
 
-    public void HandleInput()
+    void HandleInput()
     {
         Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
 
@@ -60,7 +58,7 @@ public class Human : Player
         }
     }
 
-    public void HandleInputIdle(Vector2 mousePosition)
+    void HandleInputIdle(Vector2 mousePosition)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -79,11 +77,10 @@ public class Human : Player
                     boardUI.HighlightOptions(legalMoves);
                 }
             }
-
         }
     }
 
-    public void HandleInputSelecting(Vector2 mousePosition)
+    void HandleInputSelecting(Vector2 mousePosition)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -91,15 +88,7 @@ public class Human : Player
 
             if (newIndex != pieceIndex && newIndex != -1)
             {
-
-                if (board.CheckNeedForPromotion(pieceIndex, newIndex) && board.CheckPieceCanMoveThere(pieceIndex, newIndex))
-                {
-                    board.EnablePromotionScreen(newIndex);
-                }
-                else
-                {
-                    board.TryToPlacePiece(pieceIndex, newIndex);
-                }
+                board.TryToPlacePiece(pieceIndex, newIndex);
             }
 
             currentState = InputState.Idle;
@@ -108,7 +97,7 @@ public class Human : Player
         }
     }
 
-    public void HandleInputDragging(Vector2 mousePosition)
+    void HandleInputDragging(Vector2 mousePosition)
     {
         boardUI.DragPiece(pieceIndex, mousePosition, dragOffset);
         int newIndex = GetIndexFromMousePosition(mousePosition);
@@ -132,17 +121,8 @@ public class Human : Player
             {
                 if (newIndex != -1) // Trying to place at another square
                 {
-
-                    if (board.CheckNeedForPromotion(pieceIndex, newIndex) && board.CheckPieceCanMoveThere(pieceIndex, newIndex))
-                    {
-                        board.EnablePromotionScreen(newIndex);
-                    }
-                    else
-                    {
-                        board.TryToPlacePiece(pieceIndex, newIndex);
-                        boardUI.UnHighlightHover(newIndex);
-                    }
-
+                    board.TryToPlacePiece(pieceIndex, newIndex);
+                    boardUI.UnHighlightHover(newIndex);
                 }
                 else // Trying to place out of bounds
                 {
@@ -159,7 +139,7 @@ public class Human : Player
         }
     }
 
-    public void HandlePromotionInput(int promotionIndex)
+    void HandlePromotionInput(int promotionIndex)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -188,23 +168,20 @@ public class Human : Player
                     board.inPromotionScreen = -1;
                     break;
             }
-            
         }
     }
 
-    public int GetIndexFromMousePosition(Vector2 mousePosition)
+    int GetIndexFromMousePosition(Vector2 mousePosition)
     {
         if (mousePosition.x >= -0.5f && mousePosition.x <= 7.5 && mousePosition.y >= -0.5f && mousePosition.y <= 7.5f)
         {
             return Mathf.RoundToInt(mousePosition.y) * 8 + Mathf.RoundToInt(mousePosition.x);
         }
-        else
-        {
-            return -1; // clicked somewhere not on the board
-        }
+
+        return -1; // clicked somewhere not on the board
     }
 
-    public void CancelMove()
+    void CancelMove()
     {
         if (currentState != InputState.Idle)
         {
@@ -225,6 +202,4 @@ public class Human : Player
 
         currentState = InputState.Idle;
     }
-
-
 }

@@ -25,25 +25,25 @@ public class Board : MonoBehaviour
 
     public int castlingRights;
     public Stack<int> castlingRightStates;
-    public const int WhiteKingsideRightMask  = 0b1000;
-    public const int WhiteQueensideRightMask = 0b0100;
-    public const int BlackKingsideRightMask  = 0b0010;
-    public const int BlackQueensideRightMask = 0b0001;
+    private const int WhiteKingsideRightMask  = 0b1000;
+    private const int WhiteQueensideRightMask = 0b0100;
+    private const int BlackKingsideRightMask  = 0b0010;
+    private const int BlackQueensideRightMask = 0b0001;
 
     public int[] kingIndices;
     public bool inCheck;
 
-    public int fiftyMoveCounter;
-    public Stack<int> fiftyMoveCounters;
-    public int moveNumber;
+    private int fiftyMoveCounter;
+    private Stack<int> fiftyMoveCounters;
+    private int moveNumber;
 
     public int inPromotionScreen;
     public int enPassantTarget;
-    public Stack<int> enPassantTargets;
+    private Stack<int> enPassantTargets;
 
-    public Stack<int> gameMoves;
-    public Stack<string> boardPositions;
-    Dictionary<string, int> boardStrings;
+    private Stack<int> gameMoves;
+    private Stack<string> boardPositions;
+    private Dictionary<string, int> boardStrings;
 
     public ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
     public ulong[] colourBitboards; // 0: white | 1: black
@@ -85,17 +85,7 @@ public class Board : MonoBehaviour
         Game.UpdateEndOfGameScreen(gameResult, turn);
     }
 
-
     private void GenerateBoardStateFromFEN(string FENPosition = FEN.standard) {
-        Dictionary<char, int> pieceTypes = new Dictionary<char, int>() {
-            {'K', Piece.King},
-            {'Q', Piece.Queen},
-            {'B', Piece.Bishop},
-            {'N', Piece.Knight},
-            {'R', Piece.Rook},
-            {'P', Piece.Pawn},
-        };
-
         int rank = 7;
         int file = 0;
 
@@ -111,7 +101,7 @@ public class Board : MonoBehaviour
                 file += c - '0';
             } else {
                 int pieceColour = char.IsUpper(c) ? Piece.White : Piece.Black;
-                int pieceType = pieceTypes[char.ToUpper(c)];
+                int pieceType = Piece.pieceTypes[char.ToUpper(c)];
                 int index = (rank << 3) + file;
 
                 int pieceID = pieceColour + pieceType;
@@ -269,22 +259,29 @@ public class Board : MonoBehaviour
                 DisablePromotionScreen();
             }
         }
-        else
+        else if (inPromotionScreen == -1)
         {
             boardUI.MovePieceToSquare(index, index);
         }
     }
 
-    public int TryToGetMove(int index, int newIndex, int promotionType)
+    private int TryToGetMove(int index, int newIndex, int promotionType)
     {
         foreach (int move in legalMoves)
         {
             if (Move.GetStartIndex(move) == index && Move.GetEndIndex(move) == newIndex)
             {
                 int moveType = Move.GetMoveType(move);
+
+
                 switch (promotionType)
                 {
                     case Piece.None:
+                        if (Move.IsPromotionMove(moveType))
+                        {
+                            EnablePromotionScreen(newIndex);
+                            return 0;
+                        }
                         return move;
                     case Piece.Queen:
                         if (moveType == Move.PromoteToQueen)
@@ -312,7 +309,7 @@ public class Board : MonoBehaviour
         return 0; // null move
     }
 
-    public void PlacePiece(int index, int newIndex, bool changeUI)
+    private void PlacePiece(int index, int newIndex, bool changeUI)
     {
         int selectedPiece = boardState[index];
         boardState[index] = Piece.None;
@@ -330,46 +327,10 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void DestroyPiece(int index, bool changeUI)
+    private void DestroyPiece(int index, bool changeUI)
     {
         if (changeUI) boardUI.DestroyPieceSprite(index);
         boardState[index] = Piece.None;
-    }
-
-    private HashSet<int> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
-    {
-        HashSet<int> pseudoLegalMoves = null!;
-
-        bool isWhite = CheckPieceIsWhite(index);
-        ulong hero = colourBitboards[GetColourIndex(isWhite)];
-        ulong opponent = colourBitboards[GetOpponentColourIndex(isWhite)];
-
-        switch (Piece.GetPieceType(boardState[index]))
-        {
-            case Piece.King:
-                pseudoLegalMoves = MoveGenerator.GetKingMoves(index, hero, castlingRights, boardState);
-                break;
-            case Piece.Queen:
-                pseudoLegalMoves = MoveGenerator.GetSlideMoves(index, Piece.Queen, hero, opponent, boardState);
-                break;
-            case Piece.Bishop:
-                pseudoLegalMoves = MoveGenerator.GetSlideMoves(index, Piece.Bishop, hero, opponent, boardState);
-                break;
-            case Piece.Knight:
-                pseudoLegalMoves = MoveGenerator.GetKnightMoves(index, hero, boardState);
-                break;
-            case Piece.Rook:
-                pseudoLegalMoves = MoveGenerator.GetSlideMoves(index, Piece.Rook, hero, opponent, boardState);
-                break;
-            case Piece.Pawn:
-                pseudoLegalMoves = MoveGenerator.GetPawnMoves(index, GetColourIndex(isWhite), hero, opponent, boardState, enPassantTarget);
-                break;
-            default:
-                Debug.Log($"Piece at square index {index} cannot be found!");
-                break;
-        }
-
-        return pseudoLegalMoves;
     }
 
     public void MakeMove(int move, bool changeUI = false)
@@ -562,8 +523,8 @@ public class Board : MonoBehaviour
         {
             boardStrings.Add(boardString, 1);
         }
-
         boardPositions.Push(boardString);
+
         gameMoves.Push(move);
 
         ChangeTurn();
@@ -578,7 +539,7 @@ public class Board : MonoBehaviour
     {
         MakeMove(move, true);
         Game.PlayMoveSound(Move.IsCaptureMove(move));
-        Debug.Log($"{moveNumber}: {Move.GetMoveAsString(move)}");
+        Debug.Log($"{moveNumber}: {Move.GetMoveAsString(move, inCheck)}");
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
@@ -604,9 +565,9 @@ public class Board : MonoBehaviour
 
     public int GetPieceAtIndex(int index) => boardState[index];
 
-    public bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
+    private bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
 
-    public void EnablePromotionScreen(int index)
+    private void EnablePromotionScreen(int index)
     {
         boardUI.EnablePromotionScreen(index);
         inPromotionScreen = index;
@@ -618,25 +579,9 @@ public class Board : MonoBehaviour
         inPromotionScreen = -1;
     }
 
-    public bool CheckNeedForPromotion(int index, int newIndex) => (Square.GetRank(newIndex) == 1 || Square.GetRank(newIndex) == 8) && GetPieceTypeAtIndex(index) == Piece.Pawn;
-
-    public bool CheckPieceCanMoveThere(int index, int newIndex)
+    private void HandleCheck(bool displayNew = true)
     {
-        HashSet<int> moves = GetPseudoLegalMoves(index);
-        foreach (int move in moves)
-        {
-            if (Move.GetEndIndex(move) == newIndex)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    private void HandleCheck()
-    {
-        if (inCheck)
+        if (inCheck && displayNew)
         {
             DisplayCheck(turn);
         }
@@ -675,7 +620,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public List<int> GetAllLegalMoves()
+    private List<int> GetAllLegalMoves()
     {
         List<int> moves = mg.GenerateMoves(this);
         inCheck = mg.inCheck;
@@ -853,10 +798,12 @@ public class Board : MonoBehaviour
         ChangeTurn();
 
         // Retrieve legal moves
+        // there is a bug so if we undo a move while in check this flag will still be set to true
         moveCache.Pop();
         legalMoves = moveCache.Peek();
 
-        HandleCheck();
+        // this is temporarily fixed by setting the display check flag to false
+        HandleCheck(false);
     }
 
     public Result GetGameResult()
@@ -912,9 +859,8 @@ public class Board : MonoBehaviour
         Initialise();
     }
 
-
     // Takes care of captures as well (since capturedPieceID can be Piece.None)
-    public void UpdateBitboardForMove(int pieceID, int capturedPieceID, int startIndex, int endIndex)
+    private void UpdateBitboardForMove(int pieceID, int capturedPieceID, int startIndex, int endIndex)
     {
         int bitboardIndex = Piece.GetBitboardIndex(pieceID);
         Bitboard.Move(ref pieceBitboards[bitboardIndex], startIndex, endIndex);
@@ -926,14 +872,14 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void ClearSquareFromBitboard(int pieceID, int index)
+    private void ClearSquareFromBitboard(int pieceID, int index)
     {
         int bitboardIndex = Piece.GetBitboardIndex(pieceID);
         Bitboard.ClearSquare(ref pieceBitboards[bitboardIndex], index);
         Bitboard.ClearSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }
 
-    public void AddPieceToBitboard(int pieceID, int index)
+    private void AddPieceToBitboard(int pieceID, int index)
     {
         int bitboardIndex = Piece.GetBitboardIndex(pieceID);
         Bitboard.SetSquare(ref pieceBitboards[bitboardIndex], index);

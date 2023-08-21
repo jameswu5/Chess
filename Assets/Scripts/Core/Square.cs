@@ -13,7 +13,6 @@ public class Square : MonoBehaviour
 
     private bool isLightSquare;
 
-    // Square helpers
     public const int a1 = 0;
     public const int b1 = 1;
     public const int c1 = 2;
@@ -31,8 +30,6 @@ public class Square : MonoBehaviour
     public const int f8 = 61;
     public const int g8 = 62;
     public const int h8 = 63;
-
-
 
     public void Initialise(string name, bool isLightSquare)
     {
@@ -53,34 +50,17 @@ public class Square : MonoBehaviour
         }
     }
 
-    public void Highlight()
-    {
-        SetColor(highlightColor);
-    }
+    public void Highlight() => SetColor(highlightColor);
 
-    public void HighlightCheck()
-    {
-        SetColor(checkColor);
-    }
+    public void HighlightCheck() => SetColor(checkColor);
 
-    public void SetColor(Color color) {
-        renderer.color = color;
-    }
+    private void SetColor(Color color) => renderer.color = color;
 
-    public void SetHoverHighlight(bool value)
-    {
-        hoverHighlight.SetActive(value);
-    }
+    public void SetHoverHighlight(bool value) => hoverHighlight.SetActive(value);
 
-    public void SetOptionHighlight(bool value)
-    {
-        optionHighlight.SetActive(value);
-    }
+    public void SetOptionHighlight(bool value) => optionHighlight.SetActive(value);
 
-    public void DestroySquare()
-    {
-        Destroy(gameObject);
-    }
+    public void DestroySquare() => Destroy(gameObject);
 
     public static string ConvertIndexToSquareName(int index)
     {
@@ -118,6 +98,4 @@ public class Square : MonoBehaviour
     {
         return (index >> 3) + 1;
     }
-
-
 }

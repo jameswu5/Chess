@@ -78,7 +78,6 @@ public class UI : MonoBehaviour
         return piece;
     }
 
-
     public void DragPiece(int index, Vector2 mousePosition, float dragOffset)
     {
         pieceRenderers[index].transform.position = new Vector3(mousePosition.x, mousePosition.y, -0.1f + dragOffset);
@@ -100,7 +99,6 @@ public class UI : MonoBehaviour
         }
     }
 
-
     public void DestroyPieceSprite(int index)
     {
         if (pieceRenderers[index] != null)
@@ -110,16 +108,9 @@ public class UI : MonoBehaviour
         }
     }
 
+    public void ResetSquareColour(int index) => squares[index].InitialiseColor();
 
-    public void ResetSquareColour(int index)
-    {
-        squares[index].InitialiseColor();
-    }
-
-    public void HighlightSquare(int index)
-    {
-        squares[index].Highlight();
-    }
+    public void HighlightSquare(int index) => squares[index].Highlight();
 
     public void HighlightHover(int index)
     {
@@ -134,10 +125,7 @@ public class UI : MonoBehaviour
         squares[index].SetHoverHighlight(true);
     }
 
-    public void UnHighlightHover(int index)
-    {
-        squares[index].SetHoverHighlight(false);
-    }
+    public void UnHighlightHover(int index) => squares[index].SetHoverHighlight(false);
 
     public void HighlightOptions(IEnumerable<int> moves)
     {
@@ -155,16 +143,9 @@ public class UI : MonoBehaviour
         }
     }
 
-    public void HighlightCheck(int index)
-    {
-        squares[index].HighlightCheck();
-    }
+    public void HighlightCheck(int index) => squares[index].HighlightCheck();
 
-    private void SetBoardCover(bool value)
-    {
-        boardCover.SetActive(value);
-    }
-
+    private void SetBoardCover(bool value) => boardCover.SetActive(value);
 
     public void EnablePromotionScreen(int index)
     {
@@ -175,7 +156,6 @@ public class UI : MonoBehaviour
         int pieceColour = Square.GetRank(index) == 1 ? Piece.Black : Piece.White;
 
         // create the pieces
-
         SpriteRenderer queen = CreatePiece(Piece.Queen + pieceColour, index, promotionPieceOffset, false);
         SpriteRenderer rook = CreatePiece(Piece.Rook + pieceColour, index + 8 * colourMultiplier, promotionPieceOffset, false);
         SpriteRenderer bishop = CreatePiece(Piece.Bishop + pieceColour, index + 16 * colourMultiplier, promotionPieceOffset, false);
@@ -187,13 +167,11 @@ public class UI : MonoBehaviour
         promotionPieces[3] = knight;
 
         // create the squares
-
         for (int i = 0; i < 4; i++)
         {
             promotionSquares[i] = CreateSquare(index + 8 * i * colourMultiplier, -0.6f);
         }
     }
-
 
     public void DisablePromotionScreen()
     {
@@ -201,12 +179,10 @@ public class UI : MonoBehaviour
         SetBoardCover(false);
 
         // remove the squares and pieces icons
-
         foreach (SpriteRenderer piece in promotionPieces)
         {
             Destroy(piece.gameObject);
         }
-
 
         foreach (Square square in promotionSquares)
         {
@@ -230,5 +206,4 @@ public class UI : MonoBehaviour
         Array.Clear(squares, 0, 64);
         Array.Clear(pieceRenderers, 0, 64);
     }
-
 }

@@ -11,7 +11,6 @@ public static class Move
 
     [MovedPiece] [CapturedPiece] [MoveType] [StartIndex] [DestinationIndex]
     [     3    ] [      3      ] [    3   ] [     6    ] [       6        ]
-
     */
 
     public const int Standard = 0;
@@ -47,39 +46,22 @@ public static class Move
         return move;
     }
 
-    public static int GetMoveType(int move)
-    {
-        return (move & MoveTypeMask) >> MoveTypeShift;
-    }
+    public static int GetMoveType(int move) => (move & MoveTypeMask) >> MoveTypeShift;
 
-    public static int GetMovedPieceType(int move)
-    {
-        return (move & MovedPieceMask) >> MovedPieceShift;
-    }
+    public static bool IsPromotionMove(int moveType) => (moveType & 0b100) > 0;
 
-    public static int GetCapturedPieceType(int move)
-    {
-        return (move & CapturedPieceMask) >> CapturedPieceShift;
-    }
+    public static int GetMovedPieceType(int move) => (move & MovedPieceMask) >> MovedPieceShift;
 
-    public static bool IsCaptureMove(int move)
-    {
-        return GetCapturedPieceType(move) != Piece.None;
-    }
+    public static int GetCapturedPieceType(int move) => (move & CapturedPieceMask) >> CapturedPieceShift;
 
-    public static int GetStartIndex(int move)
-    {
-        return (move & StartIndexMask) >> StartIndexShift;
-    }
+    public static bool IsCaptureMove(int move) => GetCapturedPieceType(move) != Piece.None;
 
-    public static int GetEndIndex(int move)
-    {
-        return (move & EndIndexMask) >> EndIndexShift;
-    }
+    public static int GetStartIndex(int move) => (move & StartIndexMask) >> StartIndexShift;
 
-    public static string GetMoveAsString(int move)
-    {
+    public static int GetEndIndex(int move) => (move & EndIndexMask) >> EndIndexShift;
 
+    public static string GetMoveAsString(int move, bool check)
+    {
         StringBuilder sb = new();
 
         int startIndex = GetStartIndex(move);
@@ -87,7 +69,6 @@ public static class Move
         int moveType = GetMoveType(move);
         int movedPiece = GetMovedPieceType(move);
         int capturedPiece = GetCapturedPieceType(move);
-
 
         if (moveType == Standard || moveType == PawnTwoSquares || moveType == EnPassant)
         {
@@ -163,10 +144,15 @@ public static class Move
 
         }
 
+        if (check)
+        {
+            sb.Append("+");
+        }
+
         return sb.ToString();
     }
 
-
+    // This is for debugging
     public static void DisplayMoveInformation(int move)
     {
         int startIndex = GetStartIndex(move);

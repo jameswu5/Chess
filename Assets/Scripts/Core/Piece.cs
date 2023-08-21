@@ -31,6 +31,15 @@ public static class Piece
         { Black + Pawn   , "p" }
     };
 
+    public static Dictionary<char, int> pieceTypes = new Dictionary<char, int>() {
+        {'K', King},
+        {'Q', Queen},
+        {'B', Bishop},
+        {'N', Knight},
+        {'R', Rook},
+        {'P', Pawn},
+    };
+
 
     public static int GetPieceType(int pieceID)
     {
