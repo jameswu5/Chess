@@ -27,9 +27,9 @@ public class Bot : Player
     {
         int bestEval = -100000;
 
-        int chosenMove = board.allLegalMoves[0];
+        int chosenMove = board.legalMoves[0];
 
-        foreach (int move in board.allLegalMoves)
+        foreach (int move in board.legalMoves)
         {
             board.MakeMove(move, false);
             int eval = Search(board, 1);
@@ -53,14 +53,14 @@ public class Bot : Player
         }
 
 
-        if (board.allLegalMoves.Count == 0)
+        if (board.legalMoves.Count == 0)
         {
             return board.inCheck ? -100000 : 0; // checkmate : stalemate
         }
 
         int best = -100000;
 
-        foreach (int move in board.allLegalMoves)
+        foreach (int move in board.legalMoves)
         {
             int eval;
             board.MakeMove(move, false);

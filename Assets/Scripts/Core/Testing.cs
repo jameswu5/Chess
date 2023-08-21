@@ -11,7 +11,7 @@ public static class Perft
 
         int numOfPositions = 0;
 
-        foreach (int move in board.allLegalMoves)
+        foreach (int move in board.legalMoves)
         {
             board.MakeMove(move);
             numOfPositions += Search(board, depth - 1);
@@ -27,7 +27,7 @@ public static class Perft
         stopwatch.Start();
 
         int numOfPositions = 0;
-        foreach (int move in board.allLegalMoves)
+        foreach (int move in board.legalMoves)
         {
             board.MakeMove(move);
             int positions = Search(board, depth - 1);

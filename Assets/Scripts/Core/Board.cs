@@ -11,7 +11,8 @@ public class Board : MonoBehaviour
     public int[] boardState;
 
     public MoveGenerator mg;
-    public List<int> allLegalMoves;
+    public List<int> legalMoves;
+    public Stack<List<int>> moveCache;
 
     public int turn;
     public int opponentColour => turn == Piece.White ? Piece.Black : Piece.White;
@@ -56,6 +57,7 @@ public class Board : MonoBehaviour
     {
         boardState = new int[64];
         mg = new MoveGenerator();
+        moveCache = new Stack<List<int>>();
 
         inPromotionScreen = -1;
         enPassantTarget = -1;
@@ -76,7 +78,8 @@ public class Board : MonoBehaviour
 
         GenerateBoardStateFromFEN();
         boardUI.CreateUI(boardState);
-        allLegalMoves = GetAllLegalMoves();
+        legalMoves = GetAllLegalMoves();
+        moveCache.Push(new List<int>(legalMoves));
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
@@ -252,10 +255,8 @@ public class Board : MonoBehaviour
         return FENStringAsArray[0];
     }
 
-    public void TryToPlacePiece(int index, int newIndex, int promotionType = -1)
+    public void TryToPlacePiece(int index, int newIndex, int promotionType = Piece.None)
     {
-        // promotionType = -1 if the move isn't a promotion, otherwise it is Piece.[promotionPiece]
-
         int move = TryToGetMove(index, newIndex, promotionType);
 
         if (move != 0)
@@ -276,14 +277,14 @@ public class Board : MonoBehaviour
 
     public int TryToGetMove(int index, int newIndex, int promotionType)
     {
-        foreach (int move in allLegalMoves)
+        foreach (int move in legalMoves)
         {
             if (Move.GetStartIndex(move) == index && Move.GetEndIndex(move) == newIndex)
             {
                 int moveType = Move.GetMoveType(move);
                 switch (promotionType)
                 {
-                    case -1:
+                    case Piece.None:
                         return move;
                     case Piece.Queen:
                         if (moveType == Move.PromoteToQueen)
@@ -337,7 +338,7 @@ public class Board : MonoBehaviour
 
     private HashSet<int> GetPseudoLegalMoves(int index) // These are actually only pseudolegal
     {
-        HashSet<int> legalMoves = null!;
+        HashSet<int> pseudoLegalMoves = null!;
 
         bool isWhite = CheckPieceIsWhite(index);
         ulong hero = colourBitboards[GetColourIndex(isWhite)];
@@ -346,29 +347,29 @@ public class Board : MonoBehaviour
         switch (Piece.GetPieceType(boardState[index]))
         {
             case Piece.King:
-                legalMoves = MoveGenerator.GetKingMoves(index, hero, castlingRights, boardState);
+                pseudoLegalMoves = MoveGenerator.GetKingMoves(index, hero, castlingRights, boardState);
                 break;
             case Piece.Queen:
-                legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Queen, hero, opponent, boardState);
+                pseudoLegalMoves = MoveGenerator.GetSlideMoves(index, Piece.Queen, hero, opponent, boardState);
                 break;
             case Piece.Bishop:
-                legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Bishop, hero, opponent, boardState);
+                pseudoLegalMoves = MoveGenerator.GetSlideMoves(index, Piece.Bishop, hero, opponent, boardState);
                 break;
             case Piece.Knight:
-                legalMoves = MoveGenerator.GetKnightMoves(index, hero, boardState);
+                pseudoLegalMoves = MoveGenerator.GetKnightMoves(index, hero, boardState);
                 break;
             case Piece.Rook:
-                legalMoves = MoveGenerator.GetSlideMoves(index, Piece.Rook, hero, opponent, boardState);
+                pseudoLegalMoves = MoveGenerator.GetSlideMoves(index, Piece.Rook, hero, opponent, boardState);
                 break;
             case Piece.Pawn:
-                legalMoves = MoveGenerator.GetPawnMoves(index, GetColourIndex(isWhite), hero, opponent, boardState, enPassantTarget);
+                pseudoLegalMoves = MoveGenerator.GetPawnMoves(index, GetColourIndex(isWhite), hero, opponent, boardState, enPassantTarget);
                 break;
             default:
                 Debug.Log($"Piece at square index {index} cannot be found!");
                 break;
         }
 
-        return legalMoves;
+        return pseudoLegalMoves;
     }
 
     public void MakeMove(int move, bool changeUI = false)
@@ -567,7 +568,8 @@ public class Board : MonoBehaviour
 
         ChangeTurn();
 
-        allLegalMoves = GetAllLegalMoves();
+        legalMoves = GetAllLegalMoves();
+        moveCache.Push(new List<int>(legalMoves));
 
         HandleCheck();
     }
@@ -684,7 +686,7 @@ public class Board : MonoBehaviour
     public List<int> GetLegalMoves(int index)
     {
         List<int> moves = new();
-        foreach (int move in allLegalMoves)
+        foreach (int move in legalMoves)
         {
             if (Move.GetStartIndex(move) == index) moves.Add(move);
         }
@@ -850,15 +852,16 @@ public class Board : MonoBehaviour
         // change the turn back
         ChangeTurn();
 
-        // Regenerate all legal moves
-        allLegalMoves = GetAllLegalMoves();
+        // Retrieve legal moves
+        moveCache.Pop();
+        legalMoves = moveCache.Peek();
 
         HandleCheck();
     }
 
     public Result GetGameResult()
     {
-        if (allLegalMoves.Count == 0)
+        if (legalMoves.Count == 0)
         {
             return inCheck ? Result.Checkmate : Result.Stalemate;
         }
