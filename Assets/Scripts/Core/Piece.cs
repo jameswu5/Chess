@@ -40,21 +40,11 @@ public static class Piece
         {'P', Pawn},
     };
 
+    public static int GetPieceType(int pieceID) => pieceID & 0b111;
 
-    public static int GetPieceType(int pieceID)
-    {
-        return pieceID & 0b111;
-    }
+    public static bool IsColour(int pieceID, int colour) => (pieceID < 8 && colour == White) || (pieceID >= 8 && colour == Black);
 
-    public static bool IsColour(int pieceID, int colour)
-    {
-        return (pieceID < 8 && colour == White) || (pieceID >= 8 && colour == Black);
-    }
-
-    public static string GetCharacterFromPieceType(int pieceID)
-    {
-        return pieceDictionary[pieceID];
-    }
+    public static string GetCharacterFromPieceType(int pieceID) => pieceDictionary[pieceID];
 
     public static int GetBitboardIndex(int pieceID)
     {

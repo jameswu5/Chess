@@ -8,23 +8,20 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     public UI boardUI;
-    public int[] boardState;
+    private int[] boardState;
 
-    public MoveGenerator mg;
+    private MoveGenerator mg;
     public List<int> legalMoves;
-    public Stack<List<int>> moveCache;
+    private Stack<List<int>> moveCache;
 
     public int turn;
-    public int opponentColour => turn == Piece.White ? Piece.Black : Piece.White;
-    public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
-    public int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
+    private int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
+    private int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
     public int GetColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
-    public int GetColourIndex(bool isWhite) => isWhite ? 0 : 1;
     public int GetOpponentColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 1 : 0;
-    public int GetOpponentColourIndex(bool isWhite) => isWhite ? 1 : 0;
 
-    public int castlingRights;
-    public Stack<int> castlingRightStates;
+    private int castlingRights;
+    private Stack<int> castlingRightStates;
     private const int WhiteKingsideRightMask  = 0b1000;
     private const int WhiteQueensideRightMask = 0b0100;
     private const int BlackKingsideRightMask  = 0b0010;
@@ -45,7 +42,7 @@ public class Board : MonoBehaviour
     private Stack<string> boardPositions;
     private Dictionary<string, int> boardStrings;
 
-    public ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
+    private ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
     public ulong[] colourBitboards; // 0: white | 1: black
     public ulong AllPiecesBiboard => colourBitboards[0] | colourBitboards[1];
 
@@ -167,7 +164,7 @@ public class Board : MonoBehaviour
             for (int c = 0; c < 8; c++)
             {
                 int index = (r << 3) + c;
-                if (boardState[index] == Piece.None)
+                if (GetPieceAtIndex(index) == Piece.None)
                 {
                     emptyCounter++;
                 }
@@ -177,7 +174,7 @@ public class Board : MonoBehaviour
                     {
                         sb.Append(emptyCounter);
                     }
-                    sb.Append(Piece.GetCharacterFromPieceType(boardState[index]));
+                    sb.Append(Piece.GetCharacterFromPieceType(GetPieceAtIndex(index)));
                     emptyCounter = 0;
                 }
             }
@@ -311,7 +308,7 @@ public class Board : MonoBehaviour
 
     private void PlacePiece(int index, int newIndex, bool changeUI)
     {
-        int selectedPiece = boardState[index];
+        int selectedPiece = GetPieceAtIndex(index);
         boardState[index] = Piece.None;
         
         if (boardState[newIndex] != Piece.None)
@@ -721,7 +718,7 @@ public class Board : MonoBehaviour
         else if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
         {
             // destroy the promoted piece
-            int promotedPieceID = boardState[endIndex];
+            int promotedPieceID = GetPieceAtIndex(endIndex);
             DestroyPiece(endIndex, changeUI);
             ClearSquareFromBitboard(promotedPieceID, endIndex);
 
@@ -836,7 +833,7 @@ public class Board : MonoBehaviour
         int numOfPieces = 0;
         for (int i = 0; i < 64; i++)
         {
-            if (boardState[i] != Piece.None)
+            if (GetPieceAtIndex(i) != Piece.None)
             {
                 numOfPieces++;
                 int pieceType = GetPieceTypeAtIndex(i);

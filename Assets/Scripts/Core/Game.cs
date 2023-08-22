@@ -35,6 +35,8 @@ public class Game : MonoBehaviour
         bot = new Bot();
 
         StartNewGamePlayerVsPlayer();
+
+        Perft.Test(board, 4);
     }
 
 
@@ -74,7 +76,6 @@ public class Game : MonoBehaviour
     {
         captureSound = GameObject.FindGameObjectWithTag("CaptureSound").GetComponent<AudioSource>();
         moveSound = GameObject.FindGameObjectWithTag("MoveSound").GetComponent<AudioSource>();
-
     }
 
     private void GetTexts()
@@ -148,7 +149,4 @@ public class Game : MonoBehaviour
             }
         }
     }
-
-
-
 }
