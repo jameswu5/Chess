@@ -20,7 +20,7 @@ public class Board : MonoBehaviour
     public int GetColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
     public int GetOpponentColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 1 : 0;
 
-    private int castlingRights;
+    public int castlingRights;
     private Stack<int> castlingRightStates;
     private const int WhiteKingsideRightMask  = 0b1000;
     private const int WhiteQueensideRightMask = 0b0100;

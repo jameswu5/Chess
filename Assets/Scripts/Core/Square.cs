@@ -70,10 +70,14 @@ public class Square : MonoBehaviour
 
     public static string GetFileName(int index)
     {
-        int file = (index & 0b111) + 1;
+        int file = GetFile(index);
         string[] letters = { "#", "a", "b", "c", "d", "e", "f", "g", "h" };
         return letters[file];
     }
+
+    public static int GetFile(int index) => (index & 0b111) + 1;
+
+    public static int GetRank(int index) => (index >> 3) + 1;
 
     public static int GetIndexFromSquareName(string name)
     {
@@ -94,8 +98,5 @@ public class Square : MonoBehaviour
         return index;
     }
 
-    public static int GetRank(int index)
-    {
-        return (index >> 3) + 1;
-    }
+    
 }

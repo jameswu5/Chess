@@ -40,6 +40,8 @@ public static class Piece
         {'P', Pawn},
     };
 
+    public static int[] pieces = { White + King, White + Queen, White + Bishop, White + Knight, White + Rook, White + Pawn, Black + King, Black + Queen, Black + Bishop, Black + Knight, Black + Rook, Black + Pawn };
+
     public static int GetPieceType(int pieceID) => pieceID & 0b111;
 
     public static bool IsColour(int pieceID, int colour) => (pieceID < 8 && colour == White) || (pieceID >= 8 && colour == Black);
