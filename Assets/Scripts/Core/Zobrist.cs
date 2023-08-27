@@ -12,6 +12,7 @@ public static class Zobrist
 
     // Hash keys for every possible en passant file (or lack thereof)
     private static ulong[] enPassantKeys = new ulong[9];
+    private static int GetTargetFile(int target) => target == -1 ? 0 : Square.GetFile(target);
 
     // Hash key for the turn
     private static ulong turnKey;
@@ -49,7 +50,7 @@ public static class Zobrist
 
         for (int i = 0; i < 64; i++)
         {
-            int piece = board.GetPieceTypeAtIndex(i);
+            int piece = board.GetPieceAtIndex(i);
             if (piece != Piece.None)
             {
                 key ^= pieceKeys[piece, i];
@@ -58,8 +59,7 @@ public static class Zobrist
 
         key ^= castlingKeys[board.castlingRights];
 
-        int file = board.enPassantTarget == -1 ? 0 : Square.GetFile(board.enPassantTarget);
-        key ^= enPassantKeys[file];
+        key ^= enPassantKeys[GetTargetFile(board.enPassantTarget)];
 
         if (board.turn == Piece.White)
         {
@@ -84,5 +84,37 @@ public static class Zobrist
         res |= bytes[7];
 
         return res;
+    }
+
+    public static void MovePiece(ref ulong key, int movedPiece, int capturedPiece, int startSquare, int endSquare)
+    {
+        key ^= pieceKeys[movedPiece, startSquare];
+        key ^= pieceKeys[movedPiece, endSquare];
+        if ((capturedPiece & 0b111) != Piece.None)
+        {
+            key ^= pieceKeys[capturedPiece, endSquare];
+        }
+    }
+
+    public static void TogglePiece(ref ulong key, int piece, int square)
+    {
+        key ^= pieceKeys[piece, square];
+    }
+
+    public static void ChangeCastling(ref ulong key, int oldRights, int newRights)
+    {
+        key ^= castlingKeys[oldRights];
+        key ^= castlingKeys[newRights];
+    }
+
+    public static void ChangeEnPassantFile(ref ulong key, int oldTarget, int newTarget)
+    {
+        key ^= enPassantKeys[GetTargetFile(oldTarget)];
+        key ^= enPassantKeys[GetTargetFile(newTarget)];
+    }
+
+    public static void ChangeTurn(ref ulong key)
+    {
+        key ^= turnKey;
     }
 }

@@ -46,6 +46,11 @@ public class Board : MonoBehaviour
     public ulong[] colourBitboards; // 0: white | 1: black
     public ulong AllPiecesBiboard => colourBitboards[0] | colourBitboards[1];
 
+
+    private ulong zobristKey;
+    private Stack<ulong> zobristKeys;
+
+
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
 
     public Result gameResult;
@@ -73,10 +78,14 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[12];
         colourBitboards = new ulong[2];
 
-        GenerateBoardStateFromFEN();
+        GenerateBoardStateFromFEN(FEN.PerftTestPos2);
         boardUI.CreateUI(boardState);
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));
+
+        zobristKey = Zobrist.CalculateKey(this);
+        zobristKeys = new Stack<ulong>();
+        zobristKeys.Push(zobristKey);
 
         gameResult = GetGameResult();
         Game.UpdateEndOfGameScreen(gameResult, turn);
@@ -342,6 +351,9 @@ public class Board : MonoBehaviour
         int colour = GetColour(isWhite);
         int opponentColour = GetOpponentColour(isWhite);
 
+        int oldCastlingRights = castlingRights;
+        int oldEnPassantTarget = enPassantTarget;
+
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
         {
             // if piece is a king, then disable both castling rights
@@ -359,6 +371,7 @@ public class Board : MonoBehaviour
 
             PlacePiece(startIndex, endIndex, changeUI);
             UpdateBitboardForMove(movedPieceType + colour, capturedPieceType + opponentColour, startIndex, endIndex);
+            Zobrist.MovePiece(ref zobristKey, movedPieceType + colour, capturedPieceType + opponentColour, startIndex, endIndex);
         }
 
         if (moveType == Move.Castling)
@@ -366,18 +379,21 @@ public class Board : MonoBehaviour
             // move the king
             PlacePiece(startIndex, endIndex, changeUI);
             UpdateBitboardForMove(Piece.King + colour, Piece.None, startIndex, endIndex);
+            Zobrist.MovePiece(ref zobristKey, Piece.King + colour, Piece.None, startIndex, endIndex);
+
 
             // move the rook
             if (endIndex > startIndex) // kingside
             {
                 PlacePiece(startIndex + 3, startIndex + 1, changeUI);
                 UpdateBitboardForMove(Piece.Rook + colour, Piece.None, startIndex + 3, startIndex + 1);
-
+                Zobrist.MovePiece(ref zobristKey, Piece.Rook + colour, Piece.None, startIndex + 3, startIndex + 1);
             }
             else // queenside
             {
                 PlacePiece(startIndex - 4, startIndex - 1, changeUI);
                 UpdateBitboardForMove(Piece.Rook + colour, Piece.None, startIndex - 4, startIndex - 1);
+                Zobrist.MovePiece(ref zobristKey, Piece.Rook + colour, Piece.None, startIndex - 4, startIndex - 1);
             }
 
             // Disable castling rights
@@ -396,17 +412,20 @@ public class Board : MonoBehaviour
             // move the pawn
             PlacePiece(startIndex, endIndex, changeUI);
             UpdateBitboardForMove(Piece.Pawn + colour, capturedPieceType + opponentColour, startIndex, endIndex);
+            Zobrist.MovePiece(ref zobristKey, Piece.Pawn + colour, Piece.None, startIndex, endIndex);
 
             // destroy the piece next to it
             if (isWhite)
             {
                 DestroyPiece(endIndex - 8, changeUI);
                 ClearSquareFromBitboard(Piece.Pawn + opponentColour, endIndex - 8);
+                Zobrist.TogglePiece(ref zobristKey, Piece.Pawn + opponentColour, endIndex - 8);
             }
             else
             {
                 DestroyPiece(endIndex + 8, changeUI);
                 ClearSquareFromBitboard(Piece.Pawn + opponentColour, endIndex + 8);
+                Zobrist.TogglePiece(ref zobristKey, Piece.Pawn + opponentColour, endIndex + 8);
             }
         }
 
@@ -417,6 +436,9 @@ public class Board : MonoBehaviour
 
             UpdateBitboardForMove(Piece.Pawn + colour, capturedPieceType + opponentColour, startIndex, endIndex);
             ClearSquareFromBitboard(Piece.Pawn + colour, endIndex);
+
+            Zobrist.MovePiece(ref zobristKey, Piece.Pawn + colour, capturedPieceType + opponentColour, startIndex, endIndex);
+            Zobrist.TogglePiece(ref zobristKey, Piece.Pawn + colour, endIndex);
 
             int promotePiece = -1;
 
@@ -444,7 +466,8 @@ public class Board : MonoBehaviour
             }
 
             AddPieceToBitboard(promotePiece + colour, endIndex);
-
+            Zobrist.TogglePiece(ref zobristKey, promotePiece + colour, endIndex);
+            
             if (changeUI)
             {
                 boardUI.CreatePiece(promotePiece + colour, endIndex);
@@ -485,6 +508,8 @@ public class Board : MonoBehaviour
 
         castlingRightStates.Push(castlingRights);
 
+        Zobrist.ChangeCastling(ref zobristKey, oldCastlingRights, castlingRights);
+
         // Update en passant target
         if (moveType == Move.PawnTwoSquares)
         {
@@ -495,6 +520,8 @@ public class Board : MonoBehaviour
             enPassantTarget = -1;
         }
         enPassantTargets.Push(enPassantTarget);
+
+        Zobrist.ChangeEnPassantFile(ref zobristKey, oldEnPassantTarget, enPassantTarget);
 
         // Update fifty move counter
         if (Move.IsCaptureMove(move) || movedPieceType == Piece.Pawn)
@@ -526,8 +553,12 @@ public class Board : MonoBehaviour
 
         ChangeTurn();
 
+        Zobrist.ChangeTurn(ref zobristKey);
+
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));
+
+        zobristKeys.Push(zobristKey);
 
         HandleCheck();
     }
@@ -663,6 +694,7 @@ public class Board : MonoBehaviour
             // move the piece back to its original position
             PlacePiece(endIndex, startIndex, changeUI);
             UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
+            Zobrist.MovePiece(ref zobristKey, movedPieceType + heroColour, Piece.None, endIndex, startIndex);
 
             // replace captured piece if necessary
             if (capturedPieceType != Piece.None)
@@ -678,6 +710,7 @@ public class Board : MonoBehaviour
             // Move the pawn back to its original position
             PlacePiece(endIndex, startIndex, changeUI);
             UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
+            Zobrist.MovePiece(ref zobristKey, movedPieceType + heroColour, Piece.None, endIndex, startIndex);
 
             // replace the captured pawn
             capturedPiece = Piece.Pawn + opponentColour;
@@ -689,6 +722,7 @@ public class Board : MonoBehaviour
             // Move the king back to its original position
             PlacePiece(endIndex, startIndex, changeUI);
             UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
+            Zobrist.MovePiece(ref zobristKey, movedPieceType + heroColour, Piece.None, endIndex, startIndex);
 
             // Move the rook back to its original position
             switch (endIndex)
@@ -696,18 +730,22 @@ public class Board : MonoBehaviour
                 case Square.g1:
                     PlacePiece(Square.f1, Square.h1, changeUI);
                     UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.f1, Square.h1);
+                    Zobrist.MovePiece(ref zobristKey, Piece.Rook + heroColour, Piece.None, Square.f1, Square.h1);
                     break;
                 case Square.c1:
                     PlacePiece(Square.d1, Square.a1, changeUI);
                     UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.d1, Square.a1);
+                    Zobrist.MovePiece(ref zobristKey, Piece.Rook + heroColour, Piece.None, Square.d1, Square.a1);
                     break;
                 case Square.g8:
                     PlacePiece(Square.f8, Square.h8, changeUI);
                     UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.f8, Square.h8);
+                    Zobrist.MovePiece(ref zobristKey, Piece.Rook + heroColour, Piece.None, Square.f8, Square.h8);
                     break;
                 case Square.c8:
                     PlacePiece(Square.d8, Square.a8, changeUI);
                     UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.d8, Square.a8);
+                    Zobrist.MovePiece(ref zobristKey, Piece.Rook + heroColour, Piece.None, Square.d8, Square.a8);
                     break;
                 default:
                     Debug.Log("There has been a problem undoing the castling move.");
@@ -721,6 +759,7 @@ public class Board : MonoBehaviour
             int promotedPieceID = GetPieceAtIndex(endIndex);
             DestroyPiece(endIndex, changeUI);
             ClearSquareFromBitboard(promotedPieceID, endIndex);
+            Zobrist.TogglePiece(ref zobristKey, promotedPieceID, endIndex);
 
             // create a pawn on the start position
             if (changeUI)
@@ -729,6 +768,7 @@ public class Board : MonoBehaviour
             }
             boardState[startIndex] = Piece.Pawn + heroColour;
             AddPieceToBitboard(Piece.Pawn + heroColour, startIndex);
+            Zobrist.TogglePiece(ref zobristKey, Piece.Pawn + heroColour, startIndex);
 
             // replace captured piece if necessary
             if (capturedPieceType != Piece.None)
@@ -748,6 +788,7 @@ public class Board : MonoBehaviour
         {
             boardState[capturedIndex] = capturedPiece;
             AddPieceToBitboard(capturedPiece, capturedIndex);
+            Zobrist.TogglePiece(ref zobristKey, capturedPiece, capturedIndex);
 
             if (changeUI)
             {
@@ -756,12 +797,16 @@ public class Board : MonoBehaviour
         }
 
         // revert the castling rights
+        int newCastlingRights = castlingRights;
         castlingRightStates.Pop();
         castlingRights = castlingRightStates.Peek();
+        Zobrist.ChangeCastling(ref zobristKey, newCastlingRights, castlingRights);
 
         // revert en passant target
+        int newEnPassantTarget = enPassantTarget;
         enPassantTargets.Pop();
         enPassantTarget = enPassantTargets.Peek();
+        Zobrist.ChangeEnPassantFile(ref zobristKey, newEnPassantTarget, enPassantTarget);
 
         // revert the king index
         if (movedPieceType == Piece.King)
@@ -793,11 +838,20 @@ public class Board : MonoBehaviour
 
         // change the turn back
         ChangeTurn();
+        Zobrist.ChangeTurn(ref zobristKey);
 
         // Retrieve legal moves
         // there is a bug so if we undo a move while in check this flag will still be set to true
         moveCache.Pop();
         legalMoves = moveCache.Peek();
+
+
+        zobristKeys.Pop();
+        if (zobristKeys.Peek() != zobristKey)
+        {
+            Move.DisplayMoveInformation(lastMove);
+        }
+        zobristKey = zobristKeys.Peek();
 
         // this is temporarily fixed by setting the display check flag to false
         HandleCheck(false);
@@ -901,5 +955,7 @@ public class Board : MonoBehaviour
     {
         return pieceBitboards[Piece.GetBitboardIndex(pieceType + (colourIndex << 3))];
     }
+
+
 
 }
