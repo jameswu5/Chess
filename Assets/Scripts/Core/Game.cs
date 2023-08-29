@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
 
 public class Game : MonoBehaviour
 {
@@ -36,9 +33,8 @@ public class Game : MonoBehaviour
 
         StartNewGamePlayerVsPlayer();
 
-        Perft.Test(board, 4);
+        Perft.Test(board, 3);
     }
-
 
     private void Update()
     {
@@ -67,10 +63,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void MoveCamera()
-    {
-        camera.transform.position = new Vector3(3.5f, 3.5f, -10);
-    }
+    private void MoveCamera() => camera.transform.position = new Vector3(3.5f, 3.5f, -10);
 
     private void GetSounds()
     {
@@ -98,21 +91,11 @@ public class Game : MonoBehaviour
         blackPlayer = blackPlayerType == PlayerType.Human ? human : bot;
     }
 
+    public void StartNewGamePlayerVsPlayer() => StartNewGame(PlayerType.Human, PlayerType.Human);
 
-    public void StartNewGamePlayerVsPlayer()
-    {
-        StartNewGame(PlayerType.Human, PlayerType.Human);
-    }
+    public void StartNewGamePlayerVsBot() => StartNewGame(PlayerType.Human, PlayerType.Bot);
 
-    public void StartNewGamePlayerVsBot()
-    {
-        StartNewGame(PlayerType.Human, PlayerType.Bot);
-    }
-
-    public void StartNewGameBotVsBot()
-    {
-        StartNewGame(PlayerType.Bot, PlayerType.Bot);
-    }
+    public void StartNewGameBotVsBot() => StartNewGame(PlayerType.Bot, PlayerType.Bot);
 
     public static void UpdateEndOfGameScreen(Board.Result gameResult, int turn)
     {

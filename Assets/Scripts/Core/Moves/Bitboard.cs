@@ -19,13 +19,6 @@ public static class Bitboard
     public const ulong Rank7 = Rank6 << 8;
     public const ulong Rank8 = Rank7 << 8;
 
-    public const int King = 0;
-    public const int Queen = 1;
-    public const int Bishop = 2;
-    public const int Knight = 3;
-    public const int Rook = 4;
-    public const int Pawn = 5;
-
     public const ulong WhiteKingsideMask  = 1ul << Square.f1 | 1ul << Square.g1;
     public const ulong WhiteQueensideMask = 1ul << Square.c1 | 1ul << Square.d1;
     public const ulong BlackKingsideMask  = 1ul << Square.f8 | 1ul << Square.g8;
@@ -59,7 +52,6 @@ public static class Bitboard
             return bitboard >> -shift;
         }
     }
-
 
     public static ulong GetRayAttacksEmptyBoard(int direction, int index)
     {
@@ -165,7 +157,6 @@ public static class Bitboard
         }
         return count;
     }
-
 
     private static bool CheckAtEdgeOfBoard(int direction, ulong position)
     {

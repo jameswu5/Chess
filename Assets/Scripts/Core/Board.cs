@@ -44,14 +44,11 @@ public class Board : MonoBehaviour
     public ulong[] colourBitboards; // 0: white | 1: black
     public ulong AllPiecesBiboard => colourBitboards[0] | colourBitboards[1];
 
-
     private ulong zobristKey;
     private Stack<ulong> zobristKeys;
     private Dictionary<ulong, int> table;
 
-
     public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
-
     public Result gameResult;
 
     public void Initialise()
@@ -72,10 +69,10 @@ public class Board : MonoBehaviour
         gameMoves = new Stack<int>();
         name = "Board";
 
-        pieceBitboards = new ulong[12];
+        pieceBitboards = new ulong[16];
         colourBitboards = new ulong[2];
 
-        LoadPosition();
+        LoadPosition(FEN.PerftTestPos6);
         boardUI.CreateUI(boardState);
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));
@@ -367,7 +364,7 @@ public class Board : MonoBehaviour
             Zobrist.MovePiece(ref zobristKey, movedPieceType + colour, capturedPieceType + opponentColour, startIndex, endIndex);
         }
 
-        if (moveType == Move.Castling)
+        else if (moveType == Move.Castling)
         {
             // move the king
             PlacePiece(startIndex, endIndex, changeUI);
@@ -400,7 +397,7 @@ public class Board : MonoBehaviour
             }
         }
 
-        if (moveType == Move.EnPassant)
+        else if (moveType == Move.EnPassant)
         {
             // move the pawn
             PlacePiece(startIndex, endIndex, changeUI);
@@ -422,7 +419,7 @@ public class Board : MonoBehaviour
             }
         }
 
-        if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
+        else if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
         {
             PlacePiece(startIndex, endIndex, changeUI);
             DestroyPiece(endIndex, changeUI);
@@ -466,7 +463,6 @@ public class Board : MonoBehaviour
                 boardUI.CreatePiece(promotePiece + colour, endIndex);
             }
         }
-
 
         // Update position of the king
         if (movedPieceType == Piece.King)
@@ -813,7 +809,8 @@ public class Board : MonoBehaviour
         if (table[zobristKey] == 1)
         {
             table.Remove(zobristKey);
-        } else
+        }
+        else
         {
             table[zobristKey]--;
         }
@@ -876,8 +873,7 @@ public class Board : MonoBehaviour
     // Takes care of captures as well (since capturedPieceID can be Piece.None)
     private void UpdateBitboardForMove(int pieceID, int capturedPieceID, int startIndex, int endIndex)
     {
-        int bitboardIndex = Piece.GetBitboardIndex(pieceID);
-        Bitboard.Move(ref pieceBitboards[bitboardIndex], startIndex, endIndex);
+        Bitboard.Move(ref pieceBitboards[pieceID], startIndex, endIndex);
         Bitboard.Move(ref colourBitboards[GetColourIndex(pieceID)], startIndex, endIndex);
 
         if (Piece.GetPieceType(capturedPieceID) != Piece.None)
@@ -888,33 +884,31 @@ public class Board : MonoBehaviour
 
     private void ClearSquareFromBitboard(int pieceID, int index)
     {
-        int bitboardIndex = Piece.GetBitboardIndex(pieceID);
-        Bitboard.ClearSquare(ref pieceBitboards[bitboardIndex], index);
+        Bitboard.ClearSquare(ref pieceBitboards[pieceID], index);
         Bitboard.ClearSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }
 
     private void AddPieceToBitboard(int pieceID, int index)
     {
-        int bitboardIndex = Piece.GetBitboardIndex(pieceID);
-        Bitboard.SetSquare(ref pieceBitboards[bitboardIndex], index);
+        Bitboard.SetSquare(ref pieceBitboards[pieceID], index);
         Bitboard.SetSquare(ref colourBitboards[GetColourIndex(pieceID)], index);
     }
 
     public ulong GetDiagonalSlidingBitboard(int colourIndex)
     {
-        int offset = colourIndex == 0 ? 0 : 6;
-        return pieceBitboards[offset + Bitboard.Queen] | pieceBitboards[offset + Bitboard.Bishop];
+        int offset = colourIndex == 0 ? Piece.White : Piece.Black;
+        return pieceBitboards[offset + Piece.Queen] | pieceBitboards[offset + Piece.Bishop];
     }
 
     public ulong GetOrthogonalSlidingBitboard(int colourIndex)
     {
-        int offset = colourIndex == 0 ? 0 : 6;
-        return pieceBitboards[offset + Bitboard.Queen] | pieceBitboards[offset + Bitboard.Rook];
+        int offset = colourIndex == 0 ? Piece.White : Piece.Black;
+        return pieceBitboards[offset + Piece.Queen] | pieceBitboards[offset + Piece.Rook];
     }
 
     // Takes Piece.[piece] as argument
     public ulong GetPieceBitboard(int pieceType, int colourIndex)
     {
-        return pieceBitboards[Piece.GetBitboardIndex(pieceType + (colourIndex << 3))];
+        return pieceBitboards[pieceType + (colourIndex << 3)];
     }
 }

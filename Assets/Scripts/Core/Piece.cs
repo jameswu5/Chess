@@ -47,15 +47,4 @@ public static class Piece
     public static bool IsColour(int pieceID, int colour) => (pieceID < 8 && colour == White) || (pieceID >= 8 && colour == Black);
 
     public static string GetCharacterFromPieceType(int pieceID) => pieceDictionary[pieceID];
-
-    public static int GetBitboardIndex(int pieceID)
-    {
-        int res = pieceID - 1;
-        if (!IsColour(res, White))
-        {
-            res -= 2;
-        }
-        return res;
-    }
-
 }
