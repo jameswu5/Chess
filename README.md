@@ -1,2 +1,2 @@
 # Chess
-This is my implementation of a chess GUI made with Unity. It is fully functional but I'm working on optimising move generation.
+This is my implementation of a chess GUI made with Unity. Makes use of techniques such as bitboards for move generation, and Zobrist hashing for game states.
