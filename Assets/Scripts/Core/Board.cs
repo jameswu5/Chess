@@ -72,7 +72,7 @@ public class Board : MonoBehaviour
         pieceBitboards = new ulong[16];
         colourBitboards = new ulong[2];
 
-        LoadPosition(FEN.PerftTestPos6);
+        LoadPosition();
         boardUI.CreateUI(boardState);
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));

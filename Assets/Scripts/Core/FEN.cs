@@ -10,7 +10,7 @@ public static class FEN
     public const string stalemate = "8/8/8/8/8/8/q5k1/5K3 w - - 0 1";
     public const string fiftyMoveRule = "8/8/r2k5/8/8/4K3/8/8 w - - 86 64";
     public const string insufficient = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
-    public const string checkmate = "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w kq - 0 1";
+    public const string twoRooksLadder = "5r2/5r2/5k2/8/8/4K3/8/8 w - - 0 1";
 
     public const string PerftTestPos2 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0";
     public const string PerftTestPos3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0";

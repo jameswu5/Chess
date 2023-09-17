@@ -7,7 +7,7 @@ public static class Perft
 {
     public static int Search(Board board, int depth)
     {
-        if (depth == 0) return 1;
+        if (depth == 1) return board.legalMoves.Count;
 
         int numOfPositions = 0;
 

@@ -21,6 +21,11 @@ public class Game : MonoBehaviour
     public Human human;
     public Bot bot;
 
+    public Clock clockPrefab;
+    public Clock clock;
+    public const int allowedTime = 300;
+    public const int increment = 0;
+
     private void Start()
     {
         MoveCamera();
@@ -31,9 +36,10 @@ public class Game : MonoBehaviour
         human = new Human();
         bot = new Bot();
 
-        StartNewGamePlayerVsPlayer();
+        clock = Instantiate(clockPrefab);
+        clock.Initialise(allowedTime, increment);
 
-        Perft.Test(board, 3);
+        StartNewGamePlayerVsPlayer();
     }
 
     private void Update()

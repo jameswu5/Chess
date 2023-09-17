@@ -1,15 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 public class Bot : Player
 {
-    private UI boardUI;
-
-    public Bot()
-    {
-        boardUI = board.boardUI;
-    }
+    public int negativeInfinity = -1000000;
+    public int positiveInfinity =  1000000;
 
     public override void Update()
     {
@@ -18,66 +12,57 @@ public class Bot : Player
 
     public void PlayMove()
     {
-        int chosenMove = ChooseMove(board);
+        int chosenMove = ChooseMove();
         board.PlayMove(chosenMove);
-        boardUI.ResetSquareColour(Move.GetStartIndex(chosenMove));
     }
 
-    public int ChooseMove(Board board)
+    public int ChooseMove()
     {
-        int bestEval = -100000;
-
+        int bestEval = negativeInfinity;
         int chosenMove = board.legalMoves[0];
-
         foreach (int move in board.legalMoves)
         {
-            board.MakeMove(move, false);
-            int eval = Search(board, 1);
-            if (eval >= bestEval)
+            board.MakeMove(move);
+            int evaluation = Search(3, negativeInfinity, positiveInfinity);
+            board.UndoMove();
+
+            if (evaluation >= bestEval)
             {
-                bestEval = eval;
+                bestEval = evaluation;
                 chosenMove = move;
             }
-            board.UndoMove();
         }
 
         return chosenMove;
     }
 
-
-    private int Search(Board board, int depth)
+    // Implements alpha-beta pruning
+    private int Search(int depth, int alpha, int beta)
     {
         if (depth == 0)
         {
             return Evaluator.EvaluateBoard(board);
         }
 
-
         if (board.legalMoves.Count == 0)
         {
-            return board.inCheck ? -100000 : 0; // checkmate : stalemate
+            return board.inCheck ? negativeInfinity : 0;
         }
-
-        int best = -100000;
 
         foreach (int move in board.legalMoves)
         {
-            int eval;
-            board.MakeMove(move, false);
-            Board.Result result = board.GetGameResult();
-            if (result != Board.Result.Checkmate && result != Board.Result.Playing)
-            {
-                eval = 0;
-            }
-            else
-            {
-                eval = -Search(board, depth - 1);
-            }
-            best = Math.Max(best, eval);
+            board.MakeMove(move);
+            int evaluation = -Search(depth - 1, -beta, -alpha);
             board.UndoMove();
+
+            if (evaluation >= beta)
+            {
+                return beta;
+            }
+
+            alpha = Math.Max(alpha, evaluation);
         }
 
-        return best;
+        return alpha;
     }
-
 }
