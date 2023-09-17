@@ -32,7 +32,7 @@ public class Board : MonoBehaviour
 
     private int fiftyMoveCounter;
     private Stack<int> fiftyMoveCounters;
-    private int moveNumber;
+    public int moveNumber;
 
     public int inPromotionScreen;
     public int enPassantTarget;
@@ -239,14 +239,12 @@ public class Board : MonoBehaviour
         return sb.ToString();
     }
 
-    public void TryToPlacePiece(int index, int newIndex, int promotionType = Piece.None)
+    public int TryToPlacePiece(int index, int newIndex, int promotionType = Piece.None)
     {
         int move = TryToGetMove(index, newIndex, promotionType);
 
         if (move != 0)
         {
-            PlayMove(move);
-
             int moveType = Move.GetMoveType(move);
             if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
             {
@@ -257,6 +255,8 @@ public class Board : MonoBehaviour
         {
             boardUI.MovePieceToSquare(index, index);
         }
+
+        return move;
     }
 
     private int TryToGetMove(int index, int newIndex, int promotionType)
@@ -546,16 +546,6 @@ public class Board : MonoBehaviour
         }
 
         HandleCheck();
-    }
-
-    public void PlayMove(int move)
-    {
-        MakeMove(move, true);
-        Game.PlayMoveSound(Move.IsCaptureMove(move));
-        Debug.Log($"{moveNumber}: {Move.GetMoveAsString(move, inCheck)}");
-
-        gameResult = GetGameResult();
-        Game.UpdateEndOfGameScreen(gameResult, turn);
     }
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);

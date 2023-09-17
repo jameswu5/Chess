@@ -17,17 +17,19 @@ public class Timer : MonoBehaviour
 
     public void Toggle() => isActive = !isActive;
 
-    public void SetTime(int seconds)
-    {
-        Debug.Log($"Called with {seconds}");
-        secondsRemaining = seconds;
-    }
+    public void SetTime(int seconds) => secondsRemaining = seconds;
 
     public void AddTime(float increment) => secondsRemaining += increment;
 
     public void Initialise(bool isWhite)
     {
         timerText = isWhite ? GameObject.FindGameObjectWithTag("WhiteTime").GetComponent<Text>() : GameObject.FindGameObjectWithTag("BlackTime").GetComponent<Text>();
+    }
+
+    public void Start()
+    {
+        ActiveColor = new Color(1, 1, 1, 1);
+        InactiveColor = new Color(0.7f, 0.7f, 0.7f, 1);
     }
 
     public void Update()

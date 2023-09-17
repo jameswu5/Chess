@@ -16,12 +16,16 @@ public class Clock : MonoBehaviour
     {
         this.startTime = startTime;
         this.increment = increment;
-
-        white.SetTime(startTime);
-        black.SetTime(startTime);
-
         white.Initialise(true);
         black.Initialise(false);
+
+        NewGame();
+    }
+
+    public void NewGame()
+    {
+        white.SetTime(startTime);
+        black.SetTime(startTime);
 
         whiteToPlay = true;
         white.SetActive(true);
@@ -32,7 +36,14 @@ public class Clock : MonoBehaviour
     {
         white.Toggle();
         black.Toggle();
+        if (whiteToPlay)
+        {
+            white.AddTime(increment);
+        }
+        else
+        {
+            black.AddTime(increment);
+        }
+        whiteToPlay = !whiteToPlay;
     }
-
-
 }

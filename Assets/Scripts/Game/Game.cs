@@ -18,13 +18,10 @@ public class Game : MonoBehaviour
 
     public enum PlayerType { Human, Bot }
 
-    public Human human;
-    public Bot bot;
-
     public Clock clockPrefab;
     public Clock clock;
     public const int allowedTime = 300;
-    public const int increment = 0;
+    public const int increment = 2;
 
     private void Start()
     {
@@ -32,9 +29,6 @@ public class Game : MonoBehaviour
         GetSounds();
         GetTexts();
         CreateBoard();
-
-        human = new Human();
-        bot = new Bot();
 
         clock = Instantiate(clockPrefab);
         clock.Initialise(allowedTime, increment);
@@ -55,6 +49,16 @@ public class Game : MonoBehaviour
                 blackPlayer.Update();
             }
         }
+    }
+
+    public void PlayMove(int move)
+    {
+        board.MakeMove(move, true);
+        PlayMoveSound(Move.IsCaptureMove(move));
+        Debug.Log($"{board.moveNumber}: {Move.GetMoveAsString(move, board.inCheck)}");
+        clock.ToggleClock();
+        board.gameResult = board.GetGameResult();
+        UpdateEndOfGameScreen(board.gameResult, board.turn);
     }
 
     public static void PlayMoveSound(bool isCapture)
@@ -89,12 +93,19 @@ public class Game : MonoBehaviour
         board.Initialise();
     }
 
+    private void CreatePlayer(ref Player player, PlayerType type)
+    {
+        player = type == PlayerType.Human ? new Human() : new Bot();
+        player.PlayChosenMove += PlayMove;
+    }
+
     private void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
     {   
         board.ResetBoard();
+        clock.NewGame();
 
-        whitePlayer = whitePlayerType == PlayerType.Human ? human : bot;
-        blackPlayer = blackPlayerType == PlayerType.Human ? human : bot;
+        CreatePlayer(ref whitePlayer, whitePlayerType);
+        CreatePlayer(ref blackPlayer, blackPlayerType);
     }
 
     public void StartNewGamePlayerVsPlayer() => StartNewGame(PlayerType.Human, PlayerType.Human);

@@ -13,7 +13,7 @@ public class Bot : Player
     public void PlayMove()
     {
         int chosenMove = ChooseMove();
-        board.PlayMove(chosenMove);
+        Decided(chosenMove);
     }
 
     public int ChooseMove()

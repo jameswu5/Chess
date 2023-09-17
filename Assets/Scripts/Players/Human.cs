@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class Human : Player
@@ -88,7 +87,7 @@ public class Human : Player
 
             if (newIndex != pieceIndex && newIndex != -1)
             {
-                board.TryToPlacePiece(pieceIndex, newIndex);
+                TryToGetMove(pieceIndex, newIndex);
             }
 
             currentState = InputState.Idle;
@@ -121,7 +120,7 @@ public class Human : Player
             {
                 if (newIndex != -1) // Trying to place at another square
                 {
-                    board.TryToPlacePiece(pieceIndex, newIndex);
+                    TryToGetMove(pieceIndex, newIndex);
                     boardUI.UnHighlightHover(newIndex);
                 }
                 else // Trying to place out of bounds
@@ -151,16 +150,16 @@ public class Human : Player
             switch (indexDifference)
             {
                 case 0: // Queen
-                    board.TryToPlacePiece(pieceIndex, promotionIndex, Piece.Queen);
+                    TryToGetMove(pieceIndex, promotionIndex, Piece.Queen);
                     break;
                 case 8: // Rook
-                    board.TryToPlacePiece(pieceIndex, promotionIndex, Piece.Rook);
+                    TryToGetMove(pieceIndex, promotionIndex, Piece.Rook);
                     break;
                 case 16: // Bishop
-                    board.TryToPlacePiece(pieceIndex, promotionIndex, Piece.Bishop);
+                    TryToGetMove(pieceIndex, promotionIndex, Piece.Bishop);
                     break;
                 case 24: // Knight
-                    board.TryToPlacePiece(pieceIndex, promotionIndex, Piece.Knight);
+                    TryToGetMove(pieceIndex, promotionIndex, Piece.Knight);
                     break;
                 default:
                     boardUI.MovePieceToSquare(pieceIndex, pieceIndex);
@@ -202,4 +201,15 @@ public class Human : Player
 
         currentState = InputState.Idle;
     }
+
+    void TryToGetMove(int index, int newIndex, int promotionType = 0)
+    {
+        int move = board.TryToPlacePiece(index, newIndex, promotionType);
+
+        if (move != 0)
+        {
+            Decided(move);
+        }
+    }
+
 }
