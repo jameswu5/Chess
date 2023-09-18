@@ -25,7 +25,7 @@ public class Human : Player
             board.UndoMove(true);
         }
 
-        if (board.gameResult == Board.Result.Playing)
+        if (board.gameResult == Judge.Result.Playing)
         {
             if (board.inPromotionScreen == -1)
             {

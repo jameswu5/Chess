@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Clock : MonoBehaviour
 {
+    public event System.Action<bool> ClockTimedOut;
+
     public Timer white;
     public Timer black;
 
@@ -11,6 +13,12 @@ public class Clock : MonoBehaviour
     public int increment;
 
     public bool whiteToPlay;
+
+    public void Start()
+    {
+        white.TimedOut += () => ClockTimedOut(true);
+        black.TimedOut += () => ClockTimedOut(false);
+    }
 
     public void Initialise(int startTime, int increment)
     {
@@ -45,5 +53,11 @@ public class Clock : MonoBehaviour
             black.AddTime(increment);
         }
         whiteToPlay = !whiteToPlay;
+    }
+
+    public void StopClocks()
+    {
+        white.SetActive(false);
+        black.SetActive(false);
     }
 }

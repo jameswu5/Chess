@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Text;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,7 +29,7 @@ public class Board : MonoBehaviour
     public int[] kingIndices;
     public bool inCheck;
 
-    private int fiftyMoveCounter;
+    public int fiftyMoveCounter;
     private Stack<int> fiftyMoveCounters;
     public int moveNumber;
 
@@ -44,12 +43,11 @@ public class Board : MonoBehaviour
     public ulong[] colourBitboards; // 0: white | 1: black
     public ulong AllPiecesBiboard => colourBitboards[0] | colourBitboards[1];
 
-    private ulong zobristKey;
+    public ulong zobristKey;
     private Stack<ulong> zobristKeys;
-    private Dictionary<ulong, int> table;
+    public Dictionary<ulong, int> table;
 
-    public enum Result { Playing, Checkmate, Stalemate, Insufficient, Threefold, FiftyMove };
-    public Result gameResult;
+    public Judge.Result gameResult;
 
     public void Initialise()
     {
@@ -81,9 +79,9 @@ public class Board : MonoBehaviour
         zobristKeys = new Stack<ulong>();
         zobristKeys.Push(zobristKey);
         table = new Dictionary<ulong, int>();
+        table[zobristKey] = 1;
 
-        gameResult = GetGameResult();
-        Game.UpdateEndOfGameScreen(gameResult, turn);
+        gameResult = Judge.GetResult(this);
     }
 
     private void LoadPosition(string FENPosition = FEN.standard) {
@@ -776,7 +774,7 @@ public class Board : MonoBehaviour
         }
 
         // undo end of game (if applicable in the first place);
-        gameResult = Result.Playing;
+        gameResult = Judge.Result.Playing;
 
         // revert the fifty move counter
         fiftyMoveCounters.Pop();
@@ -786,7 +784,7 @@ public class Board : MonoBehaviour
         if (turn == Piece.Black) moveNumber--;
 
         // remove end of game text if necessary
-        Game.UpdateEndOfGameScreen(gameResult, turn);
+        Game.UpdateEndOfGameScreen(gameResult);
 
         // change the turn back
         ChangeTurn();
@@ -811,32 +809,7 @@ public class Board : MonoBehaviour
         HandleCheck(false);
     }
 
-    public Result GetGameResult()
-    {
-        if (legalMoves.Count == 0)
-        {
-            return inCheck ? Result.Checkmate : Result.Stalemate;
-        }
-
-        if (fiftyMoveCounter >= 100)
-        {
-            return Result.FiftyMove;
-        }
-
-        if (table.Count > 0 && table.Values.Max() >= 3)
-        {
-            return Result.Threefold;
-        }
-
-        if (CheckForInsufficientMaterial())
-        {
-            return Result.Insufficient;
-        }
-
-        return Result.Playing;
-    }
-
-    private bool CheckForInsufficientMaterial()
+    public bool CheckForInsufficientMaterial()
     {
         int numOfPieces = 0;
         for (int i = 0; i < 64; i++)

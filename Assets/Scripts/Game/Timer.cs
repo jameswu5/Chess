@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class Timer : MonoBehaviour
 {
+    public event System.Action TimedOut;
+
     public Color ActiveColor;
     public Color InactiveColor;
 
@@ -41,7 +43,7 @@ public class Timer : MonoBehaviour
             if (secondsRemaining == 0)
             {
                 isActive = false;
-                // need to notify that we have timed out somehow
+                TimedOut.Invoke();
             }
 
             timerText.color = ActiveColor;

@@ -32,13 +32,14 @@ public class Game : MonoBehaviour
 
         clock = Instantiate(clockPrefab);
         clock.Initialise(allowedTime, increment);
+        clock.ClockTimedOut += TimedOut;
 
         StartNewGamePlayerVsPlayer();
     }
 
     private void Update()
     {
-        if (board.gameResult == Board.Result.Playing)
+        if (board.gameResult == Judge.Result.Playing)
         {
             if (board.turn == Piece.White)
             {
@@ -57,9 +58,21 @@ public class Game : MonoBehaviour
         PlayMoveSound(Move.IsCaptureMove(move));
         Debug.Log($"{board.moveNumber}: {Move.GetMoveAsString(move, board.inCheck)}");
         clock.ToggleClock();
-        board.gameResult = board.GetGameResult();
-        UpdateEndOfGameScreen(board.gameResult, board.turn);
+        board.gameResult = Judge.GetResult(board);
+
+        if (board.gameResult != Judge.Result.Playing)
+        {
+            HandleGameOver();
+        }
+
     }
+
+    public void TimedOut(bool isWhite)
+    {
+        board.gameResult = isWhite ? Judge.Result.WhiteOutOfTime : Judge.Result.BlackOutOfTime;
+        HandleGameOver();
+    }
+
 
     public static void PlayMoveSound(bool isCapture)
     {
@@ -106,6 +119,8 @@ public class Game : MonoBehaviour
 
         CreatePlayer(ref whitePlayer, whitePlayerType);
         CreatePlayer(ref blackPlayer, blackPlayerType);
+
+        UpdateEndOfGameScreen(board.gameResult);
     }
 
     public void StartNewGamePlayerVsPlayer() => StartNewGame(PlayerType.Human, PlayerType.Human);
@@ -114,33 +129,48 @@ public class Game : MonoBehaviour
 
     public void StartNewGameBotVsBot() => StartNewGame(PlayerType.Bot, PlayerType.Bot);
 
-    public static void UpdateEndOfGameScreen(Board.Result gameResult, int turn)
+    public static void UpdateEndOfGameScreen(Judge.Result gameResult)
     {
-        if (gameResult == Board.Result.Playing)
+        if (gameResult == Judge.Result.Playing)
         {
             endOfGameText.text = "";
             resultText.text = "";
         }
-        else if (gameResult == Board.Result.Checkmate)
+        else if (gameResult == Judge.Result.WhiteIsMated)
         {
             endOfGameText.text = "Checkmate";
-            resultText.text = turn == Piece.White ? "0 - 1" : "1 - 0";
+            resultText.text = "0 - 1";
+        }
+        else if (gameResult == Judge.Result.BlackIsMated)
+        {
+            endOfGameText.text = "Checkmate";
+            resultText.text = "1 - 0";
+        }
+        else if (gameResult == Judge.Result.WhiteOutOfTime)
+        {
+            endOfGameText.text = "White Flag";
+            resultText.text = "0 - 1";
+        }
+        else if (gameResult == Judge.Result.BlackOutOfTime)
+        {
+            endOfGameText.text = "Black Flag";
+            resultText.text = "1 - 0";
         }
         else
         {
             resultText.text = "1/2 - 1/2";
             switch (gameResult)
             {
-                case Board.Result.FiftyMove:
+                case Judge.Result.FiftyMove:
                     endOfGameText.text = "50 move rule";
                     break;
-                case Board.Result.Insufficient:
+                case Judge.Result.Insufficient:
                     endOfGameText.text = "Insufficient material";
                     break;
-                case Board.Result.Stalemate:
+                case Judge.Result.Stalemate:
                     endOfGameText.text = "Stalemate";
                     break;
-                case Board.Result.Threefold:
+                case Judge.Result.Threefold:
                     endOfGameText.text = "Threefold repetition";
                     break;
                 default:
@@ -149,4 +179,11 @@ public class Game : MonoBehaviour
             }
         }
     }
+
+    public void HandleGameOver()
+    {
+        UpdateEndOfGameScreen(board.gameResult);
+        clock.StopClocks();
+    }
+
 }
