@@ -543,7 +543,10 @@ public class Board : MonoBehaviour
             table.Add(zobristKey, 1);
         }
 
-        HandleCheck();
+        if (changeUI)
+        {
+            HandleCheck();
+        }
     }
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
@@ -582,19 +585,14 @@ public class Board : MonoBehaviour
 
     private void HandleCheck(bool displayNew = true)
     {
+        boardUI.ResetSquareColour(kingIndices[1]);
+        boardUI.ResetSquareColour(kingIndices[0]);
+
         if (inCheck && displayNew)
         {
             DisplayCheck(turn);
         }
 
-        if (turn == Piece.White)
-        {
-            boardUI.ResetSquareColour(kingIndices[1]);
-        }
-        else
-        {
-            boardUI.ResetSquareColour(kingIndices[0]);
-        }
     }
 
     private void UpdateKingIndex(int colour, int newIndex)
@@ -806,7 +804,10 @@ public class Board : MonoBehaviour
         zobristKey = zobristKeys.Peek();
 
         // this is temporarily fixed by setting the display check flag to false
-        HandleCheck(false);
+        if (changeUI)
+        {
+            HandleCheck(false);
+        }
     }
 
     public bool CheckForInsufficientMaterial()

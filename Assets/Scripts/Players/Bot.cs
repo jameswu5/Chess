@@ -1,25 +1,54 @@
 using System;
+using System.Threading;
 
 public class Bot : Player
 {
     public int negativeInfinity = -1000000;
     public int positiveInfinity =  1000000;
 
+    private bool moveFound = false;
+    private int chosenMove = 0;
+
     public override void Update()
     {
-        PlayMove();
+        if (moveFound)
+        {
+            moveFound = false;
+            Decided(chosenMove);
+        }
     }
 
-    public void PlayMove()
+    private void ThreadedSearch()
     {
-        int chosenMove = ChooseMove();
-        Decided(chosenMove);
+        Thread backgroundThread = new Thread(ChooseMove);
+        backgroundThread.Start();
     }
 
-    public int ChooseMove()
+
+    public override void TurnToMove()
+    {
+        moveFound = false;
+        ThreadedSearch();
+    }
+
+
+    //public void ChooseMove()
+    //{
+    //    for (long i = 0; i < 300000000; i++)
+    //    {
+    //        if (i % 100000000 == 0) Debug.Log(i);
+    //    }
+    //    chosenMove = board.legalMoves[0];
+    //    moveFound = true;
+    //}
+
+
+
+    public void ChooseMove()
     {
         int bestEval = negativeInfinity;
-        int chosenMove = board.legalMoves[0];
+        chosenMove = board.legalMoves[0];
+
         foreach (int move in board.legalMoves)
         {
             board.MakeMove(move);
@@ -32,8 +61,7 @@ public class Bot : Player
                 chosenMove = move;
             }
         }
-
-        return chosenMove;
+        moveFound = true;
     }
 
     // Implements alpha-beta pruning

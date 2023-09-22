@@ -21,7 +21,7 @@ public class Game : MonoBehaviour
     public Clock clockPrefab;
     public Clock clock;
     public const int allowedTime = 300;
-    public const int increment = 2;
+    public const int increment = 0;
 
     private void Start()
     {
@@ -63,6 +63,16 @@ public class Game : MonoBehaviour
         if (board.gameResult != Judge.Result.Playing)
         {
             HandleGameOver();
+            return;
+        }
+
+        if (board.turn == Piece.White)
+        {
+            whitePlayer.TurnToMove();
+        }
+        else
+        {
+            blackPlayer.TurnToMove();
         }
 
     }
@@ -121,6 +131,7 @@ public class Game : MonoBehaviour
         CreatePlayer(ref blackPlayer, blackPlayerType);
 
         UpdateEndOfGameScreen(board.gameResult);
+        whitePlayer.TurnToMove();
     }
 
     public void StartNewGamePlayerVsPlayer() => StartNewGame(PlayerType.Human, PlayerType.Human);

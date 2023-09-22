@@ -38,6 +38,8 @@ public class Human : Player
         }
     }
 
+    public override void TurnToMove() { } // Do nothing
+
     void HandleInput()
     {
         Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
