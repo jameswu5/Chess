@@ -32,18 +32,6 @@ public class Bot : Player
     }
 
 
-    //public void ChooseMove()
-    //{
-    //    for (long i = 0; i < 300000000; i++)
-    //    {
-    //        if (i % 100000000 == 0) Debug.Log(i);
-    //    }
-    //    chosenMove = board.legalMoves[0];
-    //    moveFound = true;
-    //}
-
-
-
     public void ChooseMove()
     {
         int bestEval = negativeInfinity;

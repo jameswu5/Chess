@@ -20,7 +20,6 @@ public class Board : MonoBehaviour
     public int GetOpponentColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 1 : 0;
 
     public int castlingRights;
-    private Stack<int> castlingRightStates;
     private const int WhiteKingsideRightMask  = 0b1000;
     private const int WhiteQueensideRightMask = 0b0100;
     private const int BlackKingsideRightMask  = 0b0010;
@@ -30,21 +29,20 @@ public class Board : MonoBehaviour
     public bool inCheck;
 
     public int fiftyMoveCounter;
-    private Stack<int> fiftyMoveCounters;
     public int moveNumber;
 
     public int inPromotionScreen;
     public int enPassantTarget;
-    private Stack<int> enPassantTargets;
 
     private Stack<int> gameMoves;
+
+    private Stack<State> states;
 
     private ulong[] pieceBitboards;  // 0: king | 1: queen | 2: bishop | 3: knight | 4: rook | 5: pawn (white +0, black +6)
     public ulong[] colourBitboards; // 0: white | 1: black
     public ulong AllPiecesBiboard => colourBitboards[0] | colourBitboards[1];
 
     public ulong zobristKey;
-    private Stack<ulong> zobristKeys;
     public Dictionary<ulong, int> table;
 
     public Judge.Result gameResult;
@@ -57,13 +55,10 @@ public class Board : MonoBehaviour
 
         inPromotionScreen = -1;
         enPassantTarget = -1;
-        enPassantTargets = new Stack<int>();
 
         castlingRights = 0;
-        castlingRightStates = new Stack<int>();
 
         kingIndices = new int[2];
-        fiftyMoveCounters = new Stack<int>();
         gameMoves = new Stack<int>();
         name = "Board";
 
@@ -76,10 +71,11 @@ public class Board : MonoBehaviour
         moveCache.Push(new List<int>(legalMoves));
 
         zobristKey = Zobrist.CalculateKey(this);
-        zobristKeys = new Stack<ulong>();
-        zobristKeys.Push(zobristKey);
         table = new Dictionary<ulong, int>();
         table[zobristKey] = 1;
+
+        states = new Stack<State>();
+        states.Push(GetCurrentState());
 
         gameResult = Judge.GetResult(this);
     }
@@ -141,15 +137,12 @@ public class Board : MonoBehaviour
                     break;
             }
         }
-        castlingRightStates.Push(castlingRights);
 
         // en passant targets
         enPassantTarget = sections[3] == "-" ? -1 : Square.GetIndexFromSquareName(sections[3]);
-        enPassantTargets.Push(enPassantTarget);
 
         // halfmove clock
         fiftyMoveCounter = Convert.ToInt16(sections[4]);
-        fiftyMoveCounters.Push(fiftyMoveCounter);
 
         // fullmove clock
         moveNumber = Convert.ToInt16(sections[5]) - 1;
@@ -493,8 +486,6 @@ public class Board : MonoBehaviour
             castlingRights &= ~BlackKingsideRightMask;
         }
 
-        castlingRightStates.Push(castlingRights);
-
         Zobrist.ChangeCastling(ref zobristKey, oldCastlingRights, castlingRights);
 
         // Update en passant target
@@ -506,7 +497,6 @@ public class Board : MonoBehaviour
         {
             enPassantTarget = -1;
         }
-        enPassantTargets.Push(enPassantTarget);
 
         Zobrist.ChangeEnPassantFile(ref zobristKey, oldEnPassantTarget, enPassantTarget);
 
@@ -516,7 +506,6 @@ public class Board : MonoBehaviour
             fiftyMoveCounter = 0;
         }
         fiftyMoveCounter++;
-        fiftyMoveCounters.Push(fiftyMoveCounter);
 
         // Update move number
         if (turn == Piece.White)
@@ -527,14 +516,11 @@ public class Board : MonoBehaviour
         gameMoves.Push(move);
 
         ChangeTurn();
-
         Zobrist.ChangeTurn(ref zobristKey);
 
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));
 
-        // Update the table of positions
-        zobristKeys.Push(zobristKey);
         if (table.ContainsKey(zobristKey))
         {
             table[zobristKey]++;
@@ -542,6 +528,8 @@ public class Board : MonoBehaviour
         {
             table.Add(zobristKey, 1);
         }
+
+        states.Push(GetCurrentState());
 
         if (changeUI)
         {
@@ -583,12 +571,12 @@ public class Board : MonoBehaviour
         inPromotionScreen = -1;
     }
 
-    private void HandleCheck(bool displayNew = true)
+    private void HandleCheck()
     {
         boardUI.ResetSquareColour(kingIndices[1]);
         boardUI.ResetSquareColour(kingIndices[0]);
 
-        if (inCheck && displayNew)
+        if (inCheck)
         {
             DisplayCheck(turn);
         }
@@ -757,14 +745,6 @@ public class Board : MonoBehaviour
             }
         }
 
-        // revert the castling rights
-        castlingRightStates.Pop();
-        castlingRights = castlingRightStates.Peek();
-
-        // revert en passant target
-        enPassantTargets.Pop();
-        enPassantTarget = enPassantTargets.Peek();
-
         // revert the king index
         if (movedPieceType == Piece.King)
         {
@@ -773,10 +753,6 @@ public class Board : MonoBehaviour
 
         // undo end of game (if applicable in the first place);
         gameResult = Judge.Result.Playing;
-
-        // revert the fifty move counter
-        fiftyMoveCounters.Pop();
-        fiftyMoveCounter = fiftyMoveCounters.Peek();
 
         // change the move number if undoing a move made by black
         if (turn == Piece.Black) moveNumber--;
@@ -788,7 +764,6 @@ public class Board : MonoBehaviour
         ChangeTurn();
 
         // Retrieve legal moves
-        // there is a bug so if we undo a move while in check this flag will still be set to true
         moveCache.Pop();
         legalMoves = moveCache.Peek();
 
@@ -800,13 +775,14 @@ public class Board : MonoBehaviour
         {
             table[zobristKey]--;
         }
-        zobristKeys.Pop();
-        zobristKey = zobristKeys.Peek();
 
-        // this is temporarily fixed by setting the display check flag to false
+        // Revert the states
+        states.Pop();
+        LoadState(states.Peek());
+
         if (changeUI)
         {
-            HandleCheck(false);
+            HandleCheck();
         }
     }
 
@@ -832,6 +808,20 @@ public class Board : MonoBehaviour
     {
         boardUI.ResetBoardUI();
         Initialise();
+    }
+
+    private State GetCurrentState()
+    {
+        return new State(fiftyMoveCounter, castlingRights, enPassantTarget, zobristKey, inCheck);
+    }
+
+    private void LoadState(State state)
+    {
+        fiftyMoveCounter = state.fiftyMoveCounter;
+        castlingRights = state.castlingRights;
+        enPassantTarget = state.enPassantTarget;
+        zobristKey = state.zobristKey;
+        inCheck = state.inCheck;
     }
 
     // Takes care of captures as well (since capturedPieceID can be Piece.None)
