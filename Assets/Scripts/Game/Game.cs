@@ -74,7 +74,6 @@ public class Game : MonoBehaviour
         {
             blackPlayer.TurnToMove();
         }
-
     }
 
     public void TimedOut(bool isWhite)
@@ -123,7 +122,7 @@ public class Game : MonoBehaviour
     }
 
     private void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
-    {   
+    {
         board.ResetBoard();
         clock.NewGame();
 
@@ -131,7 +130,16 @@ public class Game : MonoBehaviour
         CreatePlayer(ref blackPlayer, blackPlayerType);
 
         UpdateEndOfGameScreen(board.gameResult);
-        whitePlayer.TurnToMove();
+
+        if (board.turn == Piece.White)
+        {
+            whitePlayer.TurnToMove();
+        }
+        else
+        {
+            blackPlayer.TurnToMove();
+        }
+
     }
 
     public void StartNewGamePlayerVsPlayer() => StartNewGame(PlayerType.Human, PlayerType.Human);

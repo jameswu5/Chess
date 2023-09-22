@@ -335,6 +335,12 @@ public class Board : MonoBehaviour
         int oldCastlingRights = castlingRights;
         int oldEnPassantTarget = enPassantTarget;
 
+        // Uncolour the checked king if necessary
+        if (changeUI && inCheck)
+        {
+            boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
+        }
+
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
         {
             // if piece is a king, then disable both castling rights
@@ -448,7 +454,7 @@ public class Board : MonoBehaviour
 
             AddPieceToBitboard(promotePiece + colour, endIndex);
             Zobrist.TogglePiece(ref zobristKey, promotePiece + colour, endIndex);
-            
+
             if (changeUI)
             {
                 boardUI.CreatePiece(promotePiece + colour, endIndex);
@@ -531,9 +537,9 @@ public class Board : MonoBehaviour
 
         states.Push(GetCurrentState());
 
-        if (changeUI)
+        if (changeUI && inCheck)
         {
-            HandleCheck();
+            boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
         }
     }
 
@@ -571,18 +577,6 @@ public class Board : MonoBehaviour
         inPromotionScreen = -1;
     }
 
-    private void HandleCheck()
-    {
-        boardUI.ResetSquareColour(kingIndices[1]);
-        boardUI.ResetSquareColour(kingIndices[0]);
-
-        if (inCheck)
-        {
-            DisplayCheck(turn);
-        }
-
-    }
-
     private void UpdateKingIndex(int colour, int newIndex)
     {
         if (colour == Piece.White)
@@ -592,18 +586,6 @@ public class Board : MonoBehaviour
         else
         {
             kingIndices[1] = newIndex;
-        }
-    }
-
-    private void DisplayCheck(int colour)
-    {
-        if (colour == Piece.White)
-        {
-            boardUI.HighlightCheck(kingIndices[0]);
-        }
-        else
-        {
-            boardUI.HighlightCheck(kingIndices[1]);
         }
     }
 
@@ -645,6 +627,11 @@ public class Board : MonoBehaviour
 
         int capturedPiece = Piece.None;
         int capturedIndex = -1;
+
+        if (changeUI && inCheck)
+        {
+            boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
+        }
 
         // move the pieces
 
@@ -780,9 +767,9 @@ public class Board : MonoBehaviour
         states.Pop();
         LoadState(states.Peek());
 
-        if (changeUI)
+        if (changeUI && inCheck)
         {
-            HandleCheck();
+            boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
         }
     }
 
