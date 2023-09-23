@@ -3,6 +3,9 @@ using System.Threading;
 
 public class Bot : Player
 {
+    public enum BotType { Random, Version1 };
+
+
     private bool moveFound = false;
     private int chosenMove = 0;
 
