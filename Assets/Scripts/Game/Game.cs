@@ -9,6 +9,8 @@ public class Game : MonoBehaviour
     public Player whitePlayer;
     public Player blackPlayer;
 
+    public Bot.BotType defaultBot = Bot.BotType.Version1;
+
     public new Camera camera;
     public static AudioSource captureSound;
     public static AudioSource moveSound;
@@ -119,14 +121,14 @@ public class Game : MonoBehaviour
 
     private void CreatePlayer(ref Player player, PlayerType type)
     {
-        player = type == PlayerType.Human ? new Human() : new Bot();
+        player = type == PlayerType.Human ? new Human() : Bot.GetBotFromBotType(defaultBot);
         player.PlayChosenMove += PlayMove;
     }
 
     private void CreatePlayer(ref Player player, Bot.BotType type)
     {
         // this is temporary
-        player = new Bot();
+        player = Bot.GetBotFromBotType(type);
         player.PlayChosenMove += PlayMove;
     }
 
