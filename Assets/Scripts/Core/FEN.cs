@@ -8,6 +8,7 @@ public static class FEN
     public const string enpassant = "rnbqkbnr/ppp1p1pp/8/8/3pPp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
     public const string promotion = "8/4PP2/8/3k1K2/8/8/3pp3/8 w - - 0 1";
     public const string stalemate = "8/8/8/8/8/8/q5k1/5K3 w - - 0 1";
+    public const string checkmate = "8/8/8/8/8/q4k3/8/5K3 b - - 0 1";
     public const string fiftyMoveRule = "8/8/r2k5/8/8/4K3/8/8 w - - 86 64";
     public const string insufficient = "8/8/8/8/k7/8/6Kp/8 w - - 0 1";
     public const string twoRooksLadder = "5r2/5r2/5k2/8/8/4K3/8/8 w - - 0 1";
