@@ -40,7 +40,7 @@ public class Human : Player
 
     public override void TurnToMove() { } // Do nothing
 
-    void HandleInput()
+    private void HandleInput()
     {
         Vector2 mousePosition = camera.ScreenToWorldPoint(Input.mousePosition);
 
@@ -59,7 +59,7 @@ public class Human : Player
         }
     }
 
-    void HandleInputIdle(Vector2 mousePosition)
+    private void HandleInputIdle(Vector2 mousePosition)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -81,7 +81,7 @@ public class Human : Player
         }
     }
 
-    void HandleInputSelecting(Vector2 mousePosition)
+    private void HandleInputSelecting(Vector2 mousePosition)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -98,7 +98,7 @@ public class Human : Player
         }
     }
 
-    void HandleInputDragging(Vector2 mousePosition)
+    private void HandleInputDragging(Vector2 mousePosition)
     {
         boardUI.DragPiece(pieceIndex, mousePosition, dragOffset);
         int newIndex = GetIndexFromMousePosition(mousePosition);
@@ -140,7 +140,7 @@ public class Human : Player
         }
     }
 
-    void HandlePromotionInput(int promotionIndex)
+    private void HandlePromotionInput(int promotionIndex)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -172,7 +172,7 @@ public class Human : Player
         }
     }
 
-    int GetIndexFromMousePosition(Vector2 mousePosition)
+    private int GetIndexFromMousePosition(Vector2 mousePosition)
     {
         if (mousePosition.x >= -0.5f && mousePosition.x <= 7.5 && mousePosition.y >= -0.5f && mousePosition.y <= 7.5f)
         {
@@ -182,7 +182,7 @@ public class Human : Player
         return -1; // clicked somewhere not on the board
     }
 
-    void CancelMove()
+    private void CancelMove()
     {
         if (currentState != InputState.Idle)
         {
@@ -204,7 +204,7 @@ public class Human : Player
         currentState = InputState.Idle;
     }
 
-    void TryToGetMove(int index, int newIndex, int promotionType = 0)
+    private void TryToGetMove(int index, int newIndex, int promotionType = 0)
     {
         int move = board.TryToPlacePiece(index, newIndex, promotionType);
 
@@ -214,4 +214,8 @@ public class Human : Player
         }
     }
 
+    public override string ToString()
+    {
+        return "Human Player";
+    }
 }

@@ -6,8 +6,8 @@ public class Match : MonoBehaviour
 {
     const int games = 20;
 
-    public Bot.BotType player1;
-    public Bot.BotType player2;
+    public Player.Type player1;
+    public Player.Type player2;
 
     int player1Wins;
     int player2Wins;
@@ -37,7 +37,7 @@ public class Match : MonoBehaviour
         StartGame.Invoke();
     }
 
-    public void SetBots(Bot.BotType bot1, Bot.BotType bot2)
+    public void SetBots(Player.Type bot1, Player.Type bot2)
     {
         player1 = bot1;
         player2 = bot2;

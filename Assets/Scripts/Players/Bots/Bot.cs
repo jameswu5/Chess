@@ -3,19 +3,19 @@ using System.Threading;
 
 public abstract class Bot : Player
 {
-    public enum BotType { Random, Version1 };
-
     protected bool moveFound = false;
     protected int chosenMove = 0;
 
-    public static Bot GetBotFromBotType(BotType type)
+    public static Bot GetBotFromBotType(Type type)
     {
         switch (type)
         {
-            case BotType.Random:
+            case Type.Random:
                 return new RandomBot();
-            case BotType.Version1:
+            case Type.Version1:
                 return new Version1();
+            case Type.Human:
+                throw new Exception("Tried to create a bot with Player.Type.Human");
             default:
                 throw new Exception("Bot not found");
         }

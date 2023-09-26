@@ -11,4 +11,9 @@ public class RandomBot : Bot
         chosenMove = board.legalMoves[rng.Next(0, board.legalMoves.Count)];
         moveFound = true;
     }
+
+    public override string ToString()
+    {
+        return "Random Bot";
+    }
 }

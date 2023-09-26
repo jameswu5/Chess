@@ -11,6 +11,11 @@ public class Version1 : Bot
         chosenMove = searcher.FindBestMove(board);
         moveFound = true;
     }
+
+    public override string ToString()
+    {
+        return "Bot Version 1";
+    }
 }
 
 // This is version 1 of the searcher with simple negamax

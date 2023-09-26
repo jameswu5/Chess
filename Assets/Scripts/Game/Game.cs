@@ -9,7 +9,10 @@ public class Game : MonoBehaviour
     public Player whitePlayer;
     public Player blackPlayer;
 
-    public Bot.BotType defaultBot = Bot.BotType.Version1;
+    public static Text whitePlayerText;
+    public static Text blackPlayerText;
+
+    public Player.Type defaultBot = Player.Type.Version1;
 
     public new Camera camera;
     public static AudioSource captureSound;
@@ -17,8 +20,6 @@ public class Game : MonoBehaviour
     
     public static Text endOfGameText;
     public static Text resultText;
-
-    public enum PlayerType { Human, Bot }
 
     public Clock clockPrefab;
     public Clock clock;
@@ -42,7 +43,7 @@ public class Game : MonoBehaviour
         match.StartGame += StartMatchGame;
 
         StartNewGamePlayerVsPlayer();
-        //StartMatch(Bot.BotType.Random, Bot.BotType.Version1);
+        //StartMatch(Player.Type.Random, Player.Type.Version1);
     }
 
     private void Update()
@@ -114,6 +115,8 @@ public class Game : MonoBehaviour
     {
         endOfGameText = GameObject.FindGameObjectWithTag("EndOfGameText").GetComponent<Text>();
         resultText = GameObject.FindGameObjectWithTag("ResultText").GetComponent<Text>();
+        whitePlayerText = GameObject.FindGameObjectWithTag("WhitePlayer").GetComponent<Text>();
+        blackPlayerText = GameObject.FindGameObjectWithTag("BlackPlayer").GetComponent<Text>();
     }
 
     private void CreateBoard()
@@ -122,20 +125,21 @@ public class Game : MonoBehaviour
         board.Initialise();
     }
 
-    private void CreatePlayer(ref Player player, PlayerType type)
+    private void CreatePlayer(ref Player player, Player.Type type)
     {
-        player = type == PlayerType.Human ? new Human() : Bot.GetBotFromBotType(defaultBot);
+        if (type == Player.Type.Human)
+        {
+            player = new Human();
+        }
+        else
+        {
+            player = Bot.GetBotFromBotType(type);
+        }
+
         player.PlayChosenMove += PlayMove;
     }
 
-    private void CreatePlayer(ref Player player, Bot.BotType type)
-    {
-        // this is temporary
-        player = Bot.GetBotFromBotType(type);
-        player.PlayChosenMove += PlayMove;
-    }
-
-    private void StartNewGame(PlayerType whitePlayerType, PlayerType blackPlayerType)
+    private void StartNewGame(Player.Type whitePlayerType, Player.Type blackPlayerType)
     {
         board.ResetBoard();
         clock.NewGame();
@@ -143,25 +147,8 @@ public class Game : MonoBehaviour
         CreatePlayer(ref whitePlayer, whitePlayerType);
         CreatePlayer(ref blackPlayer, blackPlayerType);
 
-        UpdateEndOfGameScreen(board.gameResult);
-
-        if (board.turn == Piece.White)
-        {
-            whitePlayer.TurnToMove();
-        }
-        else
-        {
-            blackPlayer.TurnToMove();
-        }
-    }
-
-    private void StartNewGame(Bot.BotType bot1, Bot.BotType bot2)
-    {
-        board.ResetBoard();
-        clock.NewGame();
-
-        CreatePlayer(ref whitePlayer, bot1);
-        CreatePlayer(ref blackPlayer, bot2);
+        whitePlayerText.text = whitePlayer.ToString();
+        blackPlayerText.text = blackPlayer.ToString();
 
         UpdateEndOfGameScreen(board.gameResult);
 
@@ -174,15 +161,14 @@ public class Game : MonoBehaviour
             blackPlayer.TurnToMove();
         }
     }
+    public void StartNewGamePlayerVsPlayer() => StartNewGame(Player.Type.Human, Player.Type.Human);
 
-    public void StartNewGamePlayerVsPlayer() => StartNewGame(PlayerType.Human, PlayerType.Human);
+    public void StartNewGamePlayerVsBot() => StartNewGame(Player.Type.Human, defaultBot);
 
-    public void StartNewGamePlayerVsBot() => StartNewGame(PlayerType.Human, PlayerType.Bot);
-
-    public void StartNewGameBotVsBot() => StartNewGame(PlayerType.Bot, PlayerType.Bot);
+    public void StartNewGameBotVsBot() => StartNewGame(defaultBot, defaultBot);
 
     // Starts a match between two bots
-    public void StartMatch(Bot.BotType bot1, Bot.BotType bot2)
+    public void StartMatch(Player.Type bot1, Player.Type bot2)
     {
         match.SetBots(bot1, bot2);
         match.StartMatch();
