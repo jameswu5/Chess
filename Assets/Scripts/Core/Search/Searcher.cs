@@ -8,31 +8,33 @@ public class Searcher
 
     const int negativeInfinity = -1000000;
     const int positiveInfinity = 1000000;
+    const int searchDepth = 3;
 
-    int searchDepth = 0;
-    int bestMove = 0;
-
+    int bestMove;
+    int sign;
 
     public int FindBestMove(Board board)
     {
         this.board = board;
 
-        bestMove = 0;
-        searchDepth = 3;
+        // For some reason sometimes the best move is never updated so the game
+        // crashes, so I set it by default to the first available move
+        bestMove = board.legalMoves[0];
+
+        // I'm not sure why sometimes the engine plays the best move possible and
+        // other times the worst move possible so this is a fix by drawing truth table
+        sign = (((board.turn == Piece.White ? 1 : 0) ^ (searchDepth & 1)) == 1) ? 1 : -1;
 
         Search(searchDepth, negativeInfinity, positiveInfinity);
-
         return bestMove;
     }
 
     private int Search(int depth, int alpha, int beta)
     {
-
         if (depth == 0)
         {
-            return Evaluator.EvaluateBoard(board);
+            return sign * Evaluator.EvaluateBoard(board);
         }
-
 
         foreach (int move in board.legalMoves)
         {
@@ -65,5 +67,4 @@ public class Searcher
 
         return alpha;
     }
-
 }

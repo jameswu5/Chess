@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Match : MonoBehaviour
 {
-    const int games = 100;
+    const int games = 20;
 
     public Bot.BotType player1;
     public Bot.BotType player2;
@@ -13,25 +13,34 @@ public class Match : MonoBehaviour
     int player2Wins;
     int draws;
 
-    public bool isActive = false;
-
     public int gameNumber;
+    public bool isActive;
 
     public enum GameResult { WhiteWins, Draw, BlackWins }
 
     public event System.Action StartGame;
 
+    public Match()
+    {
+        isActive = false;
+    }
+
     public void StartMatch()
     {
         isActive = true;
 
-        player1 = Bot.BotType.Random;
-        player2 = Bot.BotType.Version1;
-
         player1Wins = 0;
         player2Wins = 0;
         draws = 0;
+        gameNumber = 0;
+
         StartGame.Invoke();
+    }
+
+    public void SetBots(Bot.BotType bot1, Bot.BotType bot2)
+    {
+        player1 = bot1;
+        player2 = bot2;
     }
 
     public void ReportResult(GameResult result)

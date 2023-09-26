@@ -38,8 +38,11 @@ public class Game : MonoBehaviour
         clock.Initialise(allowedTime, increment);
         clock.ClockTimedOut += TimedOut;
 
-        //StartNewGamePlayerVsPlayer();
-        StartMatch();
+        match = new Match();
+        match.StartGame += StartMatchGame;
+
+        StartNewGamePlayerVsPlayer();
+        //StartMatch(Bot.BotType.Random, Bot.BotType.Version1);
     }
 
     private void Update()
@@ -179,10 +182,9 @@ public class Game : MonoBehaviour
     public void StartNewGameBotVsBot() => StartNewGame(PlayerType.Bot, PlayerType.Bot);
 
     // Starts a match between two bots
-    public void StartMatch()
+    public void StartMatch(Bot.BotType bot1, Bot.BotType bot2)
     {
-        match = new Match();
-        match.StartGame += StartMatchGame;
+        match.SetBots(bot1, bot2);
         match.StartMatch();
     }
 
