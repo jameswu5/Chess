@@ -14,6 +14,8 @@ public abstract class Bot : Player
                 return new RandomBot();
             case Type.Version1:
                 return new Version1();
+            case Type.Version2:
+                return new Version2();
             case Type.Human:
                 throw new Exception("Tried to create a bot with Player.Type.Human");
             default:

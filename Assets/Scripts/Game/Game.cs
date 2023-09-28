@@ -12,7 +12,7 @@ public class Game : MonoBehaviour
     public static Text whitePlayerText;
     public static Text blackPlayerText;
 
-    public Player.Type defaultBot = Player.Type.Version1;
+    private const Player.Type defaultBot = Player.Type.Version1;
 
     public new Camera camera;
     public static AudioSource captureSound;
@@ -44,6 +44,7 @@ public class Game : MonoBehaviour
 
         StartNewGamePlayerVsPlayer();
         //StartMatch(Player.Type.Random, Player.Type.Version1);
+        //StartMatch(Player.Type.Version1, Player.Type.Version2);
     }
 
     private void Update()

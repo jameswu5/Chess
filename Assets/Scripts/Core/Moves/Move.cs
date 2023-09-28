@@ -60,6 +60,23 @@ public static class Move
 
     public static int GetEndIndex(int move) => (move & EndIndexMask) >> EndIndexShift;
 
+    public static int GetPromotedPieceType(int move)
+    {
+        switch (GetMoveType(move))
+        {
+            case PromoteToQueen:
+                return Piece.Queen;
+            case PromoteToRook:
+                return Piece.Rook;
+            case PromoteToBishop:
+                return Piece.Bishop;
+            case PromoteToKnight:
+                return Piece.Knight;
+            default:
+                return Piece.None;
+        }
+    }
+
     public static string GetMoveAsString(int move, bool check)
     {
         StringBuilder sb = new();

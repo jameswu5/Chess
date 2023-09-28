@@ -2,7 +2,7 @@ using UnityEngine;
 
 public abstract class Player : MonoBehaviour
 {
-    public enum Type { Human, Random, Version1 };
+    public enum Type { Human, Random, Version1, Version2 };
 
     public event System.Action<int> PlayChosenMove;
 
