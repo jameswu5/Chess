@@ -35,6 +35,7 @@ public abstract class Bot : Player
 
     public override void TurnToMove(Timer timer)
     {
+        timer.secondsRemainingAtStart = timer.secondsRemaining;
         moveFound = false;
         Thread backgroundThread = new Thread(() => ChooseMove(timer));
         backgroundThread.Start();

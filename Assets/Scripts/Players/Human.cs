@@ -38,7 +38,10 @@ public class Human : Player
         }
     }
 
-    public override void TurnToMove(Timer timer) { } // Do nothing
+    public override void TurnToMove(Timer timer)
+    {
+        timer.secondsRemainingAtStart = timer.secondsRemaining;
+    }
 
     private void HandleInput()
     {

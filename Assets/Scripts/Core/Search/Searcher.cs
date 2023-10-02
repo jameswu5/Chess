@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Searcher
 {
@@ -12,17 +11,18 @@ public class Searcher
     public int searchDepth;
 
     private MoveOrdering moveOrderer = new MoveOrdering();
+    private Timer timer;
+    private float allocatedTime;
 
-    private int bestMove;
-    private int sign;
+    public int bestMove;
     public int nodesSearched;
+    private int sign;
 
-    public int FindBestMove(Board board, Timer timer, int searchDepth)
+    public int FindBestMove(Board board, Timer timer, float allocatedTime, int searchDepth)
     {
         this.board = board;
-
-        bestMove = 0;
-        nodesSearched = 0;
+        this.timer = timer;
+        this.allocatedTime = allocatedTime;
 
         this.searchDepth = searchDepth;
 
@@ -73,6 +73,18 @@ public class Searcher
             }
 
             board.UndoMove();
+
+            if (timer.TimeElapsedThisTurn > allocatedTime)
+            {
+                // Reset the board
+                for (int i = 0; i < searchDepth - depth; i++)
+                {
+                    board.UndoMove();
+                }
+
+                // Break out of the search
+                searchDepth /= 0;
+            }
         }
 
         return alpha;

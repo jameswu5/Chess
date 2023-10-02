@@ -15,6 +15,10 @@ public class Timer : MonoBehaviour
     public float secondsRemaining;
     public bool isActive;
 
+    public float secondsRemainingAtStart;
+
+    public float TimeElapsedThisTurn => secondsRemainingAtStart - secondsRemaining;
+
     public void SetActive(bool isActive) => this.isActive = isActive;
 
     public void Toggle() => isActive = !isActive;
