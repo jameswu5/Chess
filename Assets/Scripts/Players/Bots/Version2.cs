@@ -6,9 +6,20 @@ public class Version2 : Bot
 {
     private Searcher searcher = new Searcher();
 
-    public override void ChooseMove()
+    public override void ChooseMove(Timer timer)
     {
-        chosenMove = searcher.FindBestMove(board);
+        float startTime = timer.secondsRemaining;
+        float allocatedTime = 0.2f;
+
+        // Iterative deepening
+        int searchDepth = 1;
+
+        while (startTime - timer.secondsRemaining < allocatedTime)
+        {
+            chosenMove = searcher.FindBestMove(board, timer, searchDepth++);
+        }
+
+        Debug.Log($"Nodes searched: {searcher.nodesSearched} | Depth {searchDepth - 1}");
         moveFound = true;
     }
 

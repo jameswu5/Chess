@@ -6,32 +6,31 @@ public class Searcher
 {
     private Board board;
 
-    const int negativeInfinity = -1000000;
-    const int positiveInfinity = 1000000;
-    const int checkmateScore = 100000;
-    const int searchDepth = 4;
+    private const int negativeInfinity = -1000000;
+    private const int positiveInfinity = 1000000;
+    private const int checkmateScore = 100000;
+    public int searchDepth;
 
     private MoveOrdering moveOrderer = new MoveOrdering();
 
-    int bestMove;
-    int sign;
+    private int bestMove;
+    private int sign;
+    public int nodesSearched;
 
-    int nodesSearched;
-
-    public int FindBestMove(Board board)
+    public int FindBestMove(Board board, Timer timer, int searchDepth)
     {
         this.board = board;
 
         bestMove = 0;
         nodesSearched = 0;
 
+        this.searchDepth = searchDepth;
+
         // I'm not sure why sometimes the engine plays the best move possible and
         // other times the worst move possible so this is a fix by drawing truth table
         sign = (((board.turn == Piece.White ? 1 : 0) ^ (searchDepth & 1)) == 1) ? 1 : -1;
 
         Search(searchDepth, negativeInfinity, positiveInfinity);
-
-        Debug.Log($"Nodes searched (with move ordering): {nodesSearched}");
 
         return bestMove;
     }

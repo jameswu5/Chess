@@ -12,7 +12,7 @@ public class Game : MonoBehaviour
     public static Text whitePlayerText;
     public static Text blackPlayerText;
 
-    private const Player.Type defaultBot = Player.Type.Version1;
+    private const Player.Type defaultBot = Player.Type.Version2;
 
     public new Camera camera;
     public static AudioSource captureSound;
@@ -78,11 +78,11 @@ public class Game : MonoBehaviour
 
         if (board.turn == Piece.White)
         {
-            whitePlayer.TurnToMove();
+            whitePlayer.TurnToMove(clock.white);
         }
         else
         {
-            blackPlayer.TurnToMove();
+            blackPlayer.TurnToMove(clock.black);
         }
     }
 
@@ -155,11 +155,11 @@ public class Game : MonoBehaviour
 
         if (board.turn == Piece.White)
         {
-            whitePlayer.TurnToMove();
+            whitePlayer.TurnToMove(clock.white);
         }
         else
         {
-            blackPlayer.TurnToMove();
+            blackPlayer.TurnToMove(clock.black);
         }
     }
     public void StartNewGamePlayerVsPlayer() => StartNewGame(Player.Type.Human, Player.Type.Human);

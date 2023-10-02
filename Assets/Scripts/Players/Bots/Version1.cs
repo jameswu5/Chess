@@ -6,7 +6,7 @@ public class Version1 : Bot
 {
     private Searcher1 searcher = new Searcher1();
 
-    public override void ChooseMove()
+    public override void ChooseMove(Timer timer)
     {
         chosenMove = searcher.FindBestMove(board);
         moveFound = true;

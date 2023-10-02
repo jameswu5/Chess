@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using UnityEngine;
 
 public abstract class Bot : Player
 {
@@ -32,12 +33,12 @@ public abstract class Bot : Player
         }
     }
 
-    public override void TurnToMove()
+    public override void TurnToMove(Timer timer)
     {
         moveFound = false;
-        Thread backgroundThread = new Thread(ChooseMove);
+        Thread backgroundThread = new Thread(() => ChooseMove(timer));
         backgroundThread.Start();
     }
 
-    public abstract void ChooseMove();
+    public abstract void ChooseMove(Timer timer);
 }

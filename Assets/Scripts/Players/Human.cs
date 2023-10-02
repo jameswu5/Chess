@@ -38,7 +38,7 @@ public class Human : Player
         }
     }
 
-    public override void TurnToMove() { } // Do nothing
+    public override void TurnToMove(Timer timer) { } // Do nothing
 
     private void HandleInput()
     {

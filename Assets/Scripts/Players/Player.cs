@@ -8,7 +8,7 @@ public abstract class Player : MonoBehaviour
 
     public Board board = GameObject.FindGameObjectWithTag("BoardObject").GetComponent<Board>();
 
-    public abstract void TurnToMove();
+    public abstract void TurnToMove(Timer timer);
 
     public abstract void Update();
 
