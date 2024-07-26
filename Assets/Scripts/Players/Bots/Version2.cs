@@ -11,7 +11,7 @@ public class Version2 : Bot
         searcher.bestMove = 0;
         searcher.nodesSearched = 0;
 
-        float allocatedTime = 5f;
+        float allocatedTime = 1f;
 
         // Start searching at depth 1
         int searchDepth = 1;
@@ -26,7 +26,7 @@ public class Version2 : Bot
         }
         catch { }
 
-        Debug.Log($"Nodes searched: {searcher.nodesSearched} | Depth {searchDepth - 1}");
+        //Debug.Log($"Nodes searched: {searcher.nodesSearched} | Depth {searchDepth - 1}");
 
         moveFound = true;
     }

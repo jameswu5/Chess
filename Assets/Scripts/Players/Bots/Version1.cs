@@ -26,7 +26,7 @@ public class Searcher1
     const int negativeInfinity = -1000000;
     const int positiveInfinity = 1000000;
     const int checkmateScore = 100000;
-    const int searchDepth = 4;
+    const int searchDepth = 3;
 
     int nodesSearched;
 
@@ -45,7 +45,7 @@ public class Searcher1
         sign = (((board.turn == Piece.White ? 1 : 0) ^ (searchDepth & 1)) == 1) ? 1 : -1;
 
         Search(searchDepth, negativeInfinity, positiveInfinity);
-        Debug.Log($"Nodes searched (without move ordering): {nodesSearched}");
+        //Debug.Log($"Nodes searched (without move ordering): {nodesSearched}");
         return bestMove;
     }
 
