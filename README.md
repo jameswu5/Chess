@@ -129,4 +129,338 @@ Since these operations would be calculated all the time, it would be useful to s
 
 It is also useful to store lookup tables for all the squares a knight, pawn and king can reach from every square. The logic is similar, but without the while loop since these pieces are not sliding.
 
+### Pseudolegal move generation
 
+Pseudolegal move generation is relatively straightforward for non-sliding pieces (i.e. knight, king and pawn). We can retrieve the attack map from the relevant cell in the lookup table, and remove a square if that square is already occupied by a friendly piece. This is where bitboards of our pieces comes in handy, because it becomes an AND operation. Take this as an example:
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/b93c5af2-a2a3-4bce-a3e8-a118e5124a4b" style="width: 350px;">
+      <p>The squares the white knight attacks</p>
+    </td>
+    <td style="align: center; vertical-align: top; padding-left: 60px;">
+      <img src="https://github.com/user-attachments/assets/700c617a-f8a3-4c7c-80dd-a996fc224ca5" style="width: 350px;">
+      <p>The squares occupied by a friendly piece</p>
+    </td>
+  </tr>
+</table>
+
+The first board is all the squares the knight attacks, and this can be found by the lookup table. The second board is all the squares our friendly pieces occupy. So if we perform `knightAttacks & ~whitePieces` we will get all the squares the knight can land on.
+
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/3d17c8bc-4a7b-4543-acb5-5327dc993b52" style="width: 350px;">
+      <p>The squares the white knight can land on</p>
+    </td>
+  </tr>
+</table>
+
+The idea is similar for sliding pieces, but we introduce the idea of blockers. If there is a piece in the path of the direction, we must truncate the ray there. If that piece is an enemy piece, we include that square. This can, again, be done by an AND operation.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/7b02bc0b-23ad-4ab1-8209-ace87c433931" style="width: 350px;">
+      <p>The attacks in the SW direction from f7</p>
+    </td>
+    <td style="align: center; vertical-align: top; padding-left: 60px;">
+      <img src="https://github.com/user-attachments/assets/e2d7692d-b1f4-430f-bfad-baddf1be4908" style="width: 350px;">
+      <p>The bitboard of where all pieces occupy</p>
+    </td>
+  </tr>
+</table>
+
+Performing the AND operation of the two boards above gets the blockers.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/96167c31-e0f3-4318-9a61-4aec3a050a9e" style="width: 350px;">
+      <p>The blockers in the SW ray starting at f7</p>
+    </td>
+  </tr>
+</table>
+
+We can run a forward bitscan (or reverse bitscan, depending on whether the direction is a left shift or a right shift) to find the first blocker. In this case, since our direction is SW which is a right shift, we want to find the position of the most significant bit that is a 1. This is at d5 (index 35). When we do that, we can look up the attack ray from d5 in the same direction (we want to remove all the squares in the same direction beyond the blocker).
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/87edf720-2a82-4bb4-98bd-37f815f21fa6" style="width: 350px;">
+      <p>The attacks in the SW direction from d5</p>
+    </td>
+    <td style="align: center; vertical-align: top; padding-left: 60px;">
+      <img src="https://github.com/user-attachments/assets/f35ce7aa-eca7-4c11-b3b7-c0134ff9c9b9" style="width: 350px;">
+      <p>The attacks in the SW direction from f7</p>
+    </td>
+  </tr>
+</table>
+
+The XOR operation is convenient here because it sets a bit to 1 only if the two inputs are different. Therefore we get by performing the XOR on the above two boards.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/2e746f14-1a60-4cbe-b2a1-3dbd35a42481" style="width: 350px;">
+      <p>The squares the black bishop can move to</p>
+    </td>
+  </tr>
+</table>
+
+All that remains is to check whether our blocker is a friendly piece or not. If it is friendly, we remove that square from our available squares. In this case, our blocker is an enemy piece so we are done.
+
+```csharp
+// hero: bitboard of friendly pieces
+// opponent: bitboard of opponent pieces
+public static ulong GetRayAttacks(ulong hero, ulong opponent, int dirIndex, int squareIndex)
+{
+    ulong attacks = Data.RayAttacks[dirIndex][squareIndex];
+    ulong blockers = attacks & (hero | opponent);
+
+    if (blockers > 0) {
+        int blocker = Direction.directions[dirIndex] > 0 ? BitScanForward(blockers) : BitScanReverse(blockers);
+        ulong block = ShiftLeft(1ul, blocker);
+        
+        attacks ^= Data.RayAttacks[dirIndex][blocker];
+
+        // if the blocker is my own piece then clear that square
+        if ((block & hero) > 0) {
+            attacks &= ~block;
+        }
+    }
+
+    return attacks;
+}
+```
+
+Of course we need to do this for all 4 directions of the bishop, but it can be done with a simple for loop iterating through the directions.
+
+### Legal move generation
+
+Of course we must find a way to remove moves that leads the the king being able to be captured. The naive method (and my first approach) is implementing an undo move function and I iterate through all possible moves and check if the king is attacked after making that move. If so, our move must be illegal. This, however, is incredibly inefficient because you are technically doing a 2-ply search on every move.
+
+To generate legal moves, we need the following observations:
+
+- There are three ways of escaping check: by moving the king, blocking the check or by capturing the piece giving the check. If we are in double check (king is attacked by 2 pieces), then the only way of escaping check is by moving the king.
+- We may not move pinned pieces away from the ray in which is being pinned in.
+- We may not move our king into a square the opponent attacks.
+
+Given these observations, it would be useful to keep track of the rays in which the pins are taking place, the squares the opponent attacks, and a **checkmask**.
+
+Checkmasks are very useful because we can filter out illegal moves with the AND operation.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/5d11b3ae-df16-4aa4-8420-e8552689002d" style="width: 350px;">
+      <p>Checkmask between the king and queen</p>
+    </td>
+    <td style="align: center; vertical-align: top; padding-left: 60px;">
+      <img src="https://github.com/user-attachments/assets/218b458e-302c-4f7e-a53f-2f87a27447d8" style="width: 350px;">
+      <p>The rook's vertical pseudolegal moves</p>
+    </td>
+  </tr>
+</table>
+
+When we AND these two bitboards we obtain
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/8afcb56b-10c0-4bc7-a729-4d6c4100e156" style="width: 350px;">
+      <p>The rook can only move to e3</p>
+    </td>
+  </tr>
+</table>
+
+which is the only square the rook can reach. This is how we can use checkmasks to determine how to block the check.
+
+Pins occur when the an opponent sliding piece is not attacking the king, but would be if a friendly piece moved out of the way. This can also be known as an X-Ray attack.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/78fbd9e9-85e6-4696-8d2c-a28beb0d34ac" style="width: 350px;">
+      <p>The queen is eyeing the king through the bishop</p>
+    </td>
+    <td style="align: center; vertical-align: top; padding-left: 60px;">
+      <img src="https://github.com/user-attachments/assets/3ec0b0b9-d07e-4b85-bc28-8c0d052887d8" style="width: 350px;">
+      <p>The bishops's pseudolegal moves</p>
+    </td>
+  </tr>
+</table>
+
+Again, performing the AND operation will grant the legal moves for the pinned bishop.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/bc656e8f-cfbf-4593-a716-85db3e1c36ed" style="width: 350px;">
+      <p>The squares the pinned bishop can move to</p>
+    </td>
+  </tr>
+</table>
+
+You can see that in both cases the enemy piece is included in the legal moves which encompasses capturing the piece when in check as well.
+
+Now to see where the king can move to, we need to identify which squares the opponent attacks. Note this is different to which squares the opponent can reach, because the pawn is a special case. It can move forward, but it doesn’t attack the square in front of it.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/0d274190-fefb-4fc6-b6c6-6dceafca9741" style="width: 350px;">
+      <p>The squares that black attacks</p>
+    </td>
+    <td style="align: center; vertical-align: top; padding-left: 60px;">
+      <img src="https://github.com/user-attachments/assets/5db60382-156d-40e1-81b1-99862d4cbeab" style="width: 350px;">
+      <p>The white king's pseudolegal moves</p>
+    </td>
+  </tr>
+</table>
+
+We can AND the complement of opponent’s attacks with our king’s squares to get the squares that the king can move to legally.
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/a0f48372-f442-466b-b766-eb6ef8f716d2" style="width: 350px;">
+      <p>The squares the white king can move to</p>
+    </td>
+  </tr>
+</table>
+
+Note that the square in front of the pawn (d4) is allowed because while the pawn is able of moving there, it doesn’t attack that square (if the king moved to d4, the pawn would be obstructed).
+
+### En passant
+
+The move to be careful of is en passant because there is one special case:
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/59f83c4e-4d89-427e-8780-cf13339012c3" style="width: 350px;">
+      <p>The pawn can be captured exposing the king</p>
+    </td>
+  </tr>
+</table>
+
+Here the pawn has moved to f4 and is able to be captured by the black pawn on g4 by en passant. Based on my implementation, the black pawn is not considered to be pinned because there are two pieces between the white rook and the black king. Therefore, the en passant would be allowed, even though it is illegal as it exposes an attack on the king. This is the only case where two pieces can be removed from one ray, so we can make an exceptional check for this.
+
+We observe that this can only happen in orthogonal directions so we only need to check for rooks and queens. We can calculate the orthogonal piece’s attacks (in this case the white rook) while ignoring the two pawns as blockers. We can see the king will be attacked so we disallow the move.
+
+
+<table align="center">
+  <tr>
+    <td style="align: center; vertical-align: top;">
+      <img src="https://github.com/user-attachments/assets/ad0baa4c-d377-4b60-b1ea-3ec5e3684159" style="width: 350px;">
+      <p>The rook's attacks after ignoring</p>
+    </td>
+  </tr>
+</table>
+
+## Zobrist Hashing
+
+In my first version, I used the FEN string of the current position to keep track of game state which I used to detect threefold repetiton. This, however, is slow because we have to generate the FEN string every time we play a move (whether as a player or in search) which leads to a lot of repeated work, as for example all the black pieces are unmoved when white makes the first move. Zobrist hashing is a way of efficiently hashing the game state and what is nice about it is that you don’t have to regenerate the hash every time you make a move.
+
+In Zobrist hashing, we make use of the XOR operation to  represent a gamestate with a 64-bit unsigned integer (`ulong`). This is a hash therefore it is impossible to recover the original gamestate from the hash alone without bruteforcing, therefore this cannot replace the bitboard method. We can uniquely identify the game state with the following information:
+
+* The location of where the pieces are on the board
+  - We can assign a `ulong` to each possible piece in each possible location. This means we will need a 12 x 64 array (12 pieces, 64 squares) but for ease of how we modelled our pieces we can use a 16 x 64 array. Each of these will contain a different `ulong`. For example, if there is a white knight (id 4) on g1 (index 6), we can find the `ulong` associated with this information with `pieceKeys[4, 6]`.
+* The castling rights
+  - We model castling rights with a 4-bit integer (nibble) because we only need to keep track of the right to kingside and queenside castle for both black and white. It is evident that we will only need an array of size 16 and we can just access the value with `castlingKeys[castlingRights]`, where `castlingRights` stores the current castling rights, e.g. `0b1100` when white can castle both ways but black cannot castle either way.
+* En passant file
+  - There are 9 cases: either there is no en passant target available or there is one, and it could be in any of the 8 files. So we can have an array of size 9.
+* Player to move
+  - We will just need a single `ulong` for this, and we will activate it when it is white’s turn to move.
+
+All of these numbers in the array are generated pseudo-randomly.
+
+Now to calculate the hash, what we can do is
+
+1. Initialise our zobrist key `zobristKey` to be 0.
+2. Iterate through every square on the board, and say we have piece `piece` on square `sq`, we can perform `zobristKey ^= pieceKeys[piece, sq]`.
+3. Perform `zobristKey ^= castlingKeys[castlingRights]`
+4. Identify the file of our en passant target and set it to 0 if there isn’t one. Perform `zobristKey ^= enPassantKeys[file]`.
+5. If it is white’s turn to move, perform `zobristKey ^= turnKey`.
+
+Here’s the code:
+
+```csharp
+public static ulong CalculateKey(Board board)
+    {
+        ulong key = 0;
+
+        for (int sq = 0; sq < 64; sq++)
+        {
+            int piece = board.GetPieceAtIndex(sq);
+            if (piece != Piece.None)
+            {
+                key ^= pieceKeys[piece, sq];
+            }
+        }
+
+        key ^= castlingKeys[board.castlingRights];
+
+        key ^= enPassantKeys[GetTargetFile(board.enPassantTarget)];
+
+        if (board.turn == Piece.White)
+        {
+            key ^= turnKey;
+        }
+
+        return key;
+    }
+```
+
+What is nice about this is we don’t need to call `CalculateKey` every time we make a move. Because only limited information is changed, we can make use of the self-inverse property of XOR to modify our Zobrist key directly.
+
+The self-inverse property of XOR proves to be very useful, because we can add a piece `piece` to a square `sq` to the board with `zobristKey ^= pieceKeys[piece, sq]`, which is the same as removing the piece from the board. So I write a simple toggle function that allows you to add / remove a piece:
+
+```csharp
+public static void TogglePiece(ref ulong key, int piece, int square)
+{
+    key ^= pieceKeys[piece, square];
+}
+```
+
+So for example, if we want to move a knight (id 4) from b1 (index 1) to c3 (index 18), we can just perform the following
+
+```csharp
+key ^= pieceKeys[4, 1]; // remove knight from b1
+key ^= pieceKeys[4, 18]; // add knight to c3
+```
+
+If we are capturing on c3, say a black knight (id 12), we can simply remove the piece with the same XOR operation.
+
+```csharp
+key ^= pieceKeys[12, 18];
+```
+
+For castling rights, we can simply perform this
+
+```csharp
+key ^= castlingKeys[oldCastlingRights];
+key ^= castlingKeys[newCastlingRights];
+```
+
+Conveniently, due to the self-inverse nature of XOR, it also works if the castling rights are unchanged.
+
+Similarly for en passant files, we can perform
+
+```csharp
+key ^= enPassantKeys[oldEnPassantFile];
+key ^= enPassantKeys[newEnPassantFile];
+```
+
+And since we change turns every move, we do
+
+```csharp
+key ^= turnKey;
+```
+
+And that’s it! We can cache these Zobrist keys with a stack so when we undo a move, we can simply pop the stack and set the new Zobrist key to be the key on the top of the stack.
+
+You don’t need to recalculate the key with every move as explained above, but we need to consider the possibility of collisions, which is when two different positions have the same key. Now hash collisions demonstrate the [birthday paradox](https://en.wikipedia.org/wiki/Birthday_problem) which means the chance of collisions approaches certainty at around the square root of the number of possible keys. We use 64 bits so we can ‘expect’ a collision at around $2^{32}$ positions, around 4 billion.
