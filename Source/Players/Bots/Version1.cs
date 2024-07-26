@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Version1 : Bot
 {
@@ -45,7 +44,7 @@ public class Searcher1
         sign = (((board.turn == Piece.White ? 1 : 0) ^ (searchDepth & 1)) == 1) ? 1 : -1;
 
         Search(searchDepth, negativeInfinity, positiveInfinity);
-        //Debug.Log($"Nodes searched (without move ordering): {nodesSearched}");
+        //Console.WriteLine($"Nodes searched (without move ordering): {nodesSearched}");
         return bestMove;
     }
 

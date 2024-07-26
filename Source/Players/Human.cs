@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Human : Player
 {
-    public new Camera camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+    // public new Camera camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
     public enum InputState { Idle, Selecting, Dragging }
     public InputState currentState = InputState.Idle;
     private int pieceIndex = -1;

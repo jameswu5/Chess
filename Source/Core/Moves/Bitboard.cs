@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 public static class Bitboard
 {
@@ -400,6 +399,6 @@ public static class Bitboard
             }
             sb.Append("\n");
         }
-        Debug.Log(sb.ToString());
+        Console.WriteLine(sb.ToString());
     }
 }

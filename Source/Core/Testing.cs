@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public static class Perft
 {
@@ -23,7 +22,7 @@ public static class Perft
 
     public static void SearchWithBreakdown(Board board, int depth)
     {
-        System.Diagnostics.Stopwatch stopwatch = new();
+        Diagnostics.Stopwatch stopwatch = new();
         stopwatch.Start();
 
         int numOfPositions = 0;
@@ -32,27 +31,26 @@ public static class Perft
             board.MakeMove(move);
             int positions = Search(board, depth - 1);
             numOfPositions += positions;
-            Debug.Log($"{Square.ConvertIndexToSquareName(Move.GetStartIndex(move))}{Square.ConvertIndexToSquareName(Move.GetEndIndex(move))}: {positions}");
+            Console.WriteLine($"{Square.ConvertIndexToSquareName(Move.GetStartIndex(move))}{Square.ConvertIndexToSquareName(Move.GetEndIndex(move))}: {positions}");
             board.UndoMove();
         }
 
-        Debug.Log($"Total: {numOfPositions} positions");
+        Console.WriteLine($"Total: {numOfPositions} positions");
 
         stopwatch.Stop();
         TimeSpan ts = stopwatch.Elapsed;
         string elapsedTime = string.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-        Debug.Log($"Runtime: {elapsedTime}");
+        Console.WriteLine($"Runtime: {elapsedTime}");
     }
-
 
     public static void Test(Board board, int depth)
     {
-        System.Diagnostics.Stopwatch stopwatch = new();
+        Diagnostics.Stopwatch stopwatch = new();
         stopwatch.Start();
-        Debug.Log(Search(board, depth));
+        Console.WriteLine(Search(board, depth));
         stopwatch.Stop();
         TimeSpan ts = stopwatch.Elapsed;
         string elapsedTime = string.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-        Debug.Log($"Runtime: {elapsedTime}");
+        Console.WriteLine($"Runtime: {elapsedTime}");
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using UnityEngine;
 
 public abstract class Bot : Player
 {

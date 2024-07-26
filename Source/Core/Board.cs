@@ -2,9 +2,8 @@ using System;
 using System.Collections;
 using System.Text;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class Board : MonoBehaviour
+public class Board
 {
     public UI boardUI;
     private int[] boardState;

@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class Match : MonoBehaviour
+public class Match
 {
     const int games = 20;
 

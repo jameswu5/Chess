@@ -1,9 +1,7 @@
-using UnityEngine;
-using UnityEngine.UI;
 
-public class Game : MonoBehaviour
+public class Game
 {
-    public Board boardPrefab;
+    // public Board boardPrefab;
     public Board board;
 
     public Player whitePlayer;
@@ -14,14 +12,14 @@ public class Game : MonoBehaviour
 
     private const Player.Type defaultBot = Player.Type.Version2;
 
-    public new Camera camera;
-    public static AudioSource captureSound;
-    public static AudioSource moveSound;
+    // public new Camera camera;
+    // public static AudioSource captureSound;
+    // public static AudioSource moveSound;
     
-    public static Text endOfGameText;
-    public static Text resultText;
+    // public static Text endOfGameText;
+    // public static Text resultText;
 
-    public Clock clockPrefab;
+    // public Clock clockPrefab;
     public Clock clock;
     public const int allowedTime = 300;
     public const int increment = 0;

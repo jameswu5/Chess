@@ -1,15 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class Square : MonoBehaviour
+public class Square
 {
     public Color lightColor, darkColor, highlightColor, checkColor;
 
-    public GameObject hoverHighlight;
-    public GameObject optionHighlight;
+    // public GameObject hoverHighlight;
+    // public GameObject optionHighlight;
 
-    public new SpriteRenderer renderer;
+    // public new SpriteRenderer renderer;
 
     private bool isLightSquare;
 
@@ -54,13 +53,13 @@ public class Square : MonoBehaviour
 
     public void HighlightCheck() => SetColor(checkColor);
 
-    private void SetColor(Color color) => renderer.color = color;
+    private void SetColor(Color color) => new NotImplementedException();
 
-    public void SetHoverHighlight(bool value) => hoverHighlight.SetActive(value);
+    public void SetHoverHighlight(bool value) => new NotImplementedException();
 
-    public void SetOptionHighlight(bool value) => optionHighlight.SetActive(value);
+    public void SetOptionHighlight(bool value) => new NotImplementedException();
 
-    public void DestroySquare() => Destroy(gameObject);
+    public void DestroySquare() => new NotImplementedException();
 
     public static string ConvertIndexToSquareName(int index)
     {
@@ -97,6 +96,4 @@ public class Square : MonoBehaviour
 
         return index;
     }
-
-    
 }

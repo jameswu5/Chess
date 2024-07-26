@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using UnityEngine;
-
 
 public static class Move
 {
@@ -113,7 +111,7 @@ public static class Move
                     }
                     break;
                 default:
-                    Debug.Log("Cannot identify piece.");
+                    Console.WriteLine("Cannot identify piece.");
                     break;
             }
 
@@ -155,7 +153,7 @@ public static class Move
                     sb.Append("N");
                     break;
                 default:
-                    Debug.Log("Cannot find promotion piece");
+                    Console.WriteLine("Cannot find promotion piece");
                     break;
             }
 
