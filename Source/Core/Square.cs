@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Square
 {
-    public Color lightColor, darkColor, highlightColor, checkColor;
+    // public Color lightColor, darkColor, highlightColor, checkColor;
 
     // public GameObject hoverHighlight;
     // public GameObject optionHighlight;
@@ -11,6 +11,7 @@ public class Square
     // public new SpriteRenderer renderer;
 
     private bool isLightSquare;
+    private string name;
 
     public const int a1 = 0;
     public const int b1 = 1;
@@ -41,19 +42,19 @@ public class Square
     {
         if (isLightSquare == true)
         {
-            SetColor(lightColor);
+            // SetColor(lightColor);
         }
         else
         {
-            SetColor(darkColor);
+            // SetColor(darkColor);
         }
     }
 
-    public void Highlight() => SetColor(highlightColor);
+    // public void Highlight() => SetColor(highlightColor);
 
-    public void HighlightCheck() => SetColor(checkColor);
+    // public void HighlightCheck() => SetColor(checkColor);
 
-    private void SetColor(Color color) => new NotImplementedException();
+    // private void SetColor(Color color) => new NotImplementedException();
 
     public void SetHoverHighlight(bool value) => new NotImplementedException();
 

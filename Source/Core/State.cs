@@ -1,5 +1,4 @@
 
-
 public class State
 {
     public int fiftyMoveCounter;

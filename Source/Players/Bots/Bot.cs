@@ -3,6 +3,7 @@ using System.Threading;
 
 public abstract class Bot : Player
 {
+    protected Board board;
     protected bool moveFound = false;
     protected int chosenMove = 0;
 

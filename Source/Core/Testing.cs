@@ -22,7 +22,7 @@ public static class Perft
 
     public static void SearchWithBreakdown(Board board, int depth)
     {
-        Diagnostics.Stopwatch stopwatch = new();
+        System.Diagnostics.Stopwatch stopwatch = new();
         stopwatch.Start();
 
         int numOfPositions = 0;

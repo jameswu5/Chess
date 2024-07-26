@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Board
 {
-    public UI boardUI;
+    // public UI boardUI;
     private int[] boardState;
 
     private MoveGenerator mg;
@@ -59,13 +59,12 @@ public class Board
 
         kingIndices = new int[2];
         gameMoves = new Stack<int>();
-        name = "Board";
 
         pieceBitboards = new ulong[16];
         colourBitboards = new ulong[2];
 
         LoadPosition();
-        boardUI.CreateUI(boardState);
+        //boardUI.CreateUI(boardState);
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));
 
@@ -243,7 +242,7 @@ public class Board
         }
         else if (inPromotionScreen == -1)
         {
-            boardUI.MovePieceToSquare(index, index);
+            //boardUI.MovePieceToSquare(index, index);
         }
 
         return move;
@@ -306,7 +305,7 @@ public class Board
 
         if (changeUI)
         {
-            boardUI.MovePieceToSquare(index, newIndex);
+            //boardUI.MovePieceToSquare(index, newIndex);
         }
     }
 
@@ -314,7 +313,7 @@ public class Board
     {
         if (changeUI)
         {
-            boardUI.DestroyPieceSprite(index);
+            //boardUI.DestroyPieceSprite(index);
         }
         boardState[index] = Piece.None;
     }
@@ -337,7 +336,7 @@ public class Board
         // Uncolour the checked king if necessary
         if (changeUI && inCheck)
         {
-            boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
+            //boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
         }
 
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
@@ -456,7 +455,7 @@ public class Board
 
             if (changeUI)
             {
-                boardUI.CreatePiece(promotePiece + colour, endIndex);
+                //boardUI.CreatePiece(promotePiece + colour, endIndex);
             }
         }
 
@@ -538,7 +537,7 @@ public class Board
 
         if (changeUI && inCheck)
         {
-            boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
+            //boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
         }
     }
 
@@ -566,13 +565,13 @@ public class Board
 
     private void EnablePromotionScreen(int index)
     {
-        boardUI.EnablePromotionScreen(index);
+        //boardUI.EnablePromotionScreen(index);
         inPromotionScreen = index;
     }
 
     public void DisablePromotionScreen()
     {
-        boardUI.DisablePromotionScreen();
+        //boardUI.DisablePromotionScreen();
         inPromotionScreen = -1;
     }
 
@@ -629,7 +628,7 @@ public class Board
 
         if (changeUI && inCheck)
         {
-            boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
+            //boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
         }
 
         // move the pieces
@@ -701,7 +700,7 @@ public class Board
             // create a pawn on the start position
             if (changeUI)
             {
-                boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
+                //boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
             }
             boardState[startIndex] = Piece.Pawn + heroColour;
             AddPieceToBitboard(Piece.Pawn + heroColour, startIndex);
@@ -727,7 +726,7 @@ public class Board
 
             if (changeUI)
             {
-                boardUI.CreatePiece(capturedPiece, capturedIndex);
+                //boardUI.CreatePiece(capturedPiece, capturedIndex);
             }
         }
 
@@ -768,7 +767,7 @@ public class Board
 
         if (changeUI && inCheck)
         {
-            boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
+            //boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
         }
     }
 
@@ -792,7 +791,7 @@ public class Board
 
     public void ResetBoard()
     {
-        boardUI.ResetBoardUI();
+        //boardUI.ResetBoardUI();
         Initialise();
     }
 

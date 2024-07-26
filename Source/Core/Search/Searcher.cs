@@ -74,17 +74,17 @@ public class Searcher
 
             board.UndoMove();
 
-            if (timer.TimeElapsedThisTurn > allocatedTime)
-            {
-                // Reset the board
-                for (int i = 0; i < searchDepth - depth; i++)
-                {
-                    board.UndoMove();
-                }
+            // if (timer.TimeElapsedThisTurn > allocatedTime)
+            // {
+            //     // Reset the board
+            //     for (int i = 0; i < searchDepth - depth; i++)
+            //     {
+            //         board.UndoMove();
+            //     }
 
-                // Break out of the search
-                searchDepth /= 0;
-            }
+            //     // Break out of the search
+            //     searchDepth /= 0;
+            // }
         }
 
         return alpha;
