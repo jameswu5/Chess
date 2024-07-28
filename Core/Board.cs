@@ -27,7 +27,6 @@ public class Board
     public int fiftyMoveCounter;
     public int moveNumber;
 
-    public int inPromotionScreen;
     public int enPassantTarget;
 
     private Stack<int> gameMoves;
@@ -58,7 +57,6 @@ public class Board
         mg = new MoveGenerator();
         moveCache = new Stack<List<int>>();
 
-        inPromotionScreen = -1;
         enPassantTarget = -1;
 
         castlingRights = 0;
@@ -162,6 +160,65 @@ public class Board
     ///////////////////
     // Making moves! //
     ///////////////////
+
+    public int TryToPlacePiece(int index, int newIndex, int promotionType = Piece.None)
+    {
+        int move = TryToGetMove(index, newIndex, promotionType);
+
+        if (move != 0)
+        {
+            int moveType = Move.GetMoveType(move);
+            if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
+            {
+                // DisablePromotionScreen();
+            }
+        }
+
+        return move;
+    }
+
+    private int TryToGetMove(int index, int newIndex, int promotionType)
+    {
+        foreach (int move in legalMoves)
+        {
+            if (Move.GetStartIndex(move) == index && Move.GetEndIndex(move) == newIndex)
+            {
+                int moveType = Move.GetMoveType(move);
+
+                switch (promotionType)
+                {
+                    case Piece.None:
+                        if (Move.IsPromotionMove(moveType))
+                        {
+                            // EnablePromotionScreen(newIndex);
+                            return 0;
+                        }
+                        return move;
+                    case Piece.Queen:
+                        if (moveType == Move.PromoteToQueen)
+                            return move;
+                        break;
+                    case Piece.Rook:
+                        if (moveType == Move.PromoteToRook)
+                            return move;
+                        break;
+                    case Piece.Bishop:
+                        if (moveType == Move.PromoteToBishop)
+                            return move;
+                        break;
+                    case Piece.Knight:
+                        if (moveType == Move.PromoteToKnight)
+                            return move;
+                        break;
+                    default:
+                        Console.WriteLine($"Cannot find move with promotionType {promotionType}");
+                        break;
+                }
+            }
+        }
+
+        return 0;
+    }
 
     private void ChangeTurn() => turn = turn == Piece.White ? Piece.Black : Piece.White;
 

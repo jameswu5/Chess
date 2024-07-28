@@ -124,15 +124,15 @@ public class Human : Player
         }
     }
 
-
-
     private void TryToGetMove(int index, int newIndex, int promotionType = 0)
     {
-        // int move = board.TryToPlacePiece(index, newIndex, promotionType);
+        int move = board.TryToPlacePiece(index, newIndex, promotionType);
 
-        // for now, just move the piece (no rules)
-        int move = Core.Move.Initialise(Core.Move.Standard, index, newIndex, board.GetPieceAtIndex(index), board.GetPieceAtIndex(newIndex));
-        if (move != 0)
+        if (move == 0)
+        {
+            game.ui.ResetPiecePosition(index, true);
+        }
+        else
         {
             Decided(move);
         }

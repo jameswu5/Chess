@@ -8,11 +8,15 @@ public class UI
     private Piece[] pieces;
     private Board board;
 
+    private int inPromotionScreen;
+
     public UI(Board board)
     {
         squares = new Square[64];
         pieces = new Piece[64];
         this.board = board;
+
+        inPromotionScreen = -1;
 
         for (int i = 0; i < 64; i++)
         {
@@ -116,6 +120,15 @@ public class UI
         }
     }
 
+    public void ResetPiecePosition(int index, bool promotionScreenRequirement)
+    {
+        if (promotionScreenRequirement && inPromotionScreen == -1)
+        {
+            (int x, int y) = Square.GetSquareDisplayCoords(index);
+            pieces[index].SetPosition(x, y);
+        }
+    }
+
     public void MakeMove(int move)
     {
         int startIndex = Move.GetStartIndex(move);
@@ -124,7 +137,6 @@ public class UI
 
         bool isWhite = board.CheckPieceIsWhite(startIndex);
         int colour = board.GetColour(isWhite);
-        // int opponentColour = GetOpponentColour(isWhite);
 
         // Uncolour the checked king if necessary
         // if (inCheck)
