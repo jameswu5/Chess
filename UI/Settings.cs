@@ -28,5 +28,7 @@ public static class Settings
     {
         public const int HorOffset = ScreenWidth - (Square.Size << 3) >> 1;
         public const int VerOffset = ScreenHeight - (Square.Size << 3) >> 1;
+        public const int Size = Square.Size << 3;
+        public static readonly Color CoverColour = new(0, 0, 0, 150);
     }
 }
