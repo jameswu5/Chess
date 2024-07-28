@@ -94,4 +94,11 @@ public class Board
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
 
+
+    public List<int> GetLegalMoves(int index)
+    {
+        // Placeholder
+        return new List<int>() { 40, 42, 45 };
+    }
+
 }

@@ -17,6 +17,10 @@ public static class Settings
         public static readonly Color DarkColour  = new(86, 126, 133, 255);
         public static readonly Color HighlightColour = new(240, 235, 204, 255);
         public static readonly Color CheckColour = new(237, 159, 145, 255);
+
+        public static readonly Color OptionColour = new(0, 0, 0, 100);
+        public const int OptionRadius = Size / 4;
+
     }
 
     public static class Board

@@ -55,8 +55,8 @@ public class Human : Player
 
                 game.ui.HighlightSquare(pieceIndex);
 
-                // List<int> legalMoves = board.GetLegalMoves(pieceIndex);
-                // game.ui.HighlightOptions(legalMoves);
+                List<int> legalMoves = board.GetLegalMoves(pieceIndex);
+                game.ui.HighlightOptions(legalMoves);
             }
             
         }
@@ -69,7 +69,7 @@ public class Human : Player
 
     private void HandleInputSelecting()
     {
-        
+
     }
 
 

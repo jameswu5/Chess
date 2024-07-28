@@ -15,6 +15,10 @@ public class Square
     private int xcoord;
     private int ycoord;
 
+    private bool optionHighlight;
+    private int optionXPos;
+    private int optionYPos;
+
     public Square(int index)
     {
         this.index = index;
@@ -23,19 +27,25 @@ public class Square
         isLight = (x + y) % 2 == 0;
         colour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
         (xcoord, ycoord) = GetSquareDisplayCoords(index);
+
+        optionXPos = xcoord + Settings.Square.Size / 2;
+        optionYPos = ycoord + Settings.Square.Size / 2;
     }
 
     public void Display()
     {
         DrawRectangle(xcoord, ycoord, Settings.Square.Size, Settings.Square.Size, colour);
+        if (optionHighlight)
+        {
+            DrawCircle(optionXPos, optionYPos, Settings.Square.OptionRadius, Settings.Square.OptionColour);
+        }
     }
 
     private void SetColor(Color colour) => this.colour = colour;
 
     public void Highlight() => SetColor(Settings.Square.HighlightColour);
 
-
-
+    public void SetOptionHighlight(bool highlight) => optionHighlight = highlight;
 
     public static (int, int) GetSquareDisplayCoords(int index)
     {

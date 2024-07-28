@@ -40,4 +40,12 @@ public class UI
     }
 
     public void HighlightSquare(int index) => squares[index].Highlight();
+
+    public void HighlightOptions(IEnumerable<int> moves)
+    {
+        foreach (int move in moves)
+        {
+            squares[Core.Move.GetEndIndex(move)].SetOptionHighlight(true);
+        }
+    }
 }
