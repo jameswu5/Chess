@@ -23,4 +23,7 @@ public static class Piece
         {'R', Rook},
         {'P', Pawn},
     };
+
+    public static bool IsColour(int pieceID, int colour) => (pieceID < 8 && colour == White) || (pieceID >= 8 && colour == Black);
+
 }

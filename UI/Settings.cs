@@ -15,8 +15,8 @@ public static class Settings
 
         public static readonly Color LightColour = new(200, 227, 232, 255);
         public static readonly Color DarkColour  = new(86, 126, 133, 255);
-        // public static readonly Color HighLightColour;
-        // public static readonly Color CheckColour;
+        public static readonly Color HighlightColour = new(240, 235, 204, 255);
+        public static readonly Color CheckColour = new(237, 159, 145, 255);
     }
 
     public static class Board

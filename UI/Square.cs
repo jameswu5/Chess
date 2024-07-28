@@ -30,6 +30,13 @@ public class Square
         DrawRectangle(xcoord, ycoord, Settings.Square.Size, Settings.Square.Size, colour);
     }
 
+    private void SetColor(Color colour) => this.colour = colour;
+
+    public void Highlight() => SetColor(Settings.Square.HighlightColour);
+
+
+
+
     public static (int, int) GetSquareDisplayCoords(int index)
     {
         int x = index % 8;

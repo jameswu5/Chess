@@ -1,4 +1,6 @@
 
+using Chess.Core;
+
 namespace Chess.Player;
 
 public abstract class Player
@@ -7,7 +9,8 @@ public abstract class Player
 
     // public event System.Action<int> PlayChosenMove;
 
-    public Core.Board board;
+    public Game game;
+    public Board board;
 
     // public abstract void TurnToMove(Timer timer);
 

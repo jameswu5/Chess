@@ -38,4 +38,6 @@ public class UI
             pieces[i]?.Draw();
         }
     }
+
+    public void HighlightSquare(int index) => squares[index].Highlight();
 }

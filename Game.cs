@@ -15,8 +15,8 @@ public class Game
         ui = new();
         ui.CreateUI(board.boardState);
 
-        whitePlayer = new Player.Human(board);
-        blackPlayer = new Player.Human(board);
+        whitePlayer = new Player.Human(this);
+        blackPlayer = new Player.Human(this);
     }
 
     public void Update()

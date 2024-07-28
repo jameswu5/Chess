@@ -6,18 +6,72 @@ namespace Chess.Player;
 
 public class Human : Player
 {
-    public Human(Core.Board board)
+    public enum InputState { Idle, Selecting, Dragging }
+    public InputState currentState;
+    private int pieceIndex;
+
+    public Human(Game game)
     {
-        this.board = board;
+        this.game = game;
+        board = game.board;
+        currentState = InputState.Idle;
+        pieceIndex = -1;
     }
 
     public override void Update()
     {
-        if (IsMouseButtonPressed(0))
-        {
-            Console.WriteLine(GetMouseIndex());
+        HandleInput();
+    }
+
+    private void HandleInput()
+    {
+        switch (currentState) {
+            case InputState.Idle:
+                HandleInputIdle();
+                break;
+            case InputState.Dragging:
+                HandleInputDragging();
+                break;
+            case InputState.Selecting:
+                HandleInputSelecting();
+                break;
+            default:
+                break;
         }
     }
+
+    private void HandleInputIdle()
+    {
+        if (IsMouseButtonDown(0))
+        {
+            int index = GetMouseIndex();
+            if (index == -1) return;
+
+            // Check if there is a piece
+            if (board.GetPieceAtIndex(index) != Core.Piece.None && board.CheckIfPieceIsColour(index, board.turn))
+            {
+                pieceIndex = index;
+                currentState = InputState.Dragging;
+
+                game.ui.HighlightSquare(pieceIndex);
+
+                // List<int> legalMoves = board.GetLegalMoves(pieceIndex);
+                // game.ui.HighlightOptions(legalMoves);
+            }
+            
+        }
+    }
+
+    private void HandleInputDragging()
+    {
+        
+    }
+
+    private void HandleInputSelecting()
+    {
+        
+    }
+
 
     public static int GetMouseIndex()
     {

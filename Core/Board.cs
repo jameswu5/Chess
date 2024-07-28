@@ -85,4 +85,13 @@ public class Board
         // // fullmove clock
         // moveNumber = Convert.ToInt16(sections[5]) - 1;
     }
+
+    public int GetPieceTypeAtIndex(int index) => boardState[index] & 0b111;
+
+    public int GetPieceAtIndex(int index) => boardState[index];
+
+    private bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
+
+    public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
+
 }
