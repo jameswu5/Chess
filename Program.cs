@@ -5,6 +5,6 @@ public class Program
 {
     public static void Main()
     {
-        UI.Test.PlayGround();
+        Test.PlayGround();
     }
 }

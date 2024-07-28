@@ -23,7 +23,6 @@ public class UI
 
         for (int i = 0; i < 64; i++)
         {
-            Console.WriteLine($"{i}: {boardState[i]}");
             if (boardState[i] != Core.Piece.None)
             {
                 pieces[i] = new Piece(boardState[i], i);
@@ -36,10 +35,7 @@ public class UI
         for (int i = 0; i < 64; i++)
         {
             squares[i].Display();
-            if (pieces[i] != null)
-            {
-                pieces[i].Draw();
-            }
+            pieces[i]?.Draw();
         }
     }
 }
