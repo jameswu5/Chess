@@ -25,6 +25,7 @@ public static class Test
     private static void Update()
     {
         TestDrawSquares();
+        TestDrawPiece();
     }
 
     private static void TestDrawSquares()
@@ -33,5 +34,11 @@ public static class Test
         {
             new Square(i).Display();
         }
+    }
+
+    private static void TestDrawPiece()
+    {
+        int piece = Core.Piece.King | Core.Piece.White;
+        Piece.DrawOnSquare(piece, Square.GetIndexFromCoords(3, 7));
     }
 }

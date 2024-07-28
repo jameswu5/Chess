@@ -18,17 +18,29 @@ public class Square
     public Square(int index)
     {
         this.index = index;
-        x = index % 8;
-        y = index / 8;
+        (x, y) = GetCoordsFromIndex(index);
 
         isLight = (x + y) % 2 == 0;
         colour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
-        xcoord = Settings.Board.HorOffset + x * Settings.Square.Size;
-        ycoord = Settings.Board.VerOffset + y * Settings.Square.Size;
+        (xcoord, ycoord) = GetSquareDisplayCoords(index);
     }
 
     public void Display()
     {
         DrawRectangle(xcoord, ycoord, Settings.Square.Size, Settings.Square.Size, colour);
     }
+
+    public static (int, int) GetSquareDisplayCoords(int index)
+    {
+        int x = index % 8;
+        int y = index / 8;
+        int xcoord = Settings.Board.HorOffset + x * Settings.Square.Size;
+        int ycoord = Settings.Board.VerOffset + (7 - y) * Settings.Square.Size;
+
+        return (xcoord, ycoord);
+    }
+
+    public static int GetIndexFromCoords(int x, int y) => y * 8 + x;
+
+    public static (int, int) GetCoordsFromIndex(int index) => (index % 8, index / 8);
 }
