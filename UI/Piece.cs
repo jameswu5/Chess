@@ -2,9 +2,20 @@ using static Chess.Core.Piece;
 
 namespace Chess.UI;
 
-public static class Piece
+public class Piece
 {
     public static readonly Image[] PieceImages;
+
+    private int posX;
+    private int posY;
+
+    private Image image;
+
+    public Piece(int pieceID, int index)
+    {
+        (posX, posY) = Square.GetSquareDisplayCoords(index);
+        image = PieceImages[pieceID];
+    }
 
     static Piece()
     {
@@ -31,14 +42,9 @@ public static class Piece
         return images;
     }
 
-    public static void DrawOnSquare(int piece, int index)
-    {
-        (int x, int y) = Square.GetSquareDisplayCoords(index);
-        PieceImages[piece].Draw(x, y);
-    }
 
-    public static void Draw(int piece, int posX, int posY)
+    public void Draw()
     {
-        PieceImages[piece].Draw(posX, posY);
+        image.Draw(posX, posY);
     }
 }

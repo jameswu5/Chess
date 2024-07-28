@@ -24,8 +24,7 @@ public static class Test
     // This is run every frame
     private static void Update()
     {
-        TestDrawSquares();
-        TestDrawPiece();
+        TestDrawBoard();
     }
 
     private static void TestDrawSquares()
@@ -36,9 +35,11 @@ public static class Test
         }
     }
 
-    private static void TestDrawPiece()
+    private static void TestDrawBoard()
     {
-        int piece = Core.Piece.King | Core.Piece.White;
-        Piece.DrawOnSquare(piece, Square.GetIndexFromCoords(3, 7));
+        Core.Board board = new Core.Board();
+        UI ui = new();
+        ui.CreateUI(board.boardState);
+        ui.Display();
     }
 }
