@@ -20,7 +20,6 @@ public abstract class Player
 
     public void Decided(int move)
     {
-        Console.WriteLine(move);
         PlayChosenMove.Invoke(move);
     }
 }

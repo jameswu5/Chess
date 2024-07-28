@@ -1,19 +1,29 @@
 using Chess.Core;
+using Raylib_cs;
+using static Raylib_cs.Raylib;
 
 namespace Chess.UI;
 
 public class UI
 {
     private Square[] squares;
+    private Square[] promotionSquares;
+
     private Piece[] pieces;
+    private Piece[] promotionPieces;
+
     private Board board;
 
-    private int inPromotionScreen;
+    public int inPromotionScreen;
 
     public UI(Board board)
     {
         squares = new Square[64];
+        promotionSquares = new Square[4];    
+
         pieces = new Piece[64];
+        promotionPieces = new Piece[4];
+
         this.board = board;
 
         inPromotionScreen = -1;
@@ -58,6 +68,18 @@ public class UI
         for (int i = 0; i < 64; i++)
         {
             pieces[i]?.Draw();
+        }
+
+        if (inPromotionScreen != -1)
+        {
+            // make board darker
+            DrawRectangle(Settings.Board.HorOffset, Settings.Board.VerOffset, Settings.Board.Size, Settings.Board.Size, Settings.Board.CoverColour);
+
+            for (int i = 0; i < 4; i++)
+            {
+                promotionSquares[i].Display();
+                promotionPieces[i].Draw();
+            }
         }
     }
 
@@ -208,4 +230,37 @@ public class UI
         // }
     }
 
+
+    public void EnablePromotionScreen(int index)
+    {
+        // make the board darker
+
+        // SetBoardCover(true);
+
+        int colourMultiplier = Core.Square.GetRank(index) == 1 ? 1 : -1;
+        int pieceColour = Core.Square.GetRank(index) == 1 ? Core.Piece.Black : Core.Piece.White;
+
+        // create the pieces
+
+        promotionPieces[0] = new Piece(Core.Piece.Queen + pieceColour, index);
+        promotionPieces[1] = new Piece(Core.Piece.Rook + pieceColour, index + 8 * colourMultiplier);
+        promotionPieces[2] = new Piece(Core.Piece.Bishop + pieceColour, index + 16 * colourMultiplier);
+        promotionPieces[3] = new Piece(Core.Piece.Knight + pieceColour, index + 24 * colourMultiplier);
+
+        // create the squares
+        for (int i = 0; i < 4; i++)
+        {
+            promotionSquares[i] = new Square(index + 8 * i * colourMultiplier);
+        }
+
+        inPromotionScreen = index;
+    }
+
+    public void DisablePromotionScreen()
+    {
+        //TODO
+        // Array.Clear(promotionPieces, 0, promotionPieces.Length);
+        // Array.Clear(promotionSquares, 0, promotionSquares.Length);
+        inPromotionScreen = -1;
+    }
 }

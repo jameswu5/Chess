@@ -20,7 +20,18 @@ public class Human : Player
 
     public override void Update()
     {
-        HandleInput();
+        if (board.gameResult == Core.Judge.Result.Playing)
+        {
+            if (game.ui.inPromotionScreen == -1)
+            {
+                HandleInput();
+            }
+            else
+            {
+                Console.WriteLine(game.ui.inPromotionScreen);
+                HandlePromotionInput(game.ui.inPromotionScreen);
+            }
+        }
     }
 
     private void HandleInput()
@@ -124,17 +135,56 @@ public class Human : Player
         }
     }
 
+    private void HandlePromotionInput(int promotionIndex)
+    {
+        if (IsMouseButtonDown(0))
+        {
+            int index = GetMouseIndex();
+
+            int indexDifference = Math.Abs(index - promotionIndex);
+            switch (indexDifference)
+            {
+                case 0: // Queen
+                    TryToGetMove(pieceIndex, promotionIndex, Core.Piece.Queen);
+                    break;
+                case 8: // Rook
+                    TryToGetMove(pieceIndex, promotionIndex, Core.Piece.Rook);
+                    break;
+                case 16: // Bishop
+                    TryToGetMove(pieceIndex, promotionIndex, Core.Piece.Bishop);
+                    break;
+                case 24: // Knight
+                    TryToGetMove(pieceIndex, promotionIndex, Core.Piece.Knight);
+                    break;
+                default:
+                    game.ui.MovePieceToSquare(pieceIndex, pieceIndex);
+                    game.ui.DisablePromotionScreen();
+                    game.ui.inPromotionScreen = -1;
+                    break;
+            }
+        }
+    }
+
     private void TryToGetMove(int index, int newIndex, int promotionType = 0)
     {
-        int move = board.TryToPlacePiece(index, newIndex, promotionType);
+        int move = board.TryToGetMove(index, newIndex, promotionType);
 
-        if (move == 0)
+        switch (move)
         {
-            game.ui.ResetPiecePosition(index, true);
-        }
-        else
-        {
-            Decided(move);
+            case 0:
+                game.ui.ResetPiecePosition(index, true);
+                break;
+            case -1:
+                game.ui.EnablePromotionScreen(newIndex);
+                break;
+            default:
+                int moveType = Core.Move.GetMoveType(move);
+                if (moveType == Core.Move.PromoteToQueen || moveType == Core.Move.PromoteToRook || moveType == Core.Move.PromoteToBishop || moveType == Core.Move.PromoteToKnight)
+                {
+                    game.ui.DisablePromotionScreen();
+                }
+                Decided(move);
+                break;
         }
     }
 

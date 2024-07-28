@@ -161,23 +161,7 @@ public class Board
     // Making moves! //
     ///////////////////
 
-    public int TryToPlacePiece(int index, int newIndex, int promotionType = Piece.None)
-    {
-        int move = TryToGetMove(index, newIndex, promotionType);
-
-        if (move != 0)
-        {
-            int moveType = Move.GetMoveType(move);
-            if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
-            {
-                // DisablePromotionScreen();
-            }
-        }
-
-        return move;
-    }
-
-    private int TryToGetMove(int index, int newIndex, int promotionType)
+    public int TryToGetMove(int index, int newIndex, int promotionType = Piece.None)
     {
         foreach (int move in legalMoves)
         {
@@ -191,7 +175,7 @@ public class Board
                         if (Move.IsPromotionMove(moveType))
                         {
                             // EnablePromotionScreen(newIndex);
-                            return 0;
+                            return -1;
                         }
                         return move;
                     case Piece.Queen:
@@ -570,5 +554,4 @@ public class Board
         }
         return true;
     }
-
 }
