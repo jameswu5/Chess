@@ -4,8 +4,21 @@ using static Chess.UI.Settings;
 
 namespace Chess.Player;
 
-public class Human
+public class Human : Player
 {
+    public Human(Core.Board board)
+    {
+        this.board = board;
+    }
+
+    public override void Update()
+    {
+        if (IsMouseButtonPressed(0))
+        {
+            Console.WriteLine(GetMouseIndex());
+        }
+    }
+
     public static int GetMouseIndex()
     {
         (int mouseX, int mouseY) = GetMousePosition();
@@ -24,4 +37,6 @@ public class Human
     }
 
     private static (int, int) GetMousePosition() => (GetMouseX(), GetMouseY());
+
+    public override string ToString() => "Human";
 }

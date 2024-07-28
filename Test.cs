@@ -27,8 +27,7 @@ public static class Test
     // This is run every frame
     private static void Update()
     {
-        TestDrawBoard();
-        TestMouseInput();
+
     }
 
     private static void TestDrawSquares()
@@ -53,5 +52,24 @@ public static class Test
         {
             Console.WriteLine(Player.Human.GetMouseIndex());
         }
+    }
+
+    public static void TestGame()
+    {
+        InitWindow(ScreenWidth, ScreenHeight, "Chess");
+        SetTargetFPS(60);
+
+        Game game = new();
+
+        while (!WindowShouldClose())
+        {
+            BeginDrawing();
+            ClearBackground(ScreenColour);
+
+            game.Update();
+
+            EndDrawing();
+        }
+        CloseWindow();
     }
 }
