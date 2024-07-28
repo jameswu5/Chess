@@ -42,6 +42,11 @@ public class Piece
         return images;
     }
 
+    public void SetPosition(int x, int y)
+    {
+        posX = x;
+        posY = y;
+    }
 
     public void Draw()
     {

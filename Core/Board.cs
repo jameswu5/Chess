@@ -86,6 +86,17 @@ public class Board
         // moveNumber = Convert.ToInt16(sections[5]) - 1;
     }
 
+    public void MakeMove(int move)
+    {
+        // for now just move the piece
+        int startIndex = Move.GetStartIndex(move);
+        int endIndex = Move.GetEndIndex(move);
+
+        boardState[endIndex] = boardState[startIndex];
+        boardState[startIndex] = Piece.None;
+    }
+
+
     public int GetPieceTypeAtIndex(int index) => boardState[index] & 0b111;
 
     public int GetPieceAtIndex(int index) => boardState[index];

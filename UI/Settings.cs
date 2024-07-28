@@ -21,6 +21,7 @@ public static class Settings
         public static readonly Color OptionColour = new(0, 0, 0, 100);
         public const int OptionRadius = Size / 4;
 
+        public static readonly Color HoverColour = new(255, 255, 255, 150);
     }
 
     public static class Board

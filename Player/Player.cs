@@ -7,7 +7,7 @@ public abstract class Player
 {
     public enum Type { Human };
 
-    // public event System.Action<int> PlayChosenMove;
+    public event System.Action<int> PlayChosenMove;
 
     public Game game;
     public Board board;
@@ -18,8 +18,9 @@ public abstract class Player
 
     public abstract override string ToString();
 
-    // public void Decided(int move)
-    // {
-    //     PlayChosenMove.Invoke(move);
-    // }
+    public void Decided(int move)
+    {
+        Console.WriteLine(move);
+        PlayChosenMove.Invoke(move);
+    }
 }

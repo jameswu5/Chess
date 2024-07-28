@@ -19,6 +19,8 @@ public class Square
     private int optionXPos;
     private int optionYPos;
 
+    private bool isHovered;
+
     public Square(int index)
     {
         this.index = index;
@@ -30,6 +32,8 @@ public class Square
 
         optionXPos = xcoord + Settings.Square.Size / 2;
         optionYPos = ycoord + Settings.Square.Size / 2;
+
+        isHovered = false;
     }
 
     public void Display()
@@ -39,13 +43,24 @@ public class Square
         {
             DrawCircle(optionXPos, optionYPos, Settings.Square.OptionRadius, Settings.Square.OptionColour);
         }
+        if (isHovered)
+        {
+            DrawRectangle(xcoord, ycoord, Settings.Square.Size, Settings.Square.Size, Settings.Square.HoverColour);
+        }
     }
 
     private void SetColor(Color colour) => this.colour = colour;
 
+    public void InitialiseColor()
+    {
+        colour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
+    }
+
     public void Highlight() => SetColor(Settings.Square.HighlightColour);
 
     public void SetOptionHighlight(bool highlight) => optionHighlight = highlight;
+
+    public void SetHoverHighlight(bool value) => isHovered = value;
 
     public static (int, int) GetSquareDisplayCoords(int index)
     {

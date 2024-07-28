@@ -51,27 +51,92 @@ public class Human : Player
             if (board.GetPieceAtIndex(index) != Core.Piece.None && board.CheckIfPieceIsColour(index, board.turn))
             {
                 pieceIndex = index;
-                currentState = InputState.Dragging;
 
                 game.ui.HighlightSquare(pieceIndex);
 
                 List<int> legalMoves = board.GetLegalMoves(pieceIndex);
                 game.ui.HighlightOptions(legalMoves);
-            }
-            
+
+                currentState = InputState.Dragging;
+            }   
         }
     }
 
     private void HandleInputDragging()
     {
-        
+        int mouseX = GetMouseX();
+        int mouseY = GetMouseY();
+
+        game.ui.DragPiece(pieceIndex, mouseX, mouseY);
+
+        int newIndex = GetMouseIndex();
+
+        if (newIndex != -1)
+        {
+            game.ui.HighlightHover(newIndex);
+        }
+
+        if (IsMouseButtonReleased(0))
+        {
+            if (newIndex == pieceIndex) // Trying to place at the same square
+            {
+                currentState = InputState.Selecting;
+
+                game.ui.MovePieceToSquare(pieceIndex, pieceIndex);
+                game.ui.UnHighlightHover(pieceIndex);
+            }
+            else
+            {
+                if (newIndex != -1) // Trying to place at another square
+                {
+                    TryToGetMove(pieceIndex, newIndex);
+                    game.ui.UnHighlightHover(newIndex);
+                }
+                else // Trying to place out of bounds
+                {
+                    // move back to original place
+                    Console.WriteLine("Tried to place out of bounds");
+                    game.ui.MovePieceToSquare(pieceIndex, pieceIndex);
+                }
+
+                currentState = InputState.Idle;
+                game.ui.ResetSquareColour(pieceIndex);
+
+                game.ui.UnHighlightOptionsAllSquares();
+            }
+        }
     }
 
     private void HandleInputSelecting()
     {
+        if (IsMouseButtonDown(0))
+        {
+            int newIndex = GetMouseIndex();
 
+            if (newIndex != pieceIndex && newIndex != -1)
+            {
+                TryToGetMove(pieceIndex, newIndex);
+            }
+
+            currentState = InputState.Idle;
+            game.ui.ResetSquareColour(pieceIndex);
+            game.ui.UnHighlightOptionsAllSquares();
+        }
     }
 
+
+
+    private void TryToGetMove(int index, int newIndex, int promotionType = 0)
+    {
+        // int move = board.TryToPlacePiece(index, newIndex, promotionType);
+
+        // for now, just move the piece (no rules)
+        int move = Core.Move.Initialise(Core.Move.Standard, index, newIndex, board.GetPieceAtIndex(index), board.GetPieceAtIndex(newIndex));
+        if (move != 0)
+        {
+            Decided(move);
+        }
+    }
 
     public static int GetMouseIndex()
     {
