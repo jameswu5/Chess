@@ -41,7 +41,7 @@ public static class Test
     private static void TestDrawBoard()
     {
         Core.Board board = new();
-        UI.UI ui = new();
+        UI.UI ui = new(board);
         ui.CreateUI(board.boardState);
         ui.Display();
     }

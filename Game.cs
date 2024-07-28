@@ -12,7 +12,7 @@ public class Game
     public Game()
     {
         board = new();
-        ui = new();
+        ui = new(board);
         ui.CreateUI(board.boardState);
 
         whitePlayer = new Player.Human(this);
@@ -51,8 +51,7 @@ public class Game
     public void PlayMove(int move)
     {
         // obviously this isn't the full version
-        board.MakeMove(move);
         ui.MakeMove(move);
-        Core.Move.DisplayMoveInformation(move);
+        board.MakeMove(move);
     }
 }

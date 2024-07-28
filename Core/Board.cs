@@ -10,7 +10,7 @@ public class Board
     private Stack<List<int>> moveCache;
 
     public int turn;
-    private int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
+    public int GetColour(bool isWhite) => isWhite ? Piece.White : Piece.Black;
     private int GetOpponentColour(bool isWhite) => isWhite ? Piece.Black : Piece.White;
     public int GetColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 0 : 1; // this works for colours (Piece.White) and pieceIDs.
     public int GetOpponentColourIndex(int c) => Piece.IsColour(c, Piece.White) ? 1 : 0;
@@ -395,7 +395,7 @@ public class Board
 
     public int GetPieceAtIndex(int index) => boardState[index];
 
-    private bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
+    public bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
 
