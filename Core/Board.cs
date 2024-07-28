@@ -47,7 +47,7 @@ public class Board
         Initialise();
     }
 
-    public void Initialise()
+    public void Initialise(string FENPosition = FEN.standard)
     {
         // boardState = new int[64];
         // turn = -1; // not set to any value
@@ -67,7 +67,7 @@ public class Board
         pieceBitboards = new ulong[16];
         colourBitboards = new ulong[2];
 
-        LoadPosition();
+        LoadPosition(FENPosition);
         legalMoves = GetAllLegalMoves();
         moveCache.Push(new List<int>(legalMoves));
 
@@ -83,7 +83,7 @@ public class Board
         gameResult = Judge.GetResult(this);
     }
 
-    private void LoadPosition(string FENPosition = FEN.standard) {
+    private void LoadPosition(string FENPosition) {
         int rank = 7;
         int file = 0;
 
@@ -154,6 +154,15 @@ public class Board
     private State GetCurrentState()
     {
         return new State(fiftyMoveCounter, castlingRights, enPassantTarget, zobristKey, inCheck);
+    }
+
+    private void LoadState(State state)
+    {
+        fiftyMoveCounter = state.fiftyMoveCounter;
+        castlingRights = state.castlingRights;
+        enPassantTarget = state.enPassantTarget;
+        zobristKey = state.zobristKey;
+        inCheck = state.inCheck;
     }
 
 
@@ -431,6 +440,168 @@ public class Board
         states.Push(GetCurrentState());
     }
 
+    public void UndoMove()
+    {
+        // no moves to undo so exit the function
+        if (gameMoves.Count == 0) return;
+
+        int lastMove = gameMoves.Pop();
+
+        int heroColour = turn == Piece.White ? Piece.Black : Piece.White;
+        int opponentColour = turn;
+
+        int moveType = Move.GetMoveType(lastMove);
+        int startIndex = Move.GetStartIndex(lastMove);
+        int endIndex = Move.GetEndIndex(lastMove);
+        int movedPieceType = Move.GetMovedPieceType(lastMove);
+        int capturedPieceType = Move.GetCapturedPieceType(lastMove);
+
+        int capturedPiece = Piece.None;
+        int capturedIndex = -1;
+
+        // if (changeUI && inCheck)
+        // {
+        //     boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
+        // }
+
+
+        // move the pieces
+
+        if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
+        {
+            // move the piece back to its original position
+            PlacePiece(endIndex, startIndex);
+            UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
+
+            // replace captured piece if necessary
+            if (capturedPieceType != Piece.None)
+            {
+                capturedPiece = capturedPieceType + opponentColour;
+                capturedIndex = endIndex;
+            }
+        }
+
+        else if (moveType == Move.EnPassant)
+        {
+            // Move the pawn back to its original position
+            PlacePiece(endIndex, startIndex);
+            UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
+
+            // replace the captured pawn
+            capturedPiece = Piece.Pawn + opponentColour;
+            capturedIndex = heroColour == Piece.White ? endIndex - 8 : endIndex + 8;
+        }
+
+        else if (moveType == Move.Castling)
+        {
+            // Move the king back to its original position
+            PlacePiece(endIndex, startIndex);
+            UpdateBitboardForMove(movedPieceType + heroColour, Piece.None, endIndex, startIndex);
+
+            // Move the rook back to its original position
+            switch (endIndex)
+            {
+                case Square.g1:
+                    PlacePiece(Square.f1, Square.h1);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.f1, Square.h1);
+                    break;
+                case Square.c1:
+                    PlacePiece(Square.d1, Square.a1);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.d1, Square.a1);
+                    break;
+                case Square.g8:
+                    PlacePiece(Square.f8, Square.h8);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.f8, Square.h8);
+                    break;
+                case Square.c8:
+                    PlacePiece(Square.d8, Square.a8);
+                    UpdateBitboardForMove(Piece.Rook + heroColour, Piece.None, Square.d8, Square.a8);
+                    break;
+                default:
+                    Console.WriteLine("There has been a problem undoing the castling move.");
+                    break;
+            }
+        }
+
+        else if (moveType == Move.PromoteToQueen || moveType == Move.PromoteToRook || moveType == Move.PromoteToBishop || moveType == Move.PromoteToKnight)
+        {
+            // destroy the promoted piece
+            int promotedPieceID = GetPieceAtIndex(endIndex);
+            DestroyPiece(endIndex);
+            ClearSquareFromBitboard(promotedPieceID, endIndex);
+
+            // create a pawn on the start position
+            // if (changeUI)
+            // {
+            //     boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
+            // }
+            boardState[startIndex] = Piece.Pawn + heroColour;
+            AddPieceToBitboard(Piece.Pawn + heroColour, startIndex);
+
+            // replace captured piece if necessary
+            if (capturedPieceType != Piece.None)
+            {
+                capturedPiece = capturedPieceType + opponentColour;
+                capturedIndex = endIndex;
+            }
+        }
+        else
+        {
+            Console.WriteLine("Cannot identify the nature of the previous move.");
+        }
+
+        // add the captured piece to the bitboard and replace on UI if necessary
+        if (capturedPiece != Piece.None)
+        {
+            boardState[capturedIndex] = capturedPiece;
+            AddPieceToBitboard(capturedPiece, capturedIndex);
+
+            // if (changeUI)
+            // {
+            //     boardUI.CreatePiece(capturedPiece, capturedIndex);
+            // }
+        }
+
+        // revert the king index
+        if (movedPieceType == Piece.King)
+        {
+            kingIndices[GetColourIndex(heroColour)] = startIndex;
+        }
+
+        // undo end of game (if applicable in the first place);
+        gameResult = Judge.Result.Playing;
+
+        // change the move number if undoing a move made by black
+        if (turn == Piece.Black) moveNumber--;
+
+        // remove end of game text if necessary
+        // Game.UpdateEndOfGameScreen(gameResult);
+
+        // change the turn back
+        ChangeTurn();
+
+        // Retrieve legal moves
+        moveCache.Pop();
+        legalMoves = moveCache.Peek();
+
+        if (table[zobristKey] == 1)
+        {
+            table.Remove(zobristKey);
+        }
+        else
+        {
+            table[zobristKey]--;
+        }
+
+        // Revert the states
+        states.Pop();
+        LoadState(states.Peek());
+
+        // if (changeUI && inCheck)
+        // {
+        //     boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
+        // }
+    }
 
     public int GetPieceTypeAtIndex(int index) => boardState[index] & 0b111;
 

@@ -5,6 +5,7 @@ public class Program
 {
     public static void Main()
     {
-        Test.TestGame();
+        // Test.TestGame();
+        Core.Perft.TestAllCases();
     }
 }
