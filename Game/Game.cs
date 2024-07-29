@@ -181,7 +181,7 @@ public class Game
 
     // Match games
 
-    private void StartNewGame(Player.Player.Type whitePlayerType, Player.Player.Type blackPlayerType)
+    public void StartNewGame(Player.Player.Type whitePlayerType, Player.Player.Type blackPlayerType)
     {
         Console.WriteLine($"{whitePlayerType} vs {blackPlayerType}");
         board.Initialise();
