@@ -31,10 +31,7 @@ public static class Settings
         public const int VerOffset = ScreenHeight - (Square.Size << 3) >> 1;
         public const int Size = Square.Size << 3;
         public static readonly Color CoverColour = new(0, 0, 0, 150);
-    }
 
-    public static class Timer
-    {
         public const int FontSize = 30;
         public const int Padding = 10;
         public static readonly Color ActiveColor   = new(255, 255, 255, 255);

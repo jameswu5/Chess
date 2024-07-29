@@ -38,6 +38,8 @@ public class Game
     public void Update()
     {
         ui.Display();
+        whitePlayer.DisplayName(true);
+        blackPlayer.DisplayName(false);
 
         if (board.gameResult != Core.Judge.Result.Playing) return;
 

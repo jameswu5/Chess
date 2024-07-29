@@ -7,8 +7,8 @@ public class Timer
 {
     public event Action TimedOut;
 
-    public float secondsRemaining;
-    public float secondsRemainingAtStart;
+    public double secondsRemaining;
+    public double secondsRemainingAtStart;
     public bool isActive;
     public bool isWhite;
 
@@ -21,7 +21,7 @@ public class Timer
         this.isWhite = isWhite;
     }
 
-    public float TimeElapsedThisTurn => secondsRemainingAtStart - secondsRemaining;
+    public double TimeElapsedThisTurn => secondsRemainingAtStart - secondsRemaining;
 
     public void SetActive(bool isActive) => this.isActive = isActive;
 
@@ -47,20 +47,20 @@ public class Timer
         DisplayTime();
     }
 
-    void DisplayTime()
+    private void DisplayTime()
     {
         int minutes = (int)(secondsRemaining / 60);
         int seconds = (int)(secondsRemaining % 60);
 
-        Color colour = isActive ? UI.Settings.Timer.ActiveColor : UI.Settings.Timer.InactiveColor;
+        Color colour = isActive ? Board.ActiveColor : Board.InactiveColor;
 
         string text = $"{minutes:00}:{seconds:00}";
-        int textWidth = Raylib.MeasureText(text, UI.Settings.Timer.FontSize);
+        int textWidth = Raylib.MeasureText(text, Board.FontSize);
         int posX = Board.HorOffset + Board.Size - textWidth;
         int posY = isWhite
-            ? Board.VerOffset + Board.Size + UI.Settings.Timer.Padding
-            : Board.VerOffset - UI.Settings.Timer.FontSize - UI.Settings.Timer.Padding;
+            ? Board.VerOffset + Board.Size + Board.Padding
+            : Board.VerOffset - Board.FontSize - Board.Padding;
 
-        Raylib.DrawText(text, posX, posY, UI.Settings.Timer.FontSize, colour);
+        Raylib.DrawText(text, posX, posY, Board.FontSize, colour);
     }
 }

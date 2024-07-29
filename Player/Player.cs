@@ -1,3 +1,4 @@
+using Raylib_cs;
 
 using Chess.Core;
 
@@ -7,7 +8,7 @@ public abstract class Player
 {
     public enum Type { Human, Random };
 
-    public event System.Action<int> PlayChosenMove;
+    public event Action<int> PlayChosenMove;
 
     public Game.Game game;
     public Board board;
@@ -21,5 +22,15 @@ public abstract class Player
     public void Decided(int move)
     {
         PlayChosenMove.Invoke(move);
+    }
+
+    public void DisplayName(bool isWhite)
+    {
+        int posX = UI.Settings.Board.HorOffset;
+        int posY = isWhite
+            ? UI.Settings.Board.VerOffset + UI.Settings.Board.Size + UI.Settings.Board.Padding
+            : UI.Settings.Board.VerOffset - UI.Settings.Board.FontSize - UI.Settings.Board.Padding;
+
+        Raylib.DrawText(ToString(), posX, posY, UI.Settings.Board.FontSize, UI.Settings.Board.ActiveColor);
     }
 }
