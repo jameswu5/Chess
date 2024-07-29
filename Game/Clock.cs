@@ -3,7 +3,7 @@ namespace Chess.Game;
 
 public class Clock
 {
-    public event System.Action<bool> ClockTimedOut;
+    public event Action<bool> ClockTimedOut;
 
     public Timer white;
     public Timer black;
@@ -15,11 +15,17 @@ public class Clock
 
     public Clock()
     {
-        white = new Timer();
-        black = new Timer();
+        white = new Timer(true);
+        black = new Timer(false);
 
         white.TimedOut += () => ClockTimedOut(true);
         black.TimedOut += () => ClockTimedOut(false);
+    }
+
+    public void Update()
+    {
+        white.Update();
+        black.Update();
     }
 
     public void Initialise(int startTime, int increment)

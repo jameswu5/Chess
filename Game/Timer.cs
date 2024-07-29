@@ -1,17 +1,25 @@
+using static Chess.UI.Settings;
 using Raylib_cs;
 
 namespace Chess.Game;
 
 public class Timer
 {
-    public event System.Action TimedOut;
-
-    public static readonly Color ActiveColor = new(255, 255, 255, 255);
-    public static readonly Color InactiveColor = new(170, 170, 170, 255);
+    public event Action TimedOut;
 
     public float secondsRemaining;
     public float secondsRemainingAtStart;
     public bool isActive;
+    public bool isWhite;
+
+    public Timer(bool isWhite)
+    {
+        secondsRemaining = 0;
+        secondsRemainingAtStart = 0;
+        isActive = false;
+
+        this.isWhite = isWhite;
+    }
 
     public float TimeElapsedThisTurn => secondsRemainingAtStart - secondsRemaining;
 
@@ -34,12 +42,6 @@ public class Timer
                 isActive = false;
                 TimedOut.Invoke();
             }
-
-            // timerText.color = ActiveColor;
-        }
-        else
-        {
-            // timerText.color = InactiveColor;
         }
 
         DisplayTime();
@@ -49,6 +51,16 @@ public class Timer
     {
         int minutes = (int)(secondsRemaining / 60);
         int seconds = (int)(secondsRemaining % 60);
-        // timerText.text = $"{minutes:00}:{seconds:00}";
+
+        Color colour = isActive ? UI.Settings.Timer.ActiveColor : UI.Settings.Timer.InactiveColor;
+
+        string text = $"{minutes:00}:{seconds:00}";
+        int textWidth = Raylib.MeasureText(text, UI.Settings.Timer.FontSize);
+        int posX = Board.HorOffset + Board.Size - textWidth;
+        int posY = isWhite
+            ? Board.VerOffset + Board.Size + UI.Settings.Timer.Padding
+            : Board.VerOffset - UI.Settings.Timer.FontSize - UI.Settings.Timer.Padding;
+
+        Raylib.DrawText(text, posX, posY, UI.Settings.Timer.FontSize, colour);
     }
 }

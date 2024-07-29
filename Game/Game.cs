@@ -28,7 +28,6 @@ public class Game
         clock = new();
         clock.Initialise(allowedTime, increment);
         clock.ClockTimedOut += TimedOut;
-
     }
 
     public void Update()
@@ -36,6 +35,8 @@ public class Game
         ui.Display();
 
         if (board.gameResult != Core.Judge.Result.Playing) return;
+
+        clock.Update();
 
         if (board.turn == Core.Piece.White)
         {
