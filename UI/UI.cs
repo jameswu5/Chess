@@ -258,9 +258,15 @@ public class UI
 
     public void DisablePromotionScreen()
     {
-        //TODO
-        // Array.Clear(promotionPieces, 0, promotionPieces.Length);
-        // Array.Clear(promotionSquares, 0, promotionSquares.Length);
         inPromotionScreen = -1;
+    }
+
+    public void Reset()
+    {
+        Array.Clear(squares, 0, squares.Length);
+        Array.Clear(pieces, 0, pieces.Length);
+
+        Array.Clear(promotionSquares, 0, promotionSquares.Length);
+        Array.Clear(promotionPieces, 0, promotionPieces.Length);
     }
 }

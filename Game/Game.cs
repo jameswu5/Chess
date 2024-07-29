@@ -13,6 +13,8 @@ public class Game
     public const int allowedTime = 300;
     public const int increment = 0;
 
+    public Match match;
+
     public Game()
     {
         board = new();
@@ -28,6 +30,9 @@ public class Game
         clock = new();
         clock.Initialise(allowedTime, increment);
         clock.ClockTimedOut += TimedOut;
+
+        match = new Match();
+        match.StartGame += StartMatchGame;
     }
 
     public void Update()
@@ -70,8 +75,7 @@ public class Game
 
         if (board.gameResult != Core.Judge.Result.Playing)
         {
-            // HandleGameOver();
-            Console.WriteLine("Game over");
+            HandleGameOver();
             return;
         }
 
@@ -88,7 +92,120 @@ public class Game
     public void TimedOut(bool isWhite)
     {
         board.gameResult = isWhite ? Core.Judge.Result.WhiteOutOfTime : Core.Judge.Result.BlackOutOfTime;
-        Console.WriteLine("Game over");
-        // HandleGameOver();
+        HandleGameOver();
+    }
+
+    public void HandleGameOver()
+    {
+        if (match.isActive)
+        {
+            if (board.gameResult == Core.Judge.Result.BlackIsMated || board.gameResult == Core.Judge.Result.BlackOutOfTime)
+            {
+                match.ReportResult(Match.GameResult.WhiteWins);
+            }
+            else if (board.gameResult == Core.Judge.Result.WhiteIsMated || board.gameResult == Core.Judge.Result.WhiteOutOfTime)
+            {
+                match.ReportResult(Match.GameResult.BlackWins);
+            }
+            else
+            {
+                match.ReportResult(Match.GameResult.Draw);
+            }
+        }
+        else
+        {
+            UpdateEndOfGameScreen(board.gameResult);
+            clock.StopClocks();
+        }
+    }
+
+    public static void UpdateEndOfGameScreen(Core.Judge.Result gameResult)
+    {
+        Console.WriteLine(gameResult);
+
+        // if (gameResult == Core.Judge.Result.Playing)
+        // {
+        //     endOfGameText.text = "";
+        //     resultText.text = "";
+        // }
+        // else if (gameResult == Core.Judge.Result.WhiteIsMated)
+        // {
+        //     endOfGameText.text = "Checkmate";
+        //     resultText.text = "0 - 1";
+        // }
+        // else if (gameResult == Core.Judge.Result.BlackIsMated)
+        // {
+        //     endOfGameText.text = "Checkmate";
+        //     resultText.text = "1 - 0";
+        // }
+        // else if (gameResult == Core.Judge.Result.WhiteOutOfTime)
+        // {
+        //     endOfGameText.text = "White Flag";
+        //     resultText.text = "0 - 1";
+        // }
+        // else if (gameResult == Core.Judge.Result.BlackOutOfTime)
+        // {
+        //     endOfGameText.text = "Black Flag";
+        //     resultText.text = "1 - 0";
+        // }
+        // else
+        // {
+        //     resultText.text = "1/2 - 1/2";
+        //     switch (gameResult)
+        //     {
+        //         case Core.Judge.Result.FiftyMove:
+        //             endOfGameText.text = "50 move rule";
+        //             break;
+        //         case Core.Judge.Result.Insufficient:
+        //             endOfGameText.text = "Insufficient material";
+        //             break;
+        //         case Core.Judge.Result.Stalemate:
+        //             endOfGameText.text = "Stalemate";
+        //             break;
+        //         case Core.Judge.Result.Threefold:
+        //             endOfGameText.text = "Threefold repetition";
+        //             break;
+        //         default:
+        //             endOfGameText.text = "Unidentified";
+        //             break;
+        //     }
+        // }
+    }
+
+
+    // Match games
+
+    private void StartNewGame(Player.Player.Type whitePlayerType, Player.Player.Type blackPlayerType)
+    {
+        board.Initialise();
+        ui.Reset();
+        clock.NewGame();
+
+        CreatePlayer(ref whitePlayer, whitePlayerType);
+        CreatePlayer(ref blackPlayer, blackPlayerType);
+
+        UpdateEndOfGameScreen(board.gameResult);
+
+        if (board.turn == Core.Piece.White)
+        {
+            whitePlayer.TurnToMove(clock.white);
+        }
+        else
+        {
+            blackPlayer.TurnToMove(clock.black);
+        }
+    }
+
+    public void StartMatchGame()
+    {
+        // Player1 is white if gameNumber is even
+        if (match.gameNumber % 2 == 0)
+        {
+            StartNewGame(match.player1, match.player2);
+        }
+        else
+        {
+            StartNewGame(match.player2, match.player1);
+        }
     }
 }
