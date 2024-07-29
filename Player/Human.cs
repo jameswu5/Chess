@@ -10,7 +10,7 @@ public class Human : Player
     public InputState currentState;
     private int pieceIndex;
 
-    public Human(Game game)
+    public Human(Game.Game game)
     {
         this.game = game;
         board = game.board;
@@ -32,6 +32,11 @@ public class Human : Player
                 HandlePromotionInput(game.ui.inPromotionScreen);
             }
         }
+    }
+
+    public override void TurnToMove(Game.Timer timer)
+    {
+        timer.secondsRemainingAtStart = timer.secondsRemaining;
     }
 
     private void HandleInput()

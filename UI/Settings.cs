@@ -9,6 +9,8 @@ public static class Settings
     public const int ScreenHeight = 720;
     public static readonly Color ScreenColour = new(7, 51, 59, 255);
 
+    public const int FrameRate = 60;
+
     public static class Square
     {
         public const int Size = 76;

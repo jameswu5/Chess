@@ -59,7 +59,7 @@ public static class Test
         InitWindow(ScreenWidth, ScreenHeight, "Chess");
         SetTargetFPS(60);
 
-        Game game = new();
+        Game.Game game = new();
 
         while (!WindowShouldClose())
         {

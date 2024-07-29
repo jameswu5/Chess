@@ -1,5 +1,5 @@
 
-namespace Chess;
+namespace Chess.Game;
 
 public class Game
 {
@@ -8,6 +8,10 @@ public class Game
 
     public Player.Player whitePlayer;
     public Player.Player blackPlayer;
+
+    public Clock clock;
+    public const int allowedTime = 300;
+    public const int increment = 0;
 
     public Game()
     {
@@ -20,13 +24,19 @@ public class Game
 
         CreatePlayer(ref whitePlayer, Player.Player.Type.Human);
         CreatePlayer(ref blackPlayer, Player.Player.Type.Human);
+
+        clock = new();
+        clock.Initialise(allowedTime, increment);
+        clock.ClockTimedOut += TimedOut;
+
     }
 
     public void Update()
     {
         ui.Display();
 
-        // assume the game is still playing
+        if (board.gameResult != Core.Judge.Result.Playing) return;
+
         if (board.turn == Core.Piece.White)
         {
             whitePlayer.Update();
@@ -50,8 +60,34 @@ public class Game
 
     public void PlayMove(int move)
     {
-        // obviously this isn't the full version
         ui.MakeMove(move);
         board.MakeMove(move);
+        // PlayMoveSound(Move.IsCaptureMove(move));
+
+        clock.ToggleClock();
+        board.gameResult = Core.Judge.GetResult(board);
+
+        if (board.gameResult != Core.Judge.Result.Playing)
+        {
+            // HandleGameOver();
+            Console.WriteLine("Game over");
+            return;
+        }
+
+        if (board.turn == Core.Piece.White)
+        {
+            whitePlayer.TurnToMove(clock.white);
+        }
+        else
+        {
+            blackPlayer.TurnToMove(clock.black);
+        }
+    }
+
+    public void TimedOut(bool isWhite)
+    {
+        board.gameResult = isWhite ? Core.Judge.Result.WhiteOutOfTime : Core.Judge.Result.BlackOutOfTime;
+        Console.WriteLine("Game over");
+        // HandleGameOver();
     }
 }

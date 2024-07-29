@@ -9,10 +9,10 @@ public abstract class Player
 
     public event System.Action<int> PlayChosenMove;
 
-    public Game game;
+    public Game.Game game;
     public Board board;
 
-    // public abstract void TurnToMove(Timer timer);
+    public abstract void TurnToMove(Game.Timer timer);
 
     public abstract void Update();
 
