@@ -6,7 +6,7 @@ namespace Chess.Player;
 
 public abstract class Player
 {
-    public enum Type { Human, Random };
+    public enum Type { Human, Random, Version1, Version2 };
 
     public event Action<int> PlayChosenMove;
 

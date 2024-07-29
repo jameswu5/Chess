@@ -17,6 +17,8 @@ public abstract class Bot : Player
         return type switch
         {
             Type.Random => new RandomBot(game),
+            Type.Version1 => new Version1(game),
+            Type.Version2 => new Version2(game),
             Type.Human => throw new Exception("Tried to create a bot with Player.Type.Human"),
             _ => throw new Exception("Bot not found"),
         };

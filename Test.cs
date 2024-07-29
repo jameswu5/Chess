@@ -60,7 +60,7 @@ public static class Test
         SetTargetFPS(60);
 
         Game.Game game = new();
-        game.StartMatch(Player.Player.Type.Random, Player.Player.Type.Random);
+        game.StartMatch(Player.Player.Type.Random, Player.Player.Type.Version2);
 
         while (!WindowShouldClose())
         {
