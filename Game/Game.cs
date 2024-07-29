@@ -74,7 +74,7 @@ public class Game
     {
         ui.MakeMove(move);
         board.MakeMove(move);
-        // PlayMoveSound(Move.IsCaptureMove(move));
+        Audio.Audio.PlaySound(Core.Move.IsCaptureMove(move));
 
         clock.ToggleClock();
         board.gameResult = Core.Judge.GetResult(board);
