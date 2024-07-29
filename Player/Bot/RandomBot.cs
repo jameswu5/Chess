@@ -1,11 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Chess.Player;
 
 public class RandomBot : Bot
 {
-    private readonly Random rng = new();
+    private readonly Random rng;
+
+    public RandomBot(Game.Game game) : base(game)
+    {
+        rng = new Random();
+    }
 
     public override void ChooseMove(Game.Timer timer)
     {

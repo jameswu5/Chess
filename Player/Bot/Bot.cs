@@ -7,11 +7,16 @@ public abstract class Bot : Player
     protected bool moveFound = false;
     protected int chosenMove = 0;
 
-    public static Bot GetBotFromBotType(Type type)
+    public Bot(Game.Game game)
+    {
+        board = game.board;
+    }
+
+    public static Bot GetBotFromBotType(Type type, Game.Game game)
     {
         return type switch
         {
-            Type.Random => new RandomBot(),
+            Type.Random => new RandomBot(game),
             Type.Human => throw new Exception("Tried to create a bot with Player.Type.Human"),
             _ => throw new Exception("Bot not found"),
         };

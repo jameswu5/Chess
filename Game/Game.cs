@@ -60,6 +60,10 @@ public class Game
         {
             player = new Player.Human(this);
         }
+        else
+        {
+            player = Player.Bot.GetBotFromBotType(type, this);
+        }
 
         player.PlayChosenMove += PlayMove;
     }
@@ -177,6 +181,7 @@ public class Game
 
     private void StartNewGame(Player.Player.Type whitePlayerType, Player.Player.Type blackPlayerType)
     {
+        Console.WriteLine($"{whitePlayerType} vs {blackPlayerType}");
         board.Initialise();
         ui.Reset();
         ui.CreateUI(board.boardState);

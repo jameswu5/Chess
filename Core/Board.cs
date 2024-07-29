@@ -49,10 +49,6 @@ public class Board
 
     public void Initialise(string FENPosition = FEN.standard)
     {
-        // boardState = new int[64];
-        // turn = -1; // not set to any value
-        // LoadPosition();
-
         boardState = new int[64];
         mg = new MoveGenerator();
         moveCache = new Stack<List<int>>();

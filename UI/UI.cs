@@ -27,19 +27,13 @@ public class UI
         this.board = board;
 
         inPromotionScreen = -1;
-
-        for (int i = 0; i < 64; i++)
-        {
-            squares[i] = new Square(i);
-        }
     }
 
     public void CreateUI(int[] boardState)
     {
-        pieces = new Piece[64];
-
         for (int i = 0; i < 64; i++)
         {
+            squares[i] = new Square(i);
             if (boardState[i] != Core.Piece.None)
             {
                 CreatePiece(boardState[i], i);
