@@ -179,6 +179,8 @@ public class Game
     {
         board.Initialise();
         ui.Reset();
+        ui.CreateUI(board.boardState);
+
         clock.NewGame();
 
         CreatePlayer(ref whitePlayer, whitePlayerType);
@@ -194,6 +196,13 @@ public class Game
         {
             blackPlayer.TurnToMove(clock.black);
         }
+    }
+
+    // Starts a match between two bots
+    public void StartMatch(Player.Player.Type bot1, Player.Player.Type bot2)
+    {
+        match.SetBots(bot1, bot2);
+        match.StartMatch();
     }
 
     public void StartMatchGame()
