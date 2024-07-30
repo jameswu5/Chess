@@ -43,16 +43,10 @@ public class Game
 
         if (board.gameResult != Core.Judge.Result.Playing) return;
 
-        clock.Update();
+        whitePlayer.Update();
+        blackPlayer.Update();
 
-        if (board.turn == Core.Piece.White)
-        {
-            whitePlayer.Update();
-        }
-        else
-        {
-            blackPlayer.Update();
-        }
+        clock.Update();
     }
 
     private void CreatePlayer(ref Player.Player player, Player.Player.Type type)

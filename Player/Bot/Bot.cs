@@ -9,6 +9,7 @@ public abstract class Bot : Player
 
     public Bot(Game.Game game)
     {
+        isActive = false;
         board = game.board;
     }
 
@@ -26,6 +27,8 @@ public abstract class Bot : Player
 
     public override void Update()
     {
+        if (!isActive) return;
+
         if (moveFound)
         {
             moveFound = false;
@@ -35,6 +38,7 @@ public abstract class Bot : Player
 
     public override void TurnToMove(Game.Timer timer)
     {
+        isActive = true;
         timer.secondsRemainingAtStart = timer.secondsRemaining;
         moveFound = false;
         Thread backgroundThread = new(() => ChooseMove(timer));

@@ -13,6 +13,8 @@ public abstract class Player
     public Game.Game game;
     public Board board;
 
+    public bool isActive;
+
     public abstract void TurnToMove(Game.Timer timer);
 
     public abstract void Update();
@@ -21,6 +23,7 @@ public abstract class Player
 
     public void Decided(int move)
     {
+        isActive = false;
         PlayChosenMove.Invoke(move);
     }
 

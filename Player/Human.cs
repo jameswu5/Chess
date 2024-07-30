@@ -16,10 +16,13 @@ public class Human : Player
         board = game.board;
         currentState = InputState.Idle;
         pieceIndex = -1;
+        isActive = false;
     }
 
     public override void Update()
     {
+        if (!isActive) return;
+
         if (board.gameResult == Core.Judge.Result.Playing)
         {
             if (game.ui.inPromotionScreen == -1)
@@ -28,7 +31,6 @@ public class Human : Player
             }
             else
             {
-                Console.WriteLine(game.ui.inPromotionScreen);
                 HandlePromotionInput(game.ui.inPromotionScreen);
             }
         }
@@ -37,6 +39,7 @@ public class Human : Player
     public override void TurnToMove(Game.Timer timer)
     {
         timer.secondsRemainingAtStart = timer.secondsRemaining;
+        isActive = true;
     }
 
     private void HandleInput()
