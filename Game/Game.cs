@@ -72,8 +72,8 @@ public class Game
 
     public void PlayMove(int move)
     {
-        ui.MakeMove(move);
         board.MakeMove(move);
+        ui.MakeMove(move);
         Audio.Audio.PlaySound(Core.Move.IsCaptureMove(move));
 
         clock.ToggleClock();
@@ -120,64 +120,9 @@ public class Game
         }
         else
         {
-            UpdateEndOfGameScreen(board.gameResult);
             clock.StopClocks();
         }
     }
-
-    public static void UpdateEndOfGameScreen(Core.Judge.Result gameResult)
-    {
-        Console.WriteLine(gameResult);
-
-        // if (gameResult == Core.Judge.Result.Playing)
-        // {
-        //     endOfGameText.text = "";
-        //     resultText.text = "";
-        // }
-        // else if (gameResult == Core.Judge.Result.WhiteIsMated)
-        // {
-        //     endOfGameText.text = "Checkmate";
-        //     resultText.text = "0 - 1";
-        // }
-        // else if (gameResult == Core.Judge.Result.BlackIsMated)
-        // {
-        //     endOfGameText.text = "Checkmate";
-        //     resultText.text = "1 - 0";
-        // }
-        // else if (gameResult == Core.Judge.Result.WhiteOutOfTime)
-        // {
-        //     endOfGameText.text = "White Flag";
-        //     resultText.text = "0 - 1";
-        // }
-        // else if (gameResult == Core.Judge.Result.BlackOutOfTime)
-        // {
-        //     endOfGameText.text = "Black Flag";
-        //     resultText.text = "1 - 0";
-        // }
-        // else
-        // {
-        //     resultText.text = "1/2 - 1/2";
-        //     switch (gameResult)
-        //     {
-        //         case Core.Judge.Result.FiftyMove:
-        //             endOfGameText.text = "50 move rule";
-        //             break;
-        //         case Core.Judge.Result.Insufficient:
-        //             endOfGameText.text = "Insufficient material";
-        //             break;
-        //         case Core.Judge.Result.Stalemate:
-        //             endOfGameText.text = "Stalemate";
-        //             break;
-        //         case Core.Judge.Result.Threefold:
-        //             endOfGameText.text = "Threefold repetition";
-        //             break;
-        //         default:
-        //             endOfGameText.text = "Unidentified";
-        //             break;
-        //     }
-        // }
-    }
-
 
     // Match games
 
@@ -192,8 +137,6 @@ public class Game
 
         CreatePlayer(ref whitePlayer, whitePlayerType);
         CreatePlayer(ref blackPlayer, blackPlayerType);
-
-        UpdateEndOfGameScreen(board.gameResult);
 
         if (board.turn == Core.Piece.White)
         {

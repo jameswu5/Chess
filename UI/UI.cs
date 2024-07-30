@@ -154,12 +154,6 @@ public class UI
         bool isWhite = board.CheckPieceIsWhite(startIndex);
         int colour = board.GetColour(isWhite);
 
-        // Uncolour the checked king if necessary
-        // if (inCheck)
-        // {
-        //     boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
-        // }
-
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
         {
             MovePieceToSquare(startIndex, endIndex);
@@ -217,11 +211,6 @@ public class UI
 
             CreatePiece(promotePiece + colour, endIndex);
         }
-
-        // if (inCheck)
-        // {
-        //     boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
-        // }
     }
 
 
