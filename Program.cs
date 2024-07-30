@@ -8,7 +8,8 @@ public class Program
 {
     public static void Main()
     {
-        PlayAgainstBot(Player.Player.Type.Version2);
+        PlayOnePlayer(Player.Player.Type.Human);
+        // PlayOnePlayer(Player.Player.Type.Version2);
         // PlayMatch(Player.Player.Type.Version1, Player.Player.Type.Version2);
     }
 
@@ -33,13 +34,13 @@ public class Program
         CloseWindow();
     }
 
-    public static void PlayAgainstBot(Player.Player.Type type)
+    public static void PlayOnePlayer(Player.Player.Type opponentType)
     {
         InitWindow(ScreenWidth, ScreenHeight, "Chess");
         SetTargetFPS(60);
 
         Game.Game game = new();
-        game.StartNewGame(Player.Player.Type.Human, type);
+        game.StartNewGame(Player.Player.Type.Human, opponentType);
 
         while (!WindowShouldClose())
         {

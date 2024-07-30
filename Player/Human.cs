@@ -8,7 +8,7 @@ public class Human : Player
 {
     public enum InputState { Idle, Selecting, Dragging }
     public InputState currentState;
-    private int pieceIndex;
+    public int pieceIndex;
 
     public Human(Game.Game game)
     {
@@ -191,7 +191,10 @@ public class Human : Player
                 {
                     game.ui.DisablePromotionScreen();
                 }
+
+                currentState = InputState.Idle;
                 Decided(move);
+
                 break;
         }
     }

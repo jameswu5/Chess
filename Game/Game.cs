@@ -1,4 +1,6 @@
 
+using Chess.Player;
+
 namespace Chess.Game;
 
 public class Game
@@ -37,7 +39,7 @@ public class Game
 
     public void Update()
     {
-        ui.Display();
+        ui.Display(GetSelectedPieceIndex());
         whitePlayer.DisplayName(true);
         blackPlayer.DisplayName(false);
 
@@ -47,6 +49,29 @@ public class Game
         blackPlayer.Update();
 
         clock.Update();
+    }
+
+    private int GetSelectedPieceIndex()
+    {
+        if (whitePlayer is Human & whitePlayer.isActive)
+        {
+            Human human = (Human)whitePlayer;
+            if (human.currentState != Human.InputState.Idle)
+            {
+                return human.pieceIndex;
+            }
+        }
+
+        if (blackPlayer is Human & blackPlayer.isActive)
+        {
+            Human human = (Human)blackPlayer;
+            if (human.currentState != Human.InputState.Idle)
+            {
+                return human.pieceIndex;
+            }
+        }
+
+        return -1;
     }
 
     private void CreatePlayer(ref Player.Player player, Player.Player.Type type)

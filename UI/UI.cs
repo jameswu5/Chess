@@ -51,7 +51,7 @@ public class UI
         pieces[index] = null;
     }
 
-    public void Display()
+    public void Display(int selectedPieceIndex)
     {
         for (int i = 0; i < 64; i++)
         {
@@ -62,6 +62,12 @@ public class UI
         for (int i = 0; i < 64; i++)
         {
             pieces[i]?.Draw();
+        }
+
+        // Draw selected piece
+        if (selectedPieceIndex != -1)
+        {
+            pieces[selectedPieceIndex].Draw();
         }
 
         if (inPromotionScreen != -1)
