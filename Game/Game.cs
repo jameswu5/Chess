@@ -39,9 +39,8 @@ public class Game
 
     public void Update()
     {
-        ui.Display(GetSelectedPieceIndex());
-        whitePlayer.DisplayName(true);
-        blackPlayer.DisplayName(false);
+        // Display stuff
+        Display();
 
         if (board.gameResult != Core.Judge.Result.Playing) return;
 
@@ -49,6 +48,22 @@ public class Game
         blackPlayer.Update();
 
         clock.Update();
+    }
+
+    public void Display()
+    {
+        ui.Display(GetSelectedPieceIndex());
+        if (match.isActive)
+        {
+            whitePlayer.DisplayName(true, match.GetScore(true));
+            blackPlayer.DisplayName(false, match.GetScore(false));
+        }
+        else
+        {
+            whitePlayer.DisplayName(true);
+            blackPlayer.DisplayName(false);
+        }
+        clock.Display();
     }
 
     private int GetSelectedPieceIndex()

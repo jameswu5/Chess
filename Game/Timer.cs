@@ -43,11 +43,9 @@ public class Timer
                 TimedOut.Invoke();
             }
         }
-
-        DisplayTime();
     }
 
-    private void DisplayTime()
+    public void Display()
     {
         int minutes = (int)(secondsRemaining / 60);
         int seconds = (int)(secondsRemaining % 60);

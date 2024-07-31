@@ -91,4 +91,10 @@ public class Match
     {
         isActive = false;
     }
+
+    public double GetScore(bool isWhite)
+    {
+        bool isPlayer1 = isWhite ^ (gameNumber % 2 == 1);
+        return (isPlayer1 ? player1Wins : player2Wins) + 0.5 * draws;
+    }
 }

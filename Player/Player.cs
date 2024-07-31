@@ -27,13 +27,15 @@ public abstract class Player
         PlayChosenMove.Invoke(move);
     }
 
-    public void DisplayName(bool isWhite)
+    public void DisplayName(bool isWhite, double? score = null)
     {
         int posX = UI.Settings.Board.HorOffset;
         int posY = isWhite
             ? UI.Settings.Board.VerOffset + UI.Settings.Board.Size + UI.Settings.Board.Padding
             : UI.Settings.Board.VerOffset - UI.Settings.Board.FontSize - UI.Settings.Board.Padding;
 
-        Raylib.DrawText(ToString(), posX, posY, UI.Settings.Board.FontSize, UI.Settings.Board.ActiveColor);
+        string text = score.HasValue ? $"{ToString()} [{score}]" : ToString();
+
+        Raylib.DrawText(text, posX, posY, UI.Settings.Board.FontSize, UI.Settings.Board.ActiveColor);
     }
 }

@@ -28,6 +28,12 @@ public class Clock
         black.Update();
     }
 
+    public void Display()
+    {
+        white.Display();
+        black.Display();
+    }
+
     public void Initialise(int startTime, int increment)
     {
         this.startTime = startTime;
