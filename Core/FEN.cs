@@ -29,4 +29,8 @@ public static class FEN
     public const string Slav = "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq - 2 4";
     public const string KingsIndian = "rnbqk2r/ppppppbp/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq - 2 4";
     public const string English = "rnbqk2r/pppp1ppp/5n2/4p3/1bP5/2N3P1/PP1PPP1P/R1BQKBNR w KQkq - 1 4";
+
+    public const string MateInThree = "3b4/8/7p/5K1k/8/6p1/6P1/2R5 w - - 0 1";
+    public const string MateInThree2 = "r1b2rk1/pppp1ppp/8/2b1p3/2B1P1nq/2N2N2/PPP2PPP/R1BQR1K1 b - - 0 1";
+    public const string MateInFour = "r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1";
 }

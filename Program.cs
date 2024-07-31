@@ -10,7 +10,8 @@ public class Program
     {
         // PlayOnePlayer(Player.Player.Type.Human);
         // PlayOnePlayer(Player.Player.Type.Version2);
-        PlayMatch(Player.Player.Type.Random, Player.Player.Type.Version2);
+        // PlayMatch(Player.Player.Type.Random, Player.Player.Type.Version2);
+        PlayTestPosition(Player.Player.Type.Version2, Player.Player.Type.Version2, Core.FEN.MateInThree2);
     }
 
     public static void PlayMatch(Player.Player.Type bot1, Player.Player.Type bot2)
@@ -41,6 +42,27 @@ public class Program
 
         Game.Game game = new();
         game.StartNewGame(Player.Player.Type.Human, opponentType);
+
+        while (!WindowShouldClose())
+        {
+            BeginDrawing();
+            ClearBackground(ScreenColour);
+
+            game.Update();
+
+            EndDrawing();
+        }
+        Environment.Exit(0);
+        CloseWindow();
+    }
+
+    public static void PlayTestPosition(Player.Player.Type player1, Player.Player.Type player2, string FEN)
+    {
+        InitWindow(ScreenWidth, ScreenHeight, "Chess");
+        SetTargetFPS(60);
+
+        Game.Game game = new();
+        game.StartNewGame(player1, player2, FEN);
 
         while (!WindowShouldClose())
         {
