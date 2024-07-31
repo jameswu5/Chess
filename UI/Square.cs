@@ -1,23 +1,23 @@
 using Raylib_cs;
 using static Raylib_cs.Raylib;
-using static Chess.UI.Settings;
 
 namespace Chess.UI;
 
 public class Square
 {
-    public int index;
-    public int x;
-    public int y;
+    private readonly int index;
+    private readonly int x;
+    private readonly int y;
 
-    private bool isLight;
+    private readonly bool isLight;
+    private Color defaultColour;
     private Color colour;
-    private int xcoord;
-    private int ycoord;
+    private readonly int xcoord;
+    private readonly int ycoord;
 
     private bool optionHighlight;
-    private int optionXPos;
-    private int optionYPos;
+    private readonly int optionXPos;
+    private readonly int optionYPos;
 
     private bool isHovered;
 
@@ -27,7 +27,8 @@ public class Square
         (x, y) = GetCoordsFromIndex(index);
 
         isLight = (x + y) % 2 == 0;
-        colour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
+        defaultColour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
+        colour = defaultColour;
         (xcoord, ycoord) = GetSquareDisplayCoords(index);
 
         optionXPos = xcoord + Settings.Square.Size / 2;
@@ -49,14 +50,27 @@ public class Square
         }
     }
 
-    private void SetColor(Color colour) => this.colour = colour;
+    public void SetColour(Color colour) => this.colour = colour;
 
     public void InitialiseColor()
     {
-        colour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
+        colour = defaultColour;
     }
 
-    public void Highlight() => SetColor(Settings.Square.HighlightColour);
+    public void SetDefaultColour(Color? colour)
+    {
+        // if blank, then set to board colours
+        if (colour == null)
+        {
+            defaultColour = isLight ? Settings.Square.LightColour : Settings.Square.DarkColour;
+        }
+        else
+        {
+            defaultColour = (Color)colour;
+        }
+    }
+
+    public void Highlight() => SetColour(Settings.Square.HighlightColour);
 
     public void SetOptionHighlight(bool highlight) => optionHighlight = highlight;
 

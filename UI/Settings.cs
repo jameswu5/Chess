@@ -6,7 +6,7 @@ public static class Settings
 {
     public const int ScreenWidth = 1080;
     public const int ScreenHeight = 720;
-    public static readonly Color ScreenColour = new(7, 51, 59, 255);
+    public static readonly Color ScreenColour = new(29, 36, 43, 255);
 
     public const int FrameRate = 60;
 
@@ -14,10 +14,10 @@ public static class Settings
     {
         public const int Size = 76;
 
-        public static readonly Color LightColour = new(200, 227, 232, 255);
-        public static readonly Color DarkColour  = new(86, 126, 133, 255);
+        public static readonly Color LightColour  = new(193, 208, 214, 255);
+        public static readonly Color DarkColour = new(86, 119, 140, 255);
         public static readonly Color HighlightColour = new(240, 235, 204, 255);
-        public static readonly Color CheckColour = new(237, 159, 145, 255);
+        public static readonly Color CheckColour = new(214, 127, 111, 255);
 
         public static readonly Color OptionColour = new(0, 0, 0, 100);
         public const int OptionRadius = Size / 4;

@@ -106,8 +106,25 @@ public class Game
 
     public void PlayMove(int move)
     {
+        // if in check, deactivate highlight
+        if (board.inCheck)
+        {
+            int index = board.kingIndices[board.GetColourIndex(board.turn)];
+            ui.SetSquareDefaultColour(index);
+            ui.ResetSquareColour(index);
+        }
+
         board.MakeMove(move);
         ui.MakeMove(move);
+
+        // if in check activate highlight
+        if (board.inCheck)
+        {
+            int index = board.kingIndices[board.GetColourIndex(board.turn)];
+            ui.SetSquareDefaultColour(index, UI.Settings.Square.CheckColour);
+            ui.ResetSquareColour(index);
+        }
+
         Audio.Audio.PlaySound(Core.Move.IsCaptureMove(move));
 
         clock.ToggleClock();

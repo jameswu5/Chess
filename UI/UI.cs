@@ -110,6 +110,10 @@ public class UI
 
     public void ResetSquareColour(int index) => squares[index].InitialiseColor();
 
+    public void SetSquareColour(int index, Color colour) => squares[index].SetColour(colour);
+
+    public void SetSquareDefaultColour(int index, Color? colour = null) => squares[index].SetDefaultColour(colour);
+
     public void UnHighlightOptionsAllSquares()
     {
         foreach (Square square in squares)
