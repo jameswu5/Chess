@@ -8,9 +8,9 @@ public class Program
 {
     public static void Main()
     {
-        PlayOnePlayer(Player.Player.Type.Human);
+        // PlayOnePlayer(Player.Player.Type.Human);
         // PlayOnePlayer(Player.Player.Type.Version2);
-        // PlayMatch(Player.Player.Type.Version1, Player.Player.Type.Version2);
+        PlayMatch(Player.Player.Type.Random, Player.Player.Type.Version2);
     }
 
     public static void PlayMatch(Player.Player.Type bot1, Player.Player.Type bot2)

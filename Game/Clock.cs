@@ -34,22 +34,22 @@ public class Clock
         black.Display();
     }
 
-    public void Initialise(int startTime, int increment)
+    public void Initialise(int startTime, int increment, bool whiteToPlay)
     {
         this.startTime = startTime;
         this.increment = increment;
 
-        NewGame();
+        NewGame(whiteToPlay);
     }
 
-    public void NewGame()
+    public void NewGame(bool whiteToPlay)
     {
         white.SetTime(startTime);
         black.SetTime(startTime);
 
-        whiteToPlay = true;
-        white.SetActive(true);
-        black.SetActive(false);
+        this.whiteToPlay = whiteToPlay;
+        white.SetActive(whiteToPlay);
+        black.SetActive(!whiteToPlay);
     }
 
     public void ToggleClock()

@@ -1,10 +1,10 @@
 
+using Chess.Core;
+
 namespace Chess.Game;
 
 public class Match
 {
-    const int games = 20;
-
     public Player.Player.Type player1;
     public Player.Player.Type player2;
 
@@ -15,9 +15,16 @@ public class Match
     public int gameNumber;
     public bool isActive;
 
+    public static readonly string[] schedule = new string[]
+    {
+        FEN.standard, FEN.Sicilian, FEN.RuyLopez, FEN.French, FEN.Italian, FEN.CaroKann, FEN.QueensGambit, FEN.Slav, FEN.KingsIndian, FEN.English
+    };
+
+    private int scheduleIndex;
+
     public enum GameResult { WhiteWins, Draw, BlackWins }
 
-    public event Action StartGame;
+    public event Action<string> StartGame;
 
     public Match()
     {
@@ -33,7 +40,9 @@ public class Match
         draws = 0;
         gameNumber = 0;
 
-        StartGame.Invoke();
+        scheduleIndex = 0;
+
+        StartGame.Invoke(schedule[scheduleIndex]);
     }
 
     public void SetBots(Player.Player.Type bot1, Player.Player.Type bot2)
@@ -75,13 +84,18 @@ public class Match
 
         gameNumber++;
 
-        if (gameNumber == games)
+        if (gameNumber % 2 == 0)
+        {
+            scheduleIndex++;
+        }
+
+        if (scheduleIndex == schedule.Length)
         {
             EndOfMatch();
         }
         else
         {
-            StartGame.Invoke();
+            StartGame.Invoke(schedule[scheduleIndex]);
         }
 
         Console.WriteLine($"{player1Wins} | {draws} | {player2Wins}");

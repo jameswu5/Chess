@@ -1,4 +1,5 @@
 
+using Chess.Core;
 using Chess.Player;
 
 namespace Chess.Game;
@@ -30,7 +31,7 @@ public class Game
         CreatePlayer(ref blackPlayer, Player.Player.Type.Human);
 
         clock = new();
-        clock.Initialise(allowedTime, increment);
+        clock.Initialise(allowedTime, increment, board.turn == Core.Piece.White);
         clock.ClockTimedOut += TimedOut;
 
         match = new Match();
@@ -177,14 +178,14 @@ public class Game
 
     // Match games
 
-    public void StartNewGame(Player.Player.Type whitePlayerType, Player.Player.Type blackPlayerType)
+    public void StartNewGame(Player.Player.Type whitePlayerType, Player.Player.Type blackPlayerType, string FEN = FEN.standard)
     {
         Console.WriteLine($"{whitePlayerType} vs {blackPlayerType}");
-        board.Initialise();
+        board.Initialise(FEN);
         ui.Reset();
         ui.CreateUI(board.boardState);
 
-        clock.NewGame();
+        clock.NewGame(board.turn == Core.Piece.White);
 
         CreatePlayer(ref whitePlayer, whitePlayerType);
         CreatePlayer(ref blackPlayer, blackPlayerType);
@@ -206,16 +207,16 @@ public class Game
         match.StartMatch();
     }
 
-    public void StartMatchGame()
+    public void StartMatchGame(string FEN = FEN.standard)
     {
         // Player1 is white if gameNumber is even
         if (match.gameNumber % 2 == 0)
         {
-            StartNewGame(match.player1, match.player2);
+            StartNewGame(match.player1, match.player2, FEN);
         }
         else
         {
-            StartNewGame(match.player2, match.player1);
+            StartNewGame(match.player2, match.player1, FEN);
         }
     }
 }
