@@ -1,5 +1,7 @@
 # Chess
-This is my implementation of a chess GUI made with Unity. Makes use of techniques such as bitboards for move generation, and Zobrist hashing for game states.
+This is my implementation of a chess game made from scratch with Raylib. It makes use of techniques such as bitboards for move generation, and Zobrist hashing for game states. There is a simple chess bot implemented which uses techniques such as move ordering and alpha beta pruning to speed up its search.
+
+Simply clone the repository and navigate to the corresponding directory. Then enter `dotnet run` into the terminal to run the project. If you encounter an error stating that `Raylib_cs` is not found, then install it by entering `dotnet add package Raylib-cs`.
 
 ## Optimising Move Generation
 
