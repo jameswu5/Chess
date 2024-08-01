@@ -161,10 +161,7 @@ public class Board
         inCheck = state.inCheck;
     }
 
-
-    ///////////////////
-    // Making moves! //
-    ///////////////////
+    // Making moves!
 
     public int TryToGetMove(int index, int newIndex, int promotionType = Piece.None)
     {
@@ -455,12 +452,6 @@ public class Board
         int capturedPiece = Piece.None;
         int capturedIndex = -1;
 
-        // if (changeUI && inCheck)
-        // {
-        //     boardUI.ResetSquareColour(kingIndices[GetColourIndex(turn)]);
-        // }
-
-
         // move the pieces
 
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
@@ -527,10 +518,6 @@ public class Board
             ClearSquareFromBitboard(promotedPieceID, endIndex);
 
             // create a pawn on the start position
-            // if (changeUI)
-            // {
-            //     boardUI.CreatePiece(Piece.Pawn + heroColour, startIndex);
-            // }
             boardState[startIndex] = Piece.Pawn + heroColour;
             AddPieceToBitboard(Piece.Pawn + heroColour, startIndex);
 
@@ -551,11 +538,6 @@ public class Board
         {
             boardState[capturedIndex] = capturedPiece;
             AddPieceToBitboard(capturedPiece, capturedIndex);
-
-            // if (changeUI)
-            // {
-            //     boardUI.CreatePiece(capturedPiece, capturedIndex);
-            // }
         }
 
         // revert the king index
@@ -569,9 +551,6 @@ public class Board
 
         // change the move number if undoing a move made by black
         if (turn == Piece.Black) moveNumber--;
-
-        // remove end of game text if necessary
-        // Game.UpdateEndOfGameScreen(gameResult);
 
         // change the turn back
         ChangeTurn();
@@ -592,11 +571,6 @@ public class Board
         // Revert the states
         states.Pop();
         LoadState(states.Peek());
-
-        // if (changeUI && inCheck)
-        // {
-        //     boardUI.HighlightCheck(kingIndices[GetColourIndex(turn)]);
-        // }
     }
 
     public int GetPieceTypeAtIndex(int index) => boardState[index] & 0b111;
@@ -606,7 +580,6 @@ public class Board
     public bool CheckPieceIsWhite(int index) => Piece.IsColour(boardState[index], Piece.White);
 
     public bool CheckIfPieceIsColour(int index, int colour) => (CheckPieceIsWhite(index) && colour == Piece.White) || (!CheckPieceIsWhite(index) && colour == Piece.Black);
-
 
     private List<int> GetAllLegalMoves()
     {
@@ -625,8 +598,6 @@ public class Board
         }
         return moves;
     }
-
-
 
     // King stuff
 
@@ -653,9 +624,6 @@ public class Board
         int mask = colour == Piece.White ? WhiteQueensideRightMask : BlackQueensideRightMask;
         return (castlingRights & mask) > 0;
     }
-
-
-
 
     // Bitboards!!
 
@@ -700,9 +668,6 @@ public class Board
     {
         return pieceBitboards[pieceType + (colourIndex << 3)];
     }
-
-
-
 
     public bool CheckForInsufficientMaterial()
     {
