@@ -75,7 +75,7 @@ public static class Perft
         int result = Search(board, depth);
         stopwatch.Stop();
 
-        Console.WriteLine(result == expected ? $"Test {name} passed" : $"Test {name} failed");
+        Console.WriteLine(result == expected ? $"Test {name} passed" : $"Test {name} failed (expected: {expected}, actual: {result})");
 
         TimeSpan ts = stopwatch.Elapsed;
         string elapsedTime = string.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);

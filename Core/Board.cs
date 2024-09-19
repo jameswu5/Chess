@@ -42,9 +42,9 @@ public class Board
 
     public Judge.Result gameResult;
 
-    public Board()
+    public Board(string FENPosition = FEN.standard)
     {
-        Initialise();
+        Initialise(FENPosition);
     }
 
     public void Initialise(string FENPosition = FEN.standard)
