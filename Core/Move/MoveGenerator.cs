@@ -459,7 +459,8 @@ public class MoveGenerator
         {
             ulong ignore = 1ul << start | 1ul << target | 1ul << captureSquare;
             ulong attacks = 0;
-            for (int i = 0; i < 4; i++)
+            // This can only happen in east-west cases, so we only need to check these two directions
+            for (int i = 2; i < 4; i++)
             {
                 attacks |= Bitboard.GetRayAttacks(hero, opponent, i, heroKingIndex, ignore);
             }
