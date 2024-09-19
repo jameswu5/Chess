@@ -161,8 +161,9 @@ public class UI
         int endIndex = Move.GetEndIndex(move);
         int moveType = Move.GetMoveType(move);
 
-        bool isWhite = board.CheckPieceIsWhite(startIndex);
-        int colour = board.GetColour(isWhite);
+        // this is bad code but I don't know why the previous code didn't work
+        int colour = 8 - board.turn;
+        bool isWhite = colour == Core.Piece.White;
 
         if (moveType == Move.Standard || moveType == Move.PawnTwoSquares)
         {
